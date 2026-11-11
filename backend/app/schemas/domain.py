@@ -91,10 +91,9 @@ class ApprovalState(StrEnum):
 
 
 class PaymentState(StrEnum):
-    """State vocabulary only. Legal transitions belong to the later service."""
+    """Payment vocabulary enforced by the centralized state-machine service."""
 
     CREATED = "CREATED"
-    VERIFYING = "VERIFYING"
     POLICY_CHECK = "POLICY_CHECK"
     AWAITING_APPROVAL = "AWAITING_APPROVAL"
     CHECKOUT_READY = "CHECKOUT_READY"

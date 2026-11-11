@@ -1,6 +1,6 @@
 # Domain schemas
 
-Import contracts from `app.schemas`. These are Pydantic v2 data contracts. The [deterministic verifier](verification.md) now evaluates explicit structured attributes; the [pure financial policy service](policy.md) now evaluates explicit backend authority records. Canonical digest computation and an [internal in-memory approval workflow](approvals.md) are implemented. Authenticated approval endpoints, durable persistence, payment transitions, and provider integration remain later stages.
+Import contracts from `app.schemas`. These are Pydantic v2 data contracts. The [deterministic verifier](verification.md) now evaluates explicit structured attributes; the [pure financial policy service](policy.md) now evaluates explicit backend authority records. Canonical digest computation and an [internal in-memory approval workflow](approvals.md) are implemented. The [central payment transition graph](payment-state-machine.md) is implemented. Authenticated approval endpoints, durable persistence, financial/provider coordinator integration, and execution remain later stages.
 
 | Contract | Purpose |
 | --- | --- |
@@ -27,7 +27,7 @@ Import contracts from `app.schemas`. These are Pydantic v2 data contracts. The [
 - Approval and payment records require proposal/user/offer/merchant IDs, exact amount/currency, policy version, verification snapshot ID, and proposal digest. Digests must have lowercase SHA-256 hex shape (64 characters). The schemas themselves do not compute digests; the separate binding/service layer now generates and regenerates them. Hash shape does not authenticate consent.
 - Record timestamps require a timezone. Approval expiry must follow creation; APPROVED/REJECTED require a decision time within that window, and PENDING cannot have a decision time. EXPIRED records can retain a historical decision time within the window. No wall-clock expiry decision is performed during record deserialization; the approval service performs explicit-time expiry and permanent INVALIDATED lifecycle transitions.
 - Payment records default to CREATED with application approval PENDING. An idempotency key is required and retained exactly; no key generation or duplicate enforcement exists yet. APPROVED/REJECTED/EXPIRED application states require an approval reference; NOT_REQUIRED cannot carry one. NOT_REQUIRED applies only to application approval and never skips PayPal buyer authorization.
-- PaymentState includes VERIFYING from ARCHITECTURE.md, alongside the other planned states. No legal transition table is implemented yet.
+- PaymentState now has exactly the nine requested states, with a centralized event-driven transition table and terminal/uncertainty guards. The unused VERIFYING vocabulary from D-021 is removed by D-027. Model deserialization represents records; it does not authorize state changes or establish provider success.
 
 ## Example
 

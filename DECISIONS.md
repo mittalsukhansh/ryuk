@@ -643,7 +643,7 @@ None. Implements the foundation within D-005, D-011, and D-017; the PostgreSQL p
 
 ## D-021 — Explicit validated domain records without execution authority
 Date: 2026-11-11
-Status: Accepted
+Status: Superseded
 
 ### Context
 The domain-schema stage needs interoperable typed records before catalog, verification, policy, approvals, and checkout services are implemented. Loose coercion, ambiguous units, and conflicting snapshots would weaken later trust boundaries.
@@ -678,7 +678,7 @@ Zero is explicit zero, not unlimited; currency conversion and storage/provider i
 - `CODEX_PROMPTS.md`
 
 ### Supersedes / superseded by
-None. Refines D-004, D-007, D-008, D-016, and D-017. VERIFYING remains a vocabulary choice only; legal transition design is deferred to the state-machine stage.
+Superseded by D-027 for payment-state vocabulary only (VERIFYING removal). All other domain-contract decisions remain in effect.
 
 ## D-022 — Read-only labeled fixtures and explicit catalog retrieval
 Date: 2026-11-11
@@ -894,3 +894,41 @@ Backend loaders and authentication must establish canonical data/actor provenanc
 
 ### Supersedes / superseded by
 None. Implements D-007 and refines D-006/D-025 binding/approval consumption with real digest regeneration and owned lifecycle state; durable authorization/transactional execution remain pending.
+
+## D-027 — Exact nine-state event-driven payment transition graph
+Date: 2026-11-11
+Status: Accepted
+
+### Context
+The requested payment-state stage specifies nine states and requires illegal transitions to be rejected. Earlier schema planning included an extra VERIFYING member but no transition implementation. State progression must not skip current policy after approval, reopen terminal payments, or treat ambiguous capture results as failed/retryable.
+
+### Decision
+Use exactly the requested nine PaymentState values and remove unused VERIFYING. Centralize legal backend-event transitions in a nested immutable table. Provide validated state/event resolution, immutable reachability introspection, and a PaymentIntent state-only update helper with an optional local expected-state check. Preserve every binding, payment identity, creation time, approval metadata, and idempotency key. Reject unknown/removed values, unsupported event/source combinations, same-state transitions, and terminal-state exits.
+
+Application approval returns AWAITING_APPROVAL to POLICY_CHECK for fresh checks before checkout readiness. Pre-capture states can cancel/fail or return to policy as explicitly allowed. CAPTURE_PENDING can resolve from confirmed capture success/failure or become PENDING_PROVIDER on uncertainty. PENDING_PROVIDER only exits through conclusive reconciliation success/failure; it cannot directly retry capture, cancel, reset, or accept a generic capture failure. SUCCEEDED and FAILED are terminal. Backend/provider event provenance is a prerequisite, not inferred from enum values.
+
+### Alternatives considered
+- Retain the earlier extra VERIFYING vocabulary despite the explicit nine-state request.
+- Permit arbitrary target assignments, mutable transition maps, generic failure on timeout, or capture retry from uncertain state.
+- Move directly from application approval to checkout without rechecking policy.
+- Implement provider mapping/capture, durable persistence, financial reservations, or public transition endpoints in this graph-only stage.
+
+### Why
+A small explicit event-driven graph makes legal progression reviewable and exhaustively testable. Terminal locks and reconciliation-only uncertainty handling preserve the existing payment-safety boundaries. Removing an unused state follows the user's current contract; the engine remains independent of payment SDKs while retaining the requested AWAITING_PAYPAL_BUYER label.
+
+### Consequences
+All nine states have enforced legal transitions and tested negative paths, including the full state/event and state-pair matrices. Transition helpers return validated copies without changing bound terms or idempotency. The old VERIFYING value is invalid; no repository payment database requires migration. Local stale-state checks do not replace durable compare-and-swap, and repeated provider callbacks need future handler deduplication. Graph legality is not user approval, financial authorization, provider verification, reservation, or capture; those gates remain coordinator/adapter responsibilities.
+
+### Constraints / assumptions
+Only trusted backend components may emit transition events after establishing their business/provider facts. LLM/browser data and unverified webhooks cannot directly set authoritative state or supply success evidence. The library has no I/O, system clock, SDK client, financial side effect, or public API. Later execution must atomically persist state/audit and revalidate current policy/bindings/consent before irreversible action. Existing in-memory approval/persistence limitations are unchanged. D-021's status/supersession metadata is updated; its historical decision body is preserved.
+
+### Related files
+- `backend/app/services/payment_state_machine.py`
+- `backend/app/schemas/domain.py`
+- `backend/tests/test_payment_state_machine.py`
+- `docs/payment-state-machine.md`
+- `ARCHITECTURE.md`
+- `CODEX_PROMPTS.md`
+
+### Supersedes / superseded by
+Supersedes D-021's VERIFYING vocabulary choice only; other D-021 contracts remain in effect. Implements D-016 centralized transitions and D-010 capture-uncertainty progression without implementing provider reconciliation itself.

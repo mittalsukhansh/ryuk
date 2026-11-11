@@ -51,7 +51,6 @@ Available budget = limit - settled - active_reservations.
 
 ```text
 CREATED
-VERIFYING
 POLICY_CHECK
 AWAITING_APPROVAL
 CHECKOUT_READY
@@ -62,7 +61,7 @@ FAILED
 PENDING_PROVIDER
 ```
 
-PENDING_PROVIDER exists because timeout != confirmed failure.
+PENDING_PROVIDER exists because timeout != confirmed failure. The centralized event-driven transition graph is implemented in `backend/app/services/payment_state_machine.py`; SUCCEEDED/FAILED are terminal, and uncertain capture only resolves through verified reconciliation events. See `docs/payment-state-machine.md`. State legality does not establish provider truth or authorize capture.
 
 ### PayPal Adapter
 Only this adapter knows PayPal URLs, OAuth, create order, capture, and provider mapping.

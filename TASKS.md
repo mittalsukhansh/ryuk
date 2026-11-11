@@ -54,6 +54,13 @@
 - [x] revalidation before checkout (backend gate; payment wiring deferred)
 - [ ] durable approval storage and authenticated user integration
 
+### Payment state machine
+- [x] Exact nine-state vocabulary and centralized immutable event/transition graph
+- [x] Illegal transitions, same-state moves, and terminal exits rejected
+- [x] Approval returns to policy; pending-provider recovery requires reconciliation events
+- [x] State-only updates preserve binding, identity, and idempotency; exhaustive tests
+- [ ] Durable conditional state updates, coordinator integration, and audit persistence
+
 ### PayPal
 - [ ] Sandbox accounts/app
 - [ ] server-side OAuth
