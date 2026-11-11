@@ -186,3 +186,9 @@ Groq repair: 1,063 backend tests/Ruff/diff checks pass. User installation must p
 - [x] Guard cancellation activity until its callback resolves
 - [x] Frontend lint/type/build and 47 mocked production-browser assertions
 - [ ] Verify user's current live payment state; never infer capture success from HTTP 200
+
+## Acceptance receipts — 2026-11-12
+- [x] Read-only CLI export of successful checkout/capture/audit/settlement evidence
+- [x] Pending/missing ledger regression checks, no financial writes/provider calls
+- [x] Independently export the separate USD100 test receipt from this workspace
+- [ ] Export the user's website payment receipt locally and retain UI confirmation screenshot

@@ -37,3 +37,16 @@ RYUK_E2E_TEST_ONLY=1 PYTHONPATH=. python tests/frontend_server.py
 ```
 
 It always creates a fresh temporary ledger; its reset endpoints are not in production app/image startup. Start the production frontend from frontend/ with `RYUK_BACKEND_URL=http://127.0.0.1:8100 npm start -- --port 3100`, then run `npm run test:e2e`. Model/provider behavior is mocked. Stop these fixture processes after testing; do not use them for user purchases.
+
+## Read-only payment acceptance receipt
+After updating/rebuilding the backend, run from the project directory:
+
+```sh
+docker compose exec -T backend python -m app.export_acceptance --latest-success > ryuk-payment-evidence.json
+```
+
+For a specific Ryuk internal payment reference, replace `--latest-success` with `--payment-id <reference>`. The command reads a consistent SQLite snapshot with query_only enabled; it never creates a missing database, calls PayPal, captures/retries a payment or resets records. It exports only allowlisted identifiers, amount/currency, recorded backend state, snapshot/policy references and audit event names/times. It omits actor identity, request text, idempotency keys, audit details, credentials and session data.
+
+`checks_passed: true` means the stored backend record is SUCCEEDED, has a capture reference, exactly one capture-dispatch event, exactly one settlement event, and one SETTLED reservation matching the exact amount/currency. A failed check exits with status 2; investigate that existing payment instead of paying again. No match/configuration error exits with status 1. A receipt is a snapshot of backend evidence, not a fresh provider query or proof of UI timing. Compare its capture reference with the seller's Sandbox Activity for independent provider evidence.
+
+Keep the receipt private; its default filename pattern is Git-ignored. Redirection creates a local receipt file, so protect it with your OS account/file permissions. Never commit private transaction receipts or upload .env. For UI acceptance, also keep a screenshot of Ryuk's Payment confirmed result. Standalone test receipts do not prove that a different transaction passed through the website.

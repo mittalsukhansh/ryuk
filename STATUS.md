@@ -140,3 +140,10 @@ UI example repair validation: 1,066 backend tests, Ruff and diff checks pass. Ex
 Confirmed that a terminal/pending capture response caused the parent to unmount PayPalCheckout and invoke Buttons.close while the SDK onApprove promise was still running. A realistic mock lifecycle regression failed before the fix (one premature close). Keep SDK nodes mounted for the selected purchase, hide further button action on non-awaiting states, and let the SDK finish its own callback/window cleanup. Local cancellation now holds the UI busy until its callback completes too.
 
 Frontend lint/typecheck/production build and 47 production-browser assertions pass, including success/pending/cancellation lifecycle guards. Backend financial rules, keys, claims/reservations and no-retry semantics are unchanged; no backend tests were rerun for this frontend-only repair. No live provider/payment call or user payment-status claim in this stage. HTTP 200 alone does not prove SUCCEEDED; inspect the existing payment's state before any new purchase. Update/recreate frontend only to avoid resetting in-memory backend authority.
+
+## Read-only acceptance evidence export — 2026-11-12
+Added app.export_acceptance CLI for the operator to export recorded capture/order/payment references, backend state, minimal audit and exact-once settlement checks from the local SQLite ledger. Read-only/query-only snapshot; no provider calls or resets. Credentials, actor identity, request text, idempotency keys and arbitrary audit details are omitted. Default receipt filenames are Git-ignored.
+
+The separately authorized USD100 Sandbox test in this workspace has exported evidence: recorded SUCCEEDED, capture reference, exactly one dispatch/settlement, matching settled reservation and 15 audit events. This does not certify the user's separate website payment or UI timing; that receipt must be exported from their local Docker ledger. No new payment was attempted in this task.
+
+Evidence exporter validation: 1,069 backend tests passed; Ruff and diff checks passed. Frontend unchanged; no live provider operation performed. Actual receipts remain private outside Git.

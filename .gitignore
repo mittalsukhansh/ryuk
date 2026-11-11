@@ -23,3 +23,6 @@ htmlcov/
 *.sqlite3
 *.sqlite3-wal
 *.sqlite3-shm
+
+# Private acceptance receipts contain transaction references; do not publish them.
+ryuk-payment-evidence*.json

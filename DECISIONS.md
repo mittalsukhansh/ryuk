@@ -1229,3 +1229,9 @@ Status: Accepted
 A backend terminal/pending response updated React checkout state, unmounting the PayPal component and calling Buttons.close before onApprove returned. This can strand the popup/merchant overlay despite HTTP 200 responses. Keep the SDK component and nodes alive for that selected purchase; hide its action host once backend state no longer awaits buyer approval. SDK cleanup runs when leaving the purchase, not merely when a capture response arrives. Hold cancellation UI busy through its asynchronous callback.
 
 No timers, forced window closure, capture retries, financial policy or provider-state shortcuts. Add a mock that detects close during callbacks; it reproduces the old bug and verifies success/pending/cancel paths after the fix. Frontend-only rollout preserves backend in-memory authority. A user's actual current payment still requires record/provider verification independently of transport HTTP status. No live payment made by these tests.
+
+## D-038 — Operator acceptance export without financial side effects
+Date: 2026-11-12
+Status: Accepted
+
+Use a local-only CLI and SQLite read-only/query-only snapshot to export allowlisted payment/order/capture references, amounts, recorded state and minimal audit. Check exactly one capture dispatch/settlement and a matching SETTLED reservation. Missing/incomplete evidence never triggers a new payment or provider query. Do not export credentials, actor identity, request text, idempotency keys or arbitrary audit detail blobs. Git-ignore receipt filenames and retain actual receipts privately. A standalone test receipt cannot certify a different user's UI transaction; UI timing and fresh provider verification remain distinct evidence.
