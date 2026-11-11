@@ -161,3 +161,20 @@ After every meaningful implementation task:
 3. Never mark work complete unless the implementation exists and relevant tests pass.
 4. Never rewrite historical decision entries. If a decision changes, add a new decision and mark the old one Superseded.
 5. Keep TASKS.md and STATUS.md consistent.
+
+
+
+## Stage execution
+
+Work only on the currently requested stage.
+
+Do not automatically begin the next stage after completing the current one.
+
+At the end of each stage:
+1. run relevant tests,
+2. update STATUS.md,
+3. update DECISIONS.md if needed,
+4. report what was completed,
+5. report blockers,
+6. recommend the next stage,
+7. stop and wait for the next instruction.
