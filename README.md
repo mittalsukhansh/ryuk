@@ -1,6 +1,8 @@
-# AgentPay
+# Ryuk
 
-Intent-aware commerce: verify that a purchase matches the user's requirements before payment. This repository implements a Next.js + TypeScript + Tailwind preview, a FastAPI API with synthetic hotel search, validated Pydantic domain contracts, and deterministic attribute verification. LLM-backed intent parsing is available behind an interface with structured output and a deterministic test fake. Pure deterministic financial eligibility is implemented. Canonical proposal hashing and an internal in-memory approval workflow are implemented. The provider-neutral payment state machine enforces legal event-driven transitions. PayPal Sandbox and checkout integration are implemented with mocked HTTP, durable SQLite execution/budget/audit, and guarded identifier-only routes. Real authentication, durable canonical approval authority, buyer UI and live Sandbox acceptance remain pending.
+**AI can choose. You stay in control.** Ryuk is a dark casebook for intent-aware commerce: typed intent, synthetic hotel shortlist, evidence verification, deterministic policy, exact approval and backend-confirmed PayPal Sandbox checkout. The frontend is integrated with the existing services through a same-origin proxy and an opt-in password-protected single-buyer session. SQLite persists execution, budget holds and checkout audit; canonical proposals/approvals remain in memory.
+
+The mock-tested UI/checkout works; **live model and Sandbox acceptance are not yet verified**. Step 11 remains in acceptance pending those checks. See [frontend setup and limits](docs/frontend.md) and the [three-minute demo outline](docs/demo-script.md).
 
 See [STATUS.md](STATUS.md) for verified progress, [PLAN.md](PLAN.md) for scope, [DECISIONS.md](DECISIONS.md) for decisions, and [domain schemas](docs/domain-schemas.md) for contracts and validation rules. See [catalog documentation](docs/catalog.md) for the eight synthetic offers and search endpoint, and [verification documentation](docs/verification.md) for mandatory/preferred checks and snapshot semantics. [Intent parser documentation](docs/intent-parser.md) covers provider configuration, source validation, and the 15 synthetic prompt cases. [Financial policy documentation](docs/policy.md) describes authority inputs, decisions, reason codes, and the boundary with future transaction controls. [Proposal binding and approvals](docs/approvals.md) documents exact hashes, expiry, invalidation, replay handling, and the in-memory reference store. [Payment state machine](docs/payment-state-machine.md) lists legal events, terminal locks, uncertainty rules, and integration boundaries.
 
@@ -9,13 +11,15 @@ See [STATUS.md](STATUS.md) for verified progress, [PLAN.md](PLAN.md) for scope, 
 Requires Docker Engine with BuildKit and Docker Compose v2.
 
 ```sh
-cp .env.example .env
-docker compose up --build -d --wait
+# Preserve any existing private .env; otherwise copy the template.
+cp -n .env.example .env
+# Configure private demo/provider settings as described in docs/frontend.md.
+docker compose --env-file .env up --build -d --wait
 curl --fail http://localhost:8000/health
 # Expected: {"status":"ok"}
 ```
 
-Open http://localhost:3000 for the preview and http://localhost:8000/docs for API documentation. Ports are published on loopback only. `/health` asserts process liveness, not database or provider readiness. Both containers have health checks and run as non-root users. Health and catalog startup need no credentials; intent parsing needs backend OpenAI configuration.
+Open http://localhost:3000 for the Ryuk casebook and http://localhost:8000/docs for API documentation. Ports are published on loopback only. `/health` asserts process liveness, not database or provider readiness. Both containers have health checks and run as non-root users. Health and catalog startup need no credentials; intent parsing needs backend OpenAI configuration.
 
 ```sh
 docker compose logs -f
@@ -97,4 +101,4 @@ Compose passes `APP_ENV`, OpenAI settings and private `PAYPAL_*` settings only t
 
 PayPal Sandbox adapter: see [configuration, internal API, state mapping and recovery limits](docs/paypal.md). OAuth credentials stay backend-only; live Sandbox acceptance remains pending.
 
-[Checkout integration](docs/checkout.md) documents the durable ledger, pre-capture revalidation/reservation, recovery and identifier-only API. Checkout routes return 503 until real authentication and trusted backend service/authority provisioning are configured; constant user identities are test-only. Buyer UI is the next requested stage.
+[Checkout integration](docs/checkout.md) documents the durable ledger, pre-capture revalidation/reservation, recovery and identifier-only API. Private checkout is now provisioned only when explicitly enabled with a backend password and supported Sandbox settings; missing configuration stays blocked. Constant browser identities and test payment fallbacks are not enabled. Multi-user production auth and durable canonical authority remain pending.

@@ -1015,3 +1015,84 @@ Only trusted backend code configures accounts/policy, maps supported Sandbox pay
 
 ### Supersedes / superseded by
 None. Implements checkout portions of D-002/D-006/D-007/D-009/D-010 and integrates D-025 through D-028. PostgreSQL preference and in-memory canonical-authority limitations are not superseded.
+
+## D-030 — Ryuk identity and evidence-first casebook interface
+Date: 2026-11-11
+Status: Accepted
+
+### Context
+The frontend request names the product Ryuk and requires a restrained investigative notebook rather than generic AI-startup styling, while preserving existing financial authority and showing evidence before payment.
+
+### Decision
+Use visible RYUK/Ryuk branding, near-black paper surfaces, original abstract mountain line art, serif headings, monospace records, thin borders and sparse deep red. Use no franchise assets or gradient/glass effects. Present one casebook flow: instruction, backend-parsed intent, first three candidate records with optional expansion, evidence matrix, deterministic verdict, exact approval, actual SDK checkout, backend payment record and audit. Label fixture data and demo-payee/no-booking scope. Display backend evidence counts and separate preference percentages instead of inventing an overall match/confidence score. Keep backend state the only source of payment confirmation. Preserve internal modules/API paths/database/state/environment identifiers.
+
+### Alternatives considered
+- Generic rounded AI dashboard/gradient hero or copied franchise artwork.
+- Recompute policy or invent match scores, evidence, audit times or successful payment in the browser.
+- Rename internal contracts for branding or show every candidate at full length on the primary demo path.
+
+### Why
+The requested mood supports a clear three-minute inspection of intent, evidence and authority without compromising existing boundaries. The visible shortlist emphasizes eligible/review/denied examples while retaining other backend records.
+
+### Consequences
+The frontend has a responsive custom casebook, accessible native review/sign-in dialogs and explicit blocked/pending/provider-unavailable states. It depends on real backend results; missing configuration cannot masquerade as a successful demo. Live SDK/buyer timing and acceptance still need verification.
+
+### Constraints / assumptions
+Preference FAIL does not become a mandatory denial. Every displayed PASS comes from backend checks/evidence. Checkout callbacks cannot declare success. Historical planning/decision text and internal AgentPay identifiers are not mass-renamed. Mocked browser validation does not satisfy the user's real Sandbox acceptance criterion.
+
+### Related files
+- `frontend/app/page.tsx`
+- `frontend/app/globals.css`
+- `frontend/app/layout.tsx`
+- `frontend/components/paypal.tsx`
+- `frontend/lib/contracts.ts`
+- `frontend/lib/api.ts`
+- `frontend/tests/e2e.mjs`
+- `docs/frontend.md`
+
+### Supersedes / superseded by
+None. Implements the requested Ryuk product identity and UI over D-003/D-004/D-012/D-018; financial rules remain unchanged.
+
+## D-031 — Opt-in private demo session and thin same-origin integration seams
+Date: 2026-11-11
+Status: Accepted
+
+### Context
+The frontend cannot safely integrate missing proposal/approval/audit/workspace routes by inventing browser authority or using the previously test-only constant actor. The current stage permits the smallest missing backend integration endpoints while preserving architecture and payment rules.
+
+### Decision
+Add an explicitly enabled single-buyer private Sandbox workspace: backend-only password (minimum 16 characters), scrypt/constant-time verification, five attempts per client/minute, random hashed server-side session token, 20-minute HttpOnly/SameSite=Strict cookie, logout revocation and exact configured origin checks on mutations. Keep demo mode off by default; no unsigned identity header authenticates. Proxy an allowlist of backend routes through Next server code with cookies, origin checks, no caching/redirects and safe errors. Only the public PayPal client ID reaches the SDK, never its secret.
+
+Add thin authenticated request/proposal/select/approval/audit/workspace adapters around existing parser, catalog, verifier, policy, approval and checkout services. Browser requests carry query or identifiers/decision, not structured financial authority. Preserve active backend caps and immutable payment terms. Seed a trusted demo account/policy once, retain its durable ledger across restart, configure supported Sandbox mappings only on the backend, and provide a protected persistent Compose volume. Canonical proposal/approval/early audit remain process-local; no core persistence/security refactor is made. Test-only provider/model hooks stay outside production startup and image inputs.
+
+### Alternatives considered
+- Expose checkout without authentication, choose users from browser JSON/headers, or add a constant production actor.
+- Duplicate policy/verification, synthesize intent/evidence/payment success in the UI, or silently switch to fake providers when credentials are absent.
+- Introduce a broad production identity service, new architecture or durable canonical-store migration in the frontend stage.
+
+### Why
+These are the integration seams needed for a usable private demo with explicit authentication and existing backend financial authority. Default refusal and honest unavailable states preserve prior invariants without claiming multi-user production readiness.
+
+### Consequences
+Authenticated browser requests can use the real existing services and SDK path; mocked HTTP/browser tests cover the full interaction. A private operator must configure password/origin/providers. Sessions and canonical authority are process-local and one-worker/single-buyer scoped; this does not establish production auth or durable multi-worker authorization. Actual provider account/SDK/transaction acceptance remains blocked by unavailable shared credentials and must not be marked complete.
+
+### Constraints / assumptions
+The operator protects private `.env`, database directory/volume and credentials, enables secure cookies for HTTPS, and configures a supported Sandbox seller and buyer. A local file on the user's computer is not automatically present in this cloud workspace. Source review and mocked execution are distinct from a real Sandbox transaction. Step 12 is not started by this implementation.
+
+### Related files
+- `backend/app/services/session.py`
+- `backend/app/services/provisioning.py`
+- `backend/app/services/workspace.py`
+- `backend/app/api/workspace.py`
+- `backend/app/api/checkout.py`
+- `backend/app/main.py`
+- `frontend/app/api/ryuk/[...path]/route.ts`
+- `backend/tests/test_workspace.py`
+- `backend/tests/frontend_server.py`
+- `.env.example`
+- `docker-compose.yml`
+- `backend/Dockerfile`
+- `docs/frontend.md`
+
+### Supersedes / superseded by
+None. Implements the missing private-demo auth/provisioning seam in D-029, retaining its ledger and canonical-authority constraints. No production identity or live acceptance decision is implied.

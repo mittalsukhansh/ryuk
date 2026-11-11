@@ -1,0 +1,76 @@
+import { NextRequest } from "next/server";
+
+export const runtime = "nodejs";
+const allowed =
+  /^(session|workspace|requests|proposals\/[a-zA-Z0-9_-]+(?:\/(select|approval|audit))?|approvals\/[a-zA-Z0-9_-]+\/decision|checkouts(?:\/[a-zA-Z0-9_-]+(?:\/(capture|reconcile|cancel))?)?)$/;
+
+async function proxy(
+  request: NextRequest,
+  context: { params: Promise<{ path: string[] }> },
+) {
+  const path = (await context.params).path.join("/");
+  if (!allowed.test(path))
+    return Response.json({ detail: "Not found" }, { status: 404 });
+  let sameOrigin = false;
+  try {
+    sameOrigin =
+      new URL(request.headers.get("origin") || "").host ===
+      request.headers.get("host");
+  } catch {}
+  if (!["GET", "HEAD"].includes(request.method) && !sameOrigin) {
+    return Response.json(
+      { detail: "Request origin is not allowed" },
+      { status: 403 },
+    );
+  }
+  const body = ["GET", "HEAD"].includes(request.method)
+    ? undefined
+    : await request.text();
+  if (body && Buffer.byteLength(body) > 65_536)
+    return Response.json({ detail: "Request too large" }, { status: 413 });
+  try {
+    const upstream = await fetch(
+      `${process.env.RYUK_BACKEND_URL || "http://127.0.0.1:8000"}/v1/${path}`,
+      {
+        method: request.method,
+        body,
+        redirect: "manual",
+        cache: "no-store",
+        signal: AbortSignal.timeout(35_000),
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: request.headers.get("cookie") || "",
+          Origin: request.headers.get("origin") || "",
+        },
+      },
+    );
+    const headers = new Headers({
+      "Content-Type": "application/json",
+      "Cache-Control": "no-store",
+      Vary: "Cookie",
+    });
+    for (const cookie of upstream.headers.getSetCookie())
+      headers.append("Set-Cookie", cookie);
+    if (upstream.status >= 300 && upstream.status < 400)
+      return Response.json({ detail: "Backend unavailable" }, { status: 502 });
+    const text = await upstream.text();
+    try {
+      JSON.parse(text);
+    } catch {
+      return Response.json(
+        { detail: "Backend unavailable; please check the recorded state." },
+        { status: 502 },
+      );
+    }
+    return new Response(text, {
+      status: upstream.status,
+      headers,
+    });
+  } catch {
+    return Response.json(
+      { detail: "The private workspace is unavailable. Please try again." },
+      { status: 503 },
+    );
+  }
+}
+export { proxy as GET, proxy as POST, proxy as DELETE };

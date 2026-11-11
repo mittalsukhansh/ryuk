@@ -12,6 +12,15 @@ services:
       PAYPAL_BASE_URL: ${PAYPAL_BASE_URL:-https://api-m.sandbox.paypal.com}
       PAYPAL_CLIENT_ID: ${PAYPAL_CLIENT_ID:-}
       PAYPAL_CLIENT_SECRET: ${PAYPAL_CLIENT_SECRET:-}
+      PAYPAL_MERCHANT_ID: ${PAYPAL_MERCHANT_ID:-}
+      RYUK_DEMO_ENABLED: ${RYUK_DEMO_ENABLED:-false}
+      RYUK_DEMO_PASSWORD: ${RYUK_DEMO_PASSWORD:-}
+      RYUK_APP_ORIGIN: ${RYUK_APP_ORIGIN:-http://localhost:3000}
+      RYUK_SECURE_COOKIES: ${RYUK_SECURE_COOKIES:-true}
+      RYUK_CHECKOUT_DB_PATH: /app/data/ryuk.sqlite3
+      RYUK_BUDGET_LIMIT_MINOR: ${RYUK_BUDGET_LIMIT_MINOR:-150000}
+    volumes:
+      - checkout_data:/app/data
     ports:
       - "127.0.0.1:8000:8000"
     healthcheck:
@@ -22,6 +31,8 @@ services:
       start_period: 10s
   frontend:
     build: ./frontend
+    environment:
+      RYUK_BACKEND_URL: http://backend:8000
     ports:
       - "127.0.0.1:3000:3000"
     depends_on:
@@ -33,3 +44,6 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+
+volumes:
+  checkout_data:

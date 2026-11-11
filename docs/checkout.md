@@ -132,3 +132,5 @@ fields/digests/provider bindings, ownership, durable retries, concurrent create 
 capture, reserved-funds contention, atomic rollback, cancellation, restart recovery,
 original-term reconciliation, accounting, API flow and fail-closed default auth.
 They establish mock integration correctness, not live PayPal or complete browser E2E.
+
+Stage 11 now supplies the opt-in single-buyer private session, runtime provisioning and buyer casebook; see [frontend integration](frontend.md). Default mode remains disabled and production multi-user/durable canonical authority is still pending. Live acceptance has not been established.

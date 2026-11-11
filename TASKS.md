@@ -33,7 +33,7 @@
 - [x] preferred scoring
 - [x] PASS/FAIL/UNKNOWN
 - [x] verification snapshot (generated in memory with evidence and stable ID; persistence deferred)
-- [ ] evidence shown in UI
+- [x] evidence shown in UI (backend matrix, sources and snapshot)
 
 ### Policy
 - [x] max budget rule
@@ -50,7 +50,7 @@
 - [x] proposal binding (internal in-memory service)
 - [x] expiry (internal in-memory service)
 - [x] approve/reject service operations with one-time decisions
-- [ ] authenticated approve/reject endpoint
+- [x] authenticated approve/reject endpoint (opt-in single-buyer demo session)
 - [x] revalidation before checkout (backend gate; payment wiring deferred)
 - [ ] durable approval storage and authenticated user integration
 
@@ -72,7 +72,7 @@
 - [x] get status and exact order/capture binding/state mapping (mocked HTTP)
 - [ ] live Sandbox final-state acceptance
 - [x] verified capture decline and local pre-dispatch cancel handling (mocked HTTP)
-- [ ] buyer UI cancel/decline presentation
+- [x] buyer UI cancel/decline/pending presentation (browser/provider mocks)
 - [x] ambiguous timeout classification, no automatic capture retry, status reconciliation (adapter tests)
 - [x] durable pending-provider GET-only recovery and held-budget accounting
 - [ ] unknown-create/operator recovery procedure
@@ -84,8 +84,23 @@
 - [x] Identifier-only create/read/capture/reconcile/cancel HTTP contracts with forbidden authority fields
 - [x] Default routes fail closed until trusted authentication/service provisioning
 - [x] Duplicate/concurrent budget, expiry/tampering, transaction rollback and restart tests
-- [ ] Production session/token verifier and trusted runtime service provisioning
-- [ ] Buyer UI and live Sandbox checkout acceptance
+- [x] Opt-in private demo password session and trusted runtime service provisioning
+- [ ] Production multi-user identity and durable canonical authority
+- [x] Buyer UI / actual PayPal JS v5 integration implemented and browser-mock tested
+- [ ] Live Sandbox checkout acceptance
+
+### Frontend — Stage 11
+- [x] Visible Ryuk branding and restrained dark editorial casebook design
+- [x] Command input, backend intent, candidate records and evidence/preference detail
+- [x] Backend policy verdict and exact-term approval/reject modal
+- [x] Actual PayPal JS SDK/server order/capture integration; success only from backend
+- [x] Backend result/reference/snapshot/available budget and audit timeline
+- [x] Same-origin proxy, authenticated private session and explicit unavailable states
+- [x] Production build, desktop/mobile browser integration and no secret-marker bundles
+- [ ] Real configured model + real Sandbox buyer/capture acceptance (credentials absent here)
+- [ ] Live happy path timed under three minutes
+- [ ] Stage 11 acceptance complete; do not infer completion from mocked tests
+- [ ] Stage 12 security review (not started)
 
 ### Audit
 - [x] checkout execution/reservation/provider-observation events persisted in SQLite
@@ -94,7 +109,7 @@
 - [ ] policy events
 - [ ] approval events
 - [ ] provider events
-- [ ] timeline UI
+- [x] timeline UI (backend canonical and checkout events; early records process-local)
 
 ### Demo
 - [ ] ALLOW scenario
@@ -111,7 +126,7 @@
 - [x] checkout duplicate/overspend concurrency tests (broader security review remains pending)
 - [x] checkout merchant/provider mapping substitution tests (mocked HTTP)
 - [ ] "Why this purchase?" summary
-- [ ] requirement matrix UI
+- [x] requirement matrix UI
 - [ ] human review when evidence is insufficient
 
 ## P2 — Only if P0/P1 complete

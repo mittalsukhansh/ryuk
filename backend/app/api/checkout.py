@@ -36,11 +36,25 @@ class CheckoutView(DomainModel):
     amount_minor: MinorUnits
     currency: Currency
     merchant_id: str
+    verification_snapshot_id: str
+    capture_id: str | None
+    proposal_id: str
+    provider_status: str | None
 
 
-def get_checkout_actor() -> str:
-    """Fail closed until a real server-side session/token verifier is configured."""
-    raise HTTPException(status_code=503, detail="Checkout authentication is not configured")
+def get_checkout_actor(request: Request) -> str:
+    """An opaque server-owned session authenticates the configured demo buyer."""
+    from app.services.session import COOKIE_NAME, DemoSessions
+
+    auth = getattr(request.app.state, "demo_sessions", None)
+    if not isinstance(auth, DemoSessions):
+        raise HTTPException(status_code=503, detail="Checkout authentication is not configured")
+    if request.method not in {"GET", "HEAD"} and request.headers.get("origin") != auth.origin:
+        raise HTTPException(status_code=403, detail="Request origin is not allowed")
+    actor = auth.actor_for(request.cookies.get(COOKIE_NAME))
+    if actor is None:
+        raise HTTPException(status_code=401, detail="Sign in to the private workspace")
+    return actor
 
 
 def get_checkout_service(request: Request) -> CheckoutService:
@@ -63,6 +77,10 @@ def _view(record: CheckoutRecord) -> CheckoutView:
         amount_minor=record.payment.amount_minor,
         currency=record.payment.currency,
         merchant_id=record.payment.merchant_id,
+        verification_snapshot_id=record.payment.verification_snapshot_id,
+        capture_id=record.capture_id,
+        proposal_id=record.payment.proposal_id,
+        provider_status="COMPLETED" if record.payment.state == "SUCCEEDED" else None,
     )
 
 
