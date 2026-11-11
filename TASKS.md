@@ -177,3 +177,5 @@ This current evidence supersedes earlier unchecked Step 12 instructions/counts. 
 - [x] Live gpt-oss-120b gold extraction accepted and validated (no payments)
 
 Groq repair: 1,063 backend tests/Ruff/diff checks pass. User installation must pull and rebuild/recreate backend; no private key changes are required for the schema fix.
+
+- [x] Reproduce and repair the unchanged UI example: numeric-only monetary grammar and role-bearing exact source evidence; live extraction validated, no payments.

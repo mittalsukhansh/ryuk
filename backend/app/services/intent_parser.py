@@ -29,8 +29,9 @@ TOTAL budget or explicit supported currency is missing, unlimited, or ambiguous.
 Do not invent money, infer unlimited budget, convert currencies, reprice a stay,
 or derive a total from a nightly/per-unit price. Supported currencies: USD, EUR,
 CHF, GBP, JPY. A bare $ or yen sign without an explicit currency is ambiguous.
-For each money mention preserve amount_text exactly as written (comma thousands,
-dot decimal) and quote an exact contiguous source phrase containing that amount.
+For each money mention amount_text must be ONLY the exact numeric token as written,
+including comma thousands/dot decimal. Example: USD 1,500 -> amount_text "1,500",
+NEVER "USD 1,500". The quote must include the exact contiguous source phrase.
 Budget quote must include the ceiling/budget wording and its explicit currency.
 Each money quote must contain only one numeric amount. Threshold quote must also
 include ask/approve/confirm wording. Return null threshold if none was specified.
@@ -110,15 +111,46 @@ class IntentProviderRejected(IntentParserUnavailable):
         super().__init__(self.MESSAGES[self.category])
 
 
-def groq_extraction_schema() -> dict:
+def groq_extraction_schema(query: str | None = None) -> dict:
     """Remove a redundant overlapping union branch; retain the same JSON value set.
 
     JSON Schema `number` includes integers. Groq rejects anyOf containing both
     number and integer; Pydantic's strict typed/source/domain checks still run.
     """
     schema = LLMIntentExtraction.model_json_schema()
+    amount = schema["$defs"]["MoneyMention"]["properties"]["amount_text"]
+    amount["pattern"] = r"^(?:[0-9]+|[0-9]{1,3}(?:,[0-9]{3})+)(?:\.[0-9]+)?$"
+    amount["description"] = (
+        "Exact numeric token only, e.g. 1,500. Never include USD, currency symbols or words."
+    )
     value = schema["$defs"]["ExtractedAttribute"]["properties"]["value"]
     value["anyOf"] = [branch for branch in value["anyOf"] if branch.get("type") != "integer"]
+    if query is not None:
+        from copy import deepcopy
+
+        # Constrain monetary evidence to exact, role-bearing source spans. These
+        # enums are data, never instructions, and final validation still runs.
+        for field, cue in (("budget", _BUDGET_CUE), ("approval_threshold", _THRESHOLD_CUE)):
+            quotes = []
+            amounts = []
+            for match in cue.finditer(query):
+                number = _NUMBER_IN_QUOTE.search(query, match.end())
+                if number is None:
+                    continue
+                end = number.end()
+                suffix = re.match(r"\s*(?:USD|EUR|CHF|GBP|JPY)\b", query[end:], re.I)
+                if suffix:
+                    end += suffix.end()
+                quote = query[match.start() : end]
+                if len(_currencies(quote)) != 1 or len(_NUMBER_IN_QUOTE.findall(quote)) != 1:
+                    continue
+                quotes.append(quote)
+                amounts.append(number.group())
+            if quotes:
+                money = deepcopy(schema["$defs"]["MoneyMention"])
+                money["properties"]["quote"]["enum"] = list(dict.fromkeys(quotes))
+                money["properties"]["amount_text"]["enum"] = list(dict.fromkeys(amounts))
+                schema["properties"][field] = {"anyOf": [money, {"type": "null"}]}
     return schema
 
 
@@ -329,7 +361,7 @@ class GroqIntentParser:
                     "json_schema": {
                         "name": "purchase_intent_extraction",
                         "strict": True,
-                        "schema": groq_extraction_schema(),
+                        "schema": groq_extraction_schema(query),
                     },
                 },
                 max_completion_tokens=MAX_OUTPUT_TOKENS,

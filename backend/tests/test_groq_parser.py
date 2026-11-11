@@ -57,7 +57,7 @@ async def parse_mock(query: str, response: dict) -> Any:
         assert body["response_format"]["json_schema"] == {
             "name": "purchase_intent_extraction",
             "strict": True,
-            "schema": groq_extraction_schema(),
+            "schema": groq_extraction_schema(query),
         }
         assert "tools" not in body
         assert body["messages"][1] == {"role": "user", "content": query}
@@ -236,3 +236,58 @@ def test_provider_failure_categories_are_safe_and_actionable(monkeypatch, status
         assert "private-provider-detail" not in response.text
     finally:
         app.dependency_overrides.pop(get_intent_parser, None)
+
+
+def test_groq_amount_grammar_excludes_currency_and_preserves_numeric_token():
+    import re
+
+    pattern = groq_extraction_schema()["$defs"]["MoneyMention"]["properties"]["amount_text"][
+        "pattern"
+    ]
+    assert re.fullmatch(pattern, "1,500")
+    assert re.fullmatch(pattern, "1300.50")
+    for invalid in ["USD 1,500", "$1500", "1,500 dollars", "1 500", "1,50"]:
+        assert not re.fullmatch(pattern, invalid)
+    assert (
+        LLMIntentExtraction.model_json_schema()["$defs"]["MoneyMention"]["properties"][
+            "amount_text"
+        ]["pattern"]
+        == r"\S"
+    )
+
+
+def test_exact_ui_example_keeps_budget_and_mandatory_roles():
+    query = (
+        "Find a hotel in Switzerland for 5 nights under USD 1,500.\n"
+        "Gym, mountain view and free cancellation are required.\n"
+        "Private pool preferred. Ask me above USD 1,300."
+    )
+    extraction = deepcopy(GOLD["extraction"])
+    extraction["budget"] = {"amount_text": "1,500", "quote": "under USD 1,500"}
+    extraction["approval_threshold"] = {"amount_text": "1,300", "quote": "Ask me above USD 1,300"}
+    for attribute in extraction["required_attributes"]:
+        attribute["quote"] = {
+            "country": "Switzerland",
+            "nights": "5 nights",
+            "gym": "Gym, mountain view and free cancellation are required.",
+            "mountain_view": "Gym, mountain view and free cancellation are required.",
+            "free_cancellation": "Gym, mountain view and free cancellation are required.",
+        }[attribute["name"]]
+    extraction["preferred_attributes"][0]["quote"] = "Private pool preferred."
+    result = asyncio.run(parse_mock(query, completion(extraction)))
+    assert result.budget_max_minor == 150000 and result.approval_threshold_minor == 130000
+    assert all(
+        result.required_attributes[k] is True for k in ["gym", "mountain_view", "free_cancellation"]
+    )
+
+
+def test_ui_money_evidence_is_bound_to_role_bearing_source_spans():
+    query = "5 nights under USD 1,500. Ask me above USD 1,300."
+    schema = groq_extraction_schema(query)
+    for field, quote, amount in [
+        ("budget", "under USD 1,500", "1,500"),
+        ("approval_threshold", "Ask me above USD 1,300", "1,300"),
+    ]:
+        money = schema["properties"][field]["anyOf"][0]["properties"]
+        assert money["quote"]["enum"] == [quote]
+        assert money["amount_text"]["enum"] == [amount]

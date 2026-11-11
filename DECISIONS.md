@@ -1215,3 +1215,9 @@ Status: Accepted
 Real Groq calls rejected ExtractedAttribute.value.anyOf because integer and number overlap. For Groq only, remove the redundant integer alternative; JSON Schema number includes integers, so the accepted JSON value set is unchanged. Preserve the shared application schema, strict Pydantic validation, source/role/money checks and digest-bound application review. Never downgrade to unstructured JSON or retry/fallback automatically.
 
 Classify SDK HTTP errors by status into static code-owned authentication/access/model/rate/request/unavailable messages. Do not reflect provider body or exception text. Live gpt-oss-120b validation succeeded on the committed synthetic gold request; semantic completeness and buyer-approved payment remain separate acceptance gates. No payment operation was performed.
+
+## D-036 — Constrain model monetary evidence instead of asking users to rephrase clear input
+Date: 2026-11-12
+Status: Accepted
+
+The UI's valid built-in example produced currency-prefixed amount_text and quotes omitting the budget/threshold role cue. Keep strict backend validation. Explicitly prompt numeric-only tokens; restrict Groq transport money grammar and exact source-derived role/currency evidence candidates when available. These constraints narrow model outputs, do not infer missing money or raise policy limits, and never grant payment authority. Ambiguous/unsupported input still fails validation. Add UI-text/grammar/source-span regressions and verify the exact screenshot text live. No payment or semantic-completeness claim.
