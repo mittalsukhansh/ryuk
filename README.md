@@ -1,8 +1,8 @@
 # AgentPay
 
-Intent-aware commerce: verify that a purchase matches the user's requirements before payment. This repository currently implements the foundation only: a Next.js + TypeScript + Tailwind preview and a FastAPI liveness API. AI, catalog, database models, approvals, and payments are planned stages, not working features.
+Intent-aware commerce: verify that a purchase matches the user's requirements before payment. This repository implements a Next.js + TypeScript + Tailwind preview, a FastAPI liveness API, and validated Pydantic domain contracts. AI, catalog, database models, approval services, and payments remain planned stages.
 
-See [STATUS.md](STATUS.md) for verified progress, [PLAN.md](PLAN.md) for scope, and [DECISIONS.md](DECISIONS.md) for decisions.
+See [STATUS.md](STATUS.md) for verified progress, [PLAN.md](PLAN.md) for scope, [DECISIONS.md](DECISIONS.md) for decisions, and [domain schemas](docs/domain-schemas.md) for contracts and validation rules.
 
 ## Docker Compose
 
@@ -87,7 +87,7 @@ curl --fail --output /dev/null http://localhost:3000
 docker compose config --quiet
 ```
 
-The backend test checks the HTTP health contract without external services. There are no purchase-flow, security, or E2E regression suites yet; linting and type checking are not substitutes for them.
+Backend tests cover domain validation and the HTTP health contract without external services. There are no purchase-flow, runtime security, or E2E regression suites yet; linting and type checking are not substitutes for them.
 
 ## Configuration and secrets
 

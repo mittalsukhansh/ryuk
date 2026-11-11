@@ -11,8 +11,12 @@
 - [x] health endpoints
 - [x] lint/test commands
 
+### Domain schemas
+- [x] PurchaseIntent, Offer, CheckResult, VerificationResult, PolicyDecision, PurchaseProposal, ApprovalRequest, PaymentIntent
+- [x] Strict integer minor units, explicit enums, and contract-validation tests
+
 ### Intent
-- [ ] PurchaseIntent schema
+- [x] PurchaseIntent schema
 - [ ] structured parsing
 - [ ] validation
 - [ ] 15 test prompts

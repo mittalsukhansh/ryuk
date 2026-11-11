@@ -640,3 +640,42 @@ This is a development foundation, not a production deployment or working checkou
 
 ### Supersedes / superseded by
 None. Implements the foundation within D-005, D-011, and D-017; the PostgreSQL preference remains unchanged.
+
+## D-021 — Explicit validated domain records without execution authority
+Date: 2026-11-11
+Status: Accepted
+
+### Context
+The domain-schema stage needs interoperable typed records before catalog, verification, policy, approvals, and checkout services are implemented. Loose coercion, ambiguous units, and conflicting snapshots would weaken later trust boundaries.
+
+### Decision
+Implement the eight requested Pydantic contracts in `app.schemas`, forbidding unexpected fields. Require nonnegative actual integers for monetary minor units, explicit budget/approval thresholds, positive integer quantities, and timezone-aware timestamps. Currency validation checks uppercase three-letter shape only. Required and preferred attribute maps cannot overlap; attributes support JSON values and offer evidence is keyed by attribute. Use explicit state/outcome/reason enums. Preference scores use 0–100 percentages and optional semantic confidence uses 0–1; both are finite and cannot override required checks or missing evidence.
+
+Require semantic PASS evidence and verify aggregate consistency against supplied mandatory checks, with FAIL taking precedence over UNKNOWN. Bind approval/payment records explicitly to proposal, user, offer, merchant, amount, currency, policy version, verification snapshot, and a lowercase SHA-256-shaped digest. Draft proposals may omit evaluated results and digest; supplied snapshots must match their offer/policy references. Preserve denied offers as representable records. Approval times are validated structurally, including historical decisions on expired records; current authorization/expiry and transitions remain service responsibilities. Payment records default to CREATED and application approval PENDING and require an explicit idempotency key. Include VERIFYING from the architecture's fuller state vocabulary; add CURRENCY_MISMATCH to name the plan's existing currency rule.
+
+### Alternatives considered
+- Coerce monetary floats, strings, or booleans, or infer a missing budget as unlimited.
+- Accept arbitrary result/status strings and silently ignore unexpected fields.
+- Implement policy evaluation, digest generation, payment transitions, or provider calls inside schema validation.
+- Reject over-budget proposals at ingestion, preventing the planned denial/explanation workflow.
+
+### Why
+Explicit shape and cross-record consistency make future interfaces testable without granting untrusted inputs financial authority or prematurely building later stages. Schema-level state vocabulary is distinct from a payment transition service.
+
+### Consequences
+Invalid/coercible money, inconsistent snapshots, unsupported state strings, and semantic PASS without evidence are rejected early. Clients must supply explicit units, thresholds, references, and timestamps. Tests cover JSON round trips and adversarial boundary inputs. Currency allowlisting, evidence authenticity, digest calculation, current approval checks, canonical lookup, duplicate prevention, transition legality, and provider verification remain unimplemented; a schema-valid record is not authorization.
+
+### Constraints / assumptions
+Zero is explicit zero, not unlimited; currency conversion and storage/provider integer limits remain later integration concerns. Missing mandatory evidence means UNKNOWN unless a mandatory failure exists. Digest format selects SHA-256 for future generation but does not implement hashing or prove binding. Records can describe historical states and must be revalidated by services; Pydantic models and nested collections are not treated as immutable security records.
+
+### Related files
+- `backend/app/schemas/domain.py`
+- `backend/app/schemas/__init__.py`
+- `backend/tests/test_domain_schemas.py`
+- `docs/domain-schemas.md`
+- `PLAN.md`
+- `ARCHITECTURE.md`
+- `CODEX_PROMPTS.md`
+
+### Supersedes / superseded by
+None. Refines D-004, D-007, D-008, D-016, and D-017. VERIFYING remains a vocabulary choice only; legal transition design is deferred to the state-machine stage.

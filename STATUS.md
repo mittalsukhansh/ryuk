@@ -3,12 +3,12 @@
 Last verified: 2026-11-11. Evidence: source inspection, local builds, pytest/lint/type checks, live HTTP requests, Chromium smoke checks, and a healthy Docker Compose deployment. Planning checklists alone are not completion evidence.
 
 ## Current milestone
-Phase 0 — Scaffold complete and verified. Next recommended stage: Codex Prompt 2 — Domain schemas, awaiting explicit instruction.
+Codex Prompt 2 — Domain schemas complete and verified. Phase 0 scaffold remains complete. Next recommended stage: Codex Prompt 3 — Hotel fixture catalog, awaiting instruction.
 
 ## Overall status
 In Progress
 
-The foundation runs locally and in Docker Compose. The Next.js preview serves HTTP 200 and FastAPI `/health` returns HTTP 200 with `{"status":"ok"}`. The commerce flow is not implemented and the product is not demo ready. AI and payments were intentionally excluded from this stage.
+The foundation runs locally and in Docker Compose. The Next.js preview serves HTTP 200 and FastAPI `/health` returns HTTP 200 with `{"status":"ok"}`. All eight Pydantic domain contracts and schema-validation tests now exist. The commerce flow is not implemented and the product is not demo ready. No catalog, AI, financial policy evaluation, approval authorization, payment transitions, or provider integration was added in this stage.
 
 ## Completed
 - [x] Git repository initialized and checked out on `main`.
@@ -20,13 +20,15 @@ The foundation runs locally and in Docker Compose. The Next.js preview serves HT
 - [x] Dockerfiles and Compose with non-root runtime users, loopback ports, and health checks; both services built and reached healthy status.
 - [x] Frontend startup verified locally and in containers; Chromium smoke checks passed at 1440px and 390px with styling, no horizontal overflow, and no browser runtime errors.
 - [x] README.md documents local and Compose startup, checks, configuration boundaries, and optional proxy CA build support.
+- [x] Eight domain schemas exported from `app.schemas` with strict integer minor units, explicit enums, evidence/status consistency, proposal references, and approval timing validation.
+- [x] 190 schema test cases plus the existing health test pass (191 total); Ruff and dependency checks pass. Contract usage and trust boundaries are documented in `docs/domain-schemas.md`; D-021 records schema choices.
 
 ## In Progress
-- [ ] No active implementation stage; scaffold work is complete. Domain schemas are recommended next, but have not been started.
+- [ ] No active implementation stage; domain schema work is complete. Hotel fixture catalog is recommended next but has not been started.
 
 ## Remaining
 ### P0
-- [ ] Define typed domain schemas and validated structured intent parsing with 15 test prompts.
+- [ ] Implement structured intent parsing and parser validation with 15 test prompts. Domain contracts are complete; parser behavior remains unimplemented.
 - [ ] Add at least six labeled synthetic hotel offers with merchant IDs, attributes, evidence, and a catalog/search endpoint.
 - [ ] Implement required/preferred verification, PASS/FAIL/UNKNOWN, snapshots, and evidence display.
 - [ ] Implement deterministic budget/currency/merchant/evidence policy, reason codes, duplicate protection, and proposal digests.
@@ -48,39 +50,41 @@ The foundation runs locally and in Docker Compose. The Next.js preview serves HT
 - [ ] Multi-rail adapter, conceptual UPI Circle/P3P adapter, and team approvals.
 
 ## Blockers
-- No unresolved blocker for the completed scaffold or for beginning domain schemas.
+- No unresolved blocker for the completed schema stage or for beginning the fixture catalog.
 - Container validation required the managed proxy CA override documented in README.md. A disk-exhaustion failure was resolved by removing task-created build caches and reducing frontend build layers; both containers then passed health checks.
 - Sandbox account/app setup and usable credentials are unverified; empty template fields do not establish readiness. They will be required for live Sandbox acceptance, but need not block scaffolding.
 
 ## Risks
-- No commerce security or payment invariant has implementation/test evidence yet.
+- Schema-boundary safeguards have test evidence; runtime commerce authorization and payment invariants remain unimplemented.
 - npm audit reports seven moderate development-tool findings through the TypeScript ESLint/minimatch dependency chain after a compatible update attempt. The production dependency audit reports zero findings. Review tooling updates before broader development.
 - pytest passes with one upstream Starlette TestClient/httpx deprecation warning.
 - Docker VFS builds consume substantial temporary storage; monitor free disk space during rebuilds.
-- Browser tampering, prompt injection, approval replay, duplicate capture, concurrent overspend, and ambiguous provider outcomes remain unmitigated in code.
-- ARCHITECTURE.md includes VERIFYING in the payment states; CODEX_PROMPTS.md task 8 omits it. Resolve the state list during the payment-state-machine stage.
+- Schemas cannot establish authenticity of supplied statuses, evidence, IDs, or digests. Canonical lookups, current policy/expiry checks, digest generation, prompt-injection defenses, duplicate protection, budget reservations, and provider reconciliation still require services and tests.
+- PaymentState includes VERIFYING from ARCHITECTURE.md (D-021), resolving the earlier vocabulary discrepancy. Legal transitions and state-dependent authorization remain deferred to the payment-state-machine stage.
 - Synthetic hotel data must be clearly labeled; Sandbox checkout must not imply real hotel booking or arbitrary-merchant support.
 - Scope expansion into search integrations, other verticals, or multi-agent orchestration could delay the core demo.
 
 ## Next 3 actions
-1. On instruction, execute only Codex Prompt 2: define typed PurchaseIntent, Offer, CheckResult, VerificationResult, PolicyDecision, PurchaseProposal, ApprovalRequest, and PaymentIntent contracts using integer minor units.
-2. Add and run schema-validation tests, including invalid input and monetary boundary cases; rerun affected foundation checks.
-3. Update STATUS.md, TASKS.md, and meaningful decisions; report results/blockers, recommend the hotel fixture catalog stage, and stop for instruction.
+1. On instruction, execute only Codex Prompt 3: add at least six clearly labeled synthetic hotel offers with merchant IDs, structured attributes, evidence, and sources, validated against Offer.
+2. Implement the catalog/search service and tests for fixture validity and filtering; do not begin verification or intent parsing automatically.
+3. Update STATUS.md, TASKS.md, and meaningful decisions, report tests/blockers, recommend the deterministic verification stage, and stop for instruction.
 
 ## Demo readiness
-- Intent parsing: Not implemented; no schema, parser, or prompt fixtures.
+- Intent parsing: PurchaseIntent schema implemented/tested; parser and prompt fixtures absent.
 - Offer search: Not implemented; no catalog or synthetic hotel fixtures.
-- Verification: Not implemented; no checks, evidence snapshots, or UI.
-- Policy: Not implemented; no deterministic policy service or budget controls.
-- Approval: Not implemented; no application approval service or PayPal buyer flow.
-- PayPal: Not integrated; Sandbox configuration template only, credentials/account readiness unknown.
+- Verification: CheckResult/VerificationResult contracts and consistency tests exist; verification engine, snapshot persistence, and UI absent.
+- Policy: PolicyDecision contract and enums exist; deterministic policy service and budget controls absent.
+- Approval: Bound ApprovalRequest contract and timestamp validation exist; authorization service and PayPal buyer flow absent.
+- PayPal: PaymentIntent contract exists; no provider adapter, transition service, or integration. Sandbox account/credential readiness remains unknown.
 - Audit: Not implemented; no persistence or timeline.
-- Security tests: Absent; no safety claims validated. Demo is not ready.
+- Security tests: Boundary validation cases pass (strict money, unexpected fields, evidence, references, timestamps); runtime authorization/provider tests absent. Demo is not ready.
 
 ## Test status
-- Unit: No domain unit suite yet. Backend `pytest -q`: 1 health-contract test passed, with one upstream deprecation warning.
-- Integration: In-process HTTP health test passed; live local and Compose `/health` returned HTTP 200 and `{"status":"ok"}`. Both Compose services are healthy; frontend HTTP 200 confirmed.
+- Unit: Backend `pytest -q`: 191 tests passed (190 domain-contract cases and 1 existing health-contract test), with the existing upstream Starlette/httpx deprecation warning.
+- Integration: In-process HTTP health test passes in this stage. Live local/Compose HTTP checks and healthy containers were verified during the scaffold stage; no integration routes or dependencies changed here.
 - E2E: Temporary Playwright/Chromium scaffold smoke checks passed on local development and Compose production frontend at desktop/mobile sizes, with no runtime errors or horizontal overflow. No committed full purchase-flow E2E suite yet.
-- Security: Empty credential-template fields, ignored local env files, and repository private-key/common-token-pattern checks passed; no comprehensive security suite yet. npm production audit: zero findings; development audit: seven moderate tooling findings.
+- Security: Schema tests reject coerced/negative money, missing budgets, forged extra fields, unsupported enums, mismatched snapshot references, malformed digests, semantic PASS without evidence, and invalid approval windows. No comprehensive runtime security suite yet. Prior scaffold checks verified empty credentials and ignored local env files. npm production audit: zero findings; development audit: seven moderate tooling findings.
 
-Additional checks passed: frontend ESLint, TypeScript check, production build; backend Ruff and `pip check`; Compose configuration validation and image builds; diff whitespace validation. Managed proxy CA override used for container dependency downloads. Services left running through Compose on localhost ports 3000 and 8000.
+Current stage: Ruff, pytest (191 passed), and `pip check` pass. No dependencies or frontend/runtime routes changed.
+
+Prior scaffold checks passed: frontend ESLint, TypeScript check, production build; backend Ruff and `pip check`; Compose configuration validation and image builds; diff whitespace validation. Managed proxy CA override used for container dependency downloads. Services left running through Compose on localhost ports 3000 and 8000.
