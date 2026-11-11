@@ -765,3 +765,48 @@ The service assumes canonical backend offer sourcing; recorded excerpts do not i
 
 ### Supersedes / superseded by
 None. Implements D-003 and D-004; extends the D-021 result contract with preferred checks and a concrete verification snapshot format without implementing D-007 proposal digest generation.
+
+## D-024 — Structured, source-checked intent parsing behind an async interface
+Date: 2026-11-11
+Status: Accepted
+
+### Context
+The intent-parser stage must convert purchase language to typed intent while preserving mandatory/preferred constraints, rejecting missing or unlimited budgets, and keeping probabilistic extraction outside financial authority. Tests must run without credentials or paid model calls.
+
+### Decision
+Define an async IntentParser protocol with OpenAI Responses strict structured-output and deterministic exact-query fake implementations. Use a closed intermediate Pydantic schema with nullable uncertainty fields and quoted attribute/money lists, then validate and convert to PurchaseIntent. Preserve the original query, separate required/preferred maps, reject duplicate/overlapping attributes, and check explicit role wording in exact source quotes. Keep hotel rooms and quantity consistent. A NEEDS_CLARIFICATION result never yields partial or invented intent.
+
+Require a quoted finite total budget and one explicit supported currency. Initially support USD/EUR/CHF/GBP (two decimals) and JPY (zero), with no currency inference from ambiguous symbols, exchange conversion, or per-night repricing. Check money quotes against source text and convert written decimal amounts to integer minor units exactly; never use float conversion or round fractional minor units. Require a bounded quoted approval threshold when specified; otherwise use conservative zero rather than infer permission to spend. Parsed limits remain proposals and never modify active policy.
+
+Expose POST /v1/agent/parse. Instantiate the real provider lazily with backend-only OPENAI_API_KEY and explicit OPENAI_MODEL, a 20-second timeout, zero automatic retries, no tools, and store=false. Return typed clarification/unavailable/invalid-output errors without raw provider data. Health/catalog run without credentials; no production fake fallback exists. Pin the official OpenAI SDK and its runtime dependencies, including the current httpx2 stack, which also resolves the prior TestClient deprecation warning. Add 15 synthetic gold prompts, exercised by fake and real-SDK mocked paths plus adversarial tests.
+
+### Alternatives considered
+- Parse free-form provider prose or send open dictionary schemas directly to strict structured output.
+- Infer unlimited/high budgets, default currency, or automatic approval when user data is absent.
+- Let the model convert money with floating-point values or accept invented source amounts.
+- Couple the API directly to a provider or use fake/demo output when credentials fail.
+- Require live credentials and paid calls for deterministic regression tests.
+
+### Why
+The interface isolates provider behavior, the closed intermediate format fits strict structured output, and server-side source checks plus exact money conversion prevent unsafe defaults and common extraction inconsistencies. Conservative missing-threshold handling preserves review rather than inventing spending authority. Fake and SDK-mock tests verify wiring and validation without conflating gold responses with live model accuracy.
+
+### Consequences
+The Intent task-board items now have implementation/test evidence, and the parse endpoint is available when configured. Missing/ambiguous user data requires clarification; unsupported currency/format cases do not receive guessed values. Additional supported currencies and providers need explicit conversion/contract tests. To reduce temporary VFS disk use, backend source/fixture copies occur before dependency installation, so source changes invalidate the dependency-install cache. Production deployment needs valid backend credentials and a structured-output-capable model; managed proxies may require a runtime public CA mount. Natural-language meaning can still be misinterpreted or omitted, so parsed intent remains untrusted, must be reviewed/revalidated, and cannot authorize payment.
+
+### Constraints / assumptions
+No live model evaluation was performed; responses in tests are synthetic gold fixtures or mocked HTTP. Source quote/role checks constrain output but are not a proof of complete semantic fidelity. No financial policy, approval, reservation, or payment service is implemented, and no payment credentials are exposed. Application threshold zero never substitutes for PayPal buyer authorization. Local Uvicorn requires environment variables to be set explicitly; Compose passes them only to the backend. Provider retention beyond the requested store=false behavior is not independently asserted.
+
+### Related files
+- `backend/app/services/intent_parser.py`
+- `backend/app/schemas/intent_parser.py`
+- `backend/app/api/agent.py`
+- `backend/app/main.py`
+- `backend/tests/test_intent_parser.py`
+- `fixtures/intent_prompts.json`
+- `backend/requirements.txt`
+- `.env.example`
+- `docker-compose.yml`
+- `docs/intent-parser.md`
+
+### Supersedes / superseded by
+None. Implements D-001 and D-017 intent parsing and refines D-008 money handling. The D-020 credential-free health/catalog startup remains intact; configured provider parsing is now an optional backend capability.

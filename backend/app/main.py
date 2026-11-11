@@ -1,4 +1,4 @@
-"""AgentPay foundation API. No AI or payment endpoints are exposed."""
+"""AgentPay API with catalog retrieval and intent proposals; no payment endpoints."""
 
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -7,6 +7,7 @@ from typing import Literal
 from fastapi import FastAPI
 from pydantic import BaseModel
 
+from app.api.agent import router as agent_router
 from app.api.offers import router as offers_router
 from app.services.catalog import CatalogService
 
@@ -20,6 +21,7 @@ async def lifespan(application: FastAPI) -> AsyncIterator[None]:
 
 app = FastAPI(title="AgentPay API", version="0.1.0", lifespan=lifespan)
 app.include_router(offers_router)
+app.include_router(agent_router)
 
 
 class HealthResponse(BaseModel):

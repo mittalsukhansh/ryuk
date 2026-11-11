@@ -1,8 +1,8 @@
 # AgentPay
 
-Intent-aware commerce: verify that a purchase matches the user's requirements before payment. This repository implements a Next.js + TypeScript + Tailwind preview, a FastAPI API with synthetic hotel search, validated Pydantic domain contracts, and deterministic attribute verification. AI, financial policy, database models, approval services, and payments remain planned stages.
+Intent-aware commerce: verify that a purchase matches the user's requirements before payment. This repository implements a Next.js + TypeScript + Tailwind preview, a FastAPI API with synthetic hotel search, validated Pydantic domain contracts, and deterministic attribute verification. LLM-backed intent parsing is available behind an interface with structured output and a deterministic test fake. Financial policy, database models, approval services, and payments remain planned stages.
 
-See [STATUS.md](STATUS.md) for verified progress, [PLAN.md](PLAN.md) for scope, [DECISIONS.md](DECISIONS.md) for decisions, and [domain schemas](docs/domain-schemas.md) for contracts and validation rules. See [catalog documentation](docs/catalog.md) for the eight synthetic offers and search endpoint, and [verification documentation](docs/verification.md) for mandatory/preferred checks and snapshot semantics.
+See [STATUS.md](STATUS.md) for verified progress, [PLAN.md](PLAN.md) for scope, [DECISIONS.md](DECISIONS.md) for decisions, and [domain schemas](docs/domain-schemas.md) for contracts and validation rules. See [catalog documentation](docs/catalog.md) for the eight synthetic offers and search endpoint, and [verification documentation](docs/verification.md) for mandatory/preferred checks and snapshot semantics. [Intent parser documentation](docs/intent-parser.md) covers provider configuration, source validation, and the 15 synthetic prompt cases.
 
 ## Docker Compose
 
@@ -15,7 +15,7 @@ curl --fail http://localhost:8000/health
 # Expected: {"status":"ok"}
 ```
 
-Open http://localhost:3000 for the preview and http://localhost:8000/docs for API documentation. Ports are published on loopback only. `/health` asserts process liveness, not database or provider readiness. Both containers have health checks and run as non-root users. No credentials are needed.
+Open http://localhost:3000 for the preview and http://localhost:8000/docs for API documentation. Ports are published on loopback only. `/health` asserts process liveness, not database or provider readiness. Both containers have health checks and run as non-root users. Health and catalog startup need no credentials; intent parsing needs backend OpenAI configuration.
 
 ```sh
 docker compose logs -f
@@ -87,10 +87,10 @@ curl --fail --output /dev/null http://localhost:3000
 docker compose config --quiet
 ```
 
-Backend tests cover domain validation, fixture integrity, catalog filtering/isolation, deterministic verification/preferences, snapshot identity, and HTTP health/search contracts without external services. There are no purchase-flow, runtime security, or E2E regression suites yet; linting and type checking are not substitutes for them.
+Backend tests cover domain validation, fixture integrity, catalog filtering/isolation, deterministic verification/preferences, snapshot identity, intent parsing through the fake and real SDK with mock HTTP, and HTTP health/search/parse contracts without external services. There are no purchase-flow, runtime security, or E2E regression suites yet; linting and type checking are not substitutes for them.
 
 ## Configuration and secrets
 
 Use `.env.example` as the canonical template; `env.example` is the original planning template retained for reference. `.env` and local environment variants are ignored by Git and excluded from image build contexts. Never put real credentials into either example.
 
-Only `APP_ENV` is currently passed by Compose. Future configuration names are reserved in the template; the scaffold does not load OpenAI, PayPal, or database credentials. `NEXT_PUBLIC_*` values are public browser configuration and must never contain secrets. Next.js public variables are fixed at build time; the scaffold does not consume them yet.
+Compose passes `APP_ENV`, `OPENAI_API_KEY`, and `OPENAI_MODEL` only to the backend at runtime. Set OpenAI values in the ignored root `.env` to enable `POST /v1/agent/parse`; empty values return 503 without breaking health/catalog. Local Uvicorn needs the two OpenAI variables set in its process environment and does not automatically load root `.env`. PayPal and database settings remain reserved and unused. `NEXT_PUBLIC_*` values are public browser configuration and must never contain secrets; the frontend does not consume them yet. No paid/live model validation has been performed; see [intent parser documentation](docs/intent-parser.md).

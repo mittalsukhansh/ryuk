@@ -17,9 +17,9 @@
 
 ### Intent
 - [x] PurchaseIntent schema
-- [ ] structured parsing
-- [ ] validation
-- [ ] 15 test prompts
+- [x] structured parsing
+- [x] validation
+- [x] 15 test prompts
 
 ### Catalog
 - [x] hotels.json
