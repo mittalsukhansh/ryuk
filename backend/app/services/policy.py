@@ -18,6 +18,7 @@ from app.schemas import (
     VerificationStatus,
 )
 from app.schemas.policy import AttemptSnapshot, AttemptState, BudgetSnapshot, FinancialPolicy
+from app.services.proposal_binding import InvalidProposalBinding, require_proposal_binding
 from app.services.verifier import verify_offer
 
 
@@ -85,6 +86,11 @@ def evaluate_policy(
         review.append(PolicyReasonCode.MISSING_EVIDENCE)
     elif proposal.verification != current:
         hard.append(PolicyReasonCode.VERIFICATION_INVALID)
+    if proposal.proposal_digest is not None:
+        try:
+            require_proposal_binding(proposal)
+        except InvalidProposalBinding:
+            hard.append(PolicyReasonCode.PROPOSAL_CHANGED)
 
     # Quantity is separate from explicit attribute maps in the current verifier.
     quantity_key = "rooms" if intent.category.strip().casefold() == "hotel" else "quantity"
@@ -126,7 +132,9 @@ def evaluate_policy(
             or (approval.decided_at is not None and approval.decided_at > now)
         ):
             hard.append(PolicyReasonCode.APPROVAL_INVALID)
-        if approval.status == ApprovalStatus.REJECTED:
+        if approval.status == ApprovalStatus.INVALIDATED:
+            hard.append(PolicyReasonCode.PROPOSAL_CHANGED)
+        elif approval.status == ApprovalStatus.REJECTED:
             hard.append(PolicyReasonCode.APPROVAL_REJECTED)
         elif approval.status == ApprovalStatus.EXPIRED or now >= approval.expires_at:
             review.append(PolicyReasonCode.APPROVAL_EXPIRED)

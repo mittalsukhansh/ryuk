@@ -43,14 +43,16 @@
 - [x] duplicate/unknown-attempt policy checks against explicit backend history snapshots
 - [x] read-only approval binding/expiry/rejection policy checks
 - [ ] duplicate protection (persistent/atomic enforcement)
-- [ ] proposal digest
+- [x] proposal digest
 
 ### Approval
-- [ ] request creation
-- [ ] proposal binding
-- [ ] expiry
-- [ ] approve/reject endpoint
-- [ ] revalidation before checkout
+- [x] request creation (internal in-memory service)
+- [x] proposal binding (internal in-memory service)
+- [x] expiry (internal in-memory service)
+- [x] approve/reject service operations with one-time decisions
+- [ ] authenticated approve/reject endpoint
+- [x] revalidation before checkout (backend gate; payment wiring deferred)
+- [ ] durable approval storage and authenticated user integration
 
 ### PayPal
 - [ ] Sandbox accounts/app

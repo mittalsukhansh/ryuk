@@ -11,6 +11,7 @@ from app.schemas import ApprovalRequest, PurchaseIntent, PurchaseProposal
 from app.schemas.policy import AttemptSnapshot, BudgetSnapshot, FinancialPolicy
 from app.services.catalog import CatalogService
 from app.services.policy import InvalidPolicyContext, evaluate_policy
+from app.services.proposal_binding import bind_proposal
 from app.services.verifier import verify_offer
 
 NOW = datetime(2026, 11, 11, 12, tzinfo=timezone.utc)
@@ -71,7 +72,7 @@ def refresh(context: dict) -> None:
 def approval_for(context: dict, **overrides: Any) -> ApprovalRequest:
     """Build an already persisted/verified approval record, not a user decision endpoint."""
     proposal = context["proposal"]
-    proposal.proposal_digest = "a" * 64
+    proposal.proposal_digest = bind_proposal(proposal).proposal_digest
     values = {
         "approval_request_id": "approval-1",
         "user_id": proposal.user_id,

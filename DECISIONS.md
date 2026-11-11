@@ -852,3 +852,45 @@ Authority snapshots and approvals must originate in trusted backend loading/auth
 
 ### Supersedes / superseded by
 None. Implements D-002, refines D-006/D-009/D-015 read-only policy gates, and integrates D-023 verification; D-007 digest generation, approval workflows, and transactional payment controls remain separate stages.
+
+## D-026 — Canonical proposal hashes and service-owned expiring approval records
+Date: 2026-11-11
+Status: Accepted
+
+### Context
+Approvals must authorize exact canonical terms, expire, and stop being usable when terms change. Comparing two caller-supplied SHA-shaped strings is insufficient, and old approvals must not revive after a change is reverted or a newer review is rejected. The repository currently has no database/authenticated-user HTTP layer.
+
+### Decision
+Implement proposal binding with compact sorted-key ASCII-escaped JSON, UTF-8, and SHA-256. Bind format version, proposal ID, canonical UTC creation timestamp, user, offer, merchant, integer amount, currency, policy version, and current verification snapshot ID. Recompute/validate the full deterministic verification result first. Keep stored digest/policy reports out of the hashed payload. Regenerate and constant-time compare before consuming a binding; extend pure policy evaluation to reject nonmatching non-null digests and INVALIDATED approvals.
+
+Implement an internal InMemoryApprovalService owning canonical proposal/request copies. Backend-only canonical writes recompute hashes, use expected-digest compare-and-swap for changed updates, and permanently invalidate outstanding grants. User operations require a trusted authenticated actor ID, and approve/reject operate by server-generated request ID rather than accepting caller-authored approved objects. Preserve exact user/offer/merchant/money/currency/policy/snapshot/digest fields. Default expiry is 10 minutes with positive backend-configured TTL capped at one hour; retries cannot extend it and expiry is inclusive. Explicit timezone-aware times must not move backwards.
+
+Add INVALIDATED to application approval states. Allow only a current unexpired PENDING record to be decided once. New reviews supersede prior grants; reverting terms or ignoring a newer request never restores consent. Revalidate canonical records plus current financial policy at approval and checkout; policy version changes revoke old grants, and approvals never override hard denial. Use process-local locking for the reference workflow and return copies to prevent external mutation.
+
+### Alternatives considered
+- Trust client-supplied digests, APPROVED flags, user IDs, or modified returned records.
+- Hash only amount/merchant, omit proposal identity, or concatenate ambiguous strings.
+- Extend expiry on request retry, reuse superseded grants, or reactivate consent after a change is reverted.
+- Expose unauthenticated approval endpoints or introduce a full database/auth/payment stack during the requested binding stage.
+
+### Why
+Canonical hashing detects changed terms and binds verified intent/evidence to consent. Service-owned lifecycle state prevents plain digest equality from reviving revoked or superseded grants. Internal reference services can implement and test the requested invariants without pretending missing authentication/persistence exists or exposing financial actions to an LLM.
+
+### Consequences
+Canonical hashes, exact approval bindings, request creation, one-time decisions, expiry, invalidation, and checkout revalidation now have regression evidence. Pure policy no longer accepts a fabricated matching pair of SHA-shaped hashes. HTTP approval endpoints and production persistence remain unfinished, and the in-memory store fails closed on restart. Canonical data updates must flow through the service; durable implementations must preserve invalidation/CAS/ownership semantics. Locking here does not reserve money or prevent cross-process duplicate capture. No LLM calls, live buyer actions, or payment execution occur.
+
+### Constraints / assumptions
+Backend loaders and authentication must establish canonical data/actor provenance; the hash is neither a signature nor consent. Active policy/budget/history inputs remain trusted server records. Only explicit buyer actions may call the approve method; agents cannot grant consent. Current policy is rerun immediately before any future irreversible action, and PayPal buyer authorization remains separately mandatory. Audit storage, durable transactions, public endpoints, and deployment wiring remain later integration work. Prior historical decision entries are unchanged.
+
+### Related files
+- `backend/app/services/proposal_binding.py`
+- `backend/app/services/approvals.py`
+- `backend/app/services/policy.py`
+- `backend/app/schemas/domain.py`
+- `backend/tests/test_approvals.py`
+- `backend/tests/test_policy.py`
+- `docs/approvals.md`
+- `ARCHITECTURE.md`
+
+### Supersedes / superseded by
+None. Implements D-007 and refines D-006/D-025 binding/approval consumption with real digest regeneration and owned lifecycle state; durable authorization/transactional execution remain pending.

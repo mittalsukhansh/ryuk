@@ -76,6 +76,7 @@ class ApprovalStatus(StrEnum):
     APPROVED = "APPROVED"
     REJECTED = "REJECTED"
     EXPIRED = "EXPIRED"
+    INVALIDATED = "INVALIDATED"
 
 
 class ApprovalState(StrEnum):
@@ -86,6 +87,7 @@ class ApprovalState(StrEnum):
     APPROVED = "APPROVED"
     REJECTED = "REJECTED"
     EXPIRED = "EXPIRED"
+    INVALIDATED = "INVALIDATED"
 
 
 class PaymentState(StrEnum):
@@ -283,9 +285,14 @@ class PaymentIntent(ProposalBinding):
     @model_validator(mode="after")
     def validate_approval_reference(self) -> Self:
         """An approved application state needs a reference, not a fabricated flag."""
-        referenced_states = {ApprovalState.APPROVED, ApprovalState.REJECTED, ApprovalState.EXPIRED}
+        referenced_states = {
+            ApprovalState.APPROVED, ApprovalState.REJECTED,
+            ApprovalState.EXPIRED, ApprovalState.INVALIDATED,
+        }
         if self.approval_state in referenced_states and self.approval_request_id is None:
-            raise ValueError("decided or expired approval state requires approval_request_id")
+            raise ValueError(
+                "decided, expired, or invalidated approval state requires approval_request_id"
+            )
         if (
             self.approval_state == ApprovalState.NOT_REQUIRED
             and self.approval_request_id is not None

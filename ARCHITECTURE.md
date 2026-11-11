@@ -87,7 +87,10 @@ PROVIDER_STATE_RECONCILED
 
 ## Proposal digest
 
-Canonical payload should include:
+Canonical versioned payload includes:
+- format version
+- proposal_id
+- created_at normalized to UTC
 - user_id
 - offer_id
 - merchant_id
@@ -96,8 +99,10 @@ Canonical payload should include:
 - policy_version
 - verification_snapshot_id
 
-Hash it and bind approval to the hash.
+Serialize compact sorted-key JSON and SHA-256 it; bind approval to the hash. Validate the current verification snapshot first.
 Before checkout/capture, regenerate and compare.
+
+`proposal_binding.py` and `InMemoryApprovalService` implement this binding and the internal approval lifecycle. Canonical updates invalidate outstanding grants permanently; expiry, current-request ownership, and current financial policy are rechecked. The reference store is process-local; authenticated HTTP adapters, durable storage, and payment integration remain pending. See `docs/approvals.md`.
 
 ## Threat model
 

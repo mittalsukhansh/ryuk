@@ -6,7 +6,7 @@
 
 Pass a canonical PurchaseProposal, current FinancialPolicy, BudgetSnapshot, AttemptSnapshot, evaluation timestamp, and optionally an already verified ApprovalRequest. The three new input contracts live in `app.schemas.policy` and are internal backend data, **not browser/model request DTOs**. Policy limits, allowlist, settled/reserved balances, history status, and approval records must come from trusted backend storage/configuration. All are explicit; no missing balance/history/allowlist is defaulted to a permissive value. Mutated model instances are revalidated.
 
-The proposal contains the parsed intent (a proposal, not active policy), canonical selected offer, policy version, verification snapshot, and optional canonical digest. This service does not load/authenticate those records or create the digest. No policy HTTP endpoint is added until later proposal services can load canonical authority records safely. Never forward caller-supplied policy, budget, history, or approval flags into this function.
+The proposal contains the parsed intent (a proposal, not active policy), canonical selected offer, policy version, verification snapshot, and optional canonical digest. This pure service does not load/authenticate those records or create the digest; it now regenerates and verifies every supplied non-null digest through the [canonical binding helper](approvals.md). No policy HTTP endpoint is added until later proposal services can load canonical authority records safely. Never forward caller-supplied policy, budget, history, or approval flags into this function.
 
 ## Rules and precedence
 
@@ -18,7 +18,7 @@ The proposal contains the parsed intent (a proposal, not active policy), canonic
 6. Check quantity separately because the current verifier only evaluates explicit attribute maps. For hotels, match intent quantity against canonical `rooms`; for other categories use `quantity`. A known positive-integer mismatch denies, while absent/incompatible quantity or its missing evidence requires review. Boolean true cannot stand in for integer one.
 7. A merchant absent from the current explicit allowlist requires review.
 8. CLEAR history permits continued evaluation; DUPLICATE denies a new attempt; UNKNOWN denies until backend/provider reconciliation establishes the real state. Approval cannot resolve unknown payment history.
-9. Honor only exact, current, already backend-verified approval records. Match user, proposal, offer, merchant, amount, currency, active policy version, verification snapshot, and canonical proposal digest. Missing digest/snapshot cannot validate a supplied approval. Reject changed terms, rejected approvals, future-dated consent, or consent predating the proposal. Expired (including expiry equal to evaluation time) and pending records require renewed/completed approval. A valid APPROVED record may resolve evidence/threshold/merchant review, but never a hard denial.
+9. Honor only exact, current, already backend-verified approval records. Match user, proposal, offer, merchant, amount, currency, active policy version, verification snapshot, and canonical proposal digest. Missing digest/snapshot cannot validate a supplied approval; non-null digests must match freshly regenerated canonical hashes. Reject invalidated records, changed terms, rejected approvals, future-dated consent, or consent predating the proposal. Expired (including expiry equal to evaluation time) and pending records require renewed/completed approval. A valid APPROVED record may resolve evidence/threshold/merchant review, but never a hard denial.
 10. DENY takes precedence over all review/approval conditions. Otherwise unresolved review yields REQUIRE_APPROVAL. Otherwise return ALLOW_ELIGIBLE_FOR_CHECKOUT.
 
 For the planned USD fixture intent, with a 150000 hard cap, 130000 threshold, sufficient funds, known-clear history, and allowlisted synthetic merchants: hotel 001 is eligible, 002 requires approval, 003 is denied for budget, 004 is denied for required gym, and 005 requires evidence review. A complete approval bound to the current terms can resolve review on 002/005, but not budget denial on 003.
@@ -35,7 +35,7 @@ For the planned USD fixture intent, with a 150000 hard cap, 130000 threshold, su
 | MERCHANT_REVIEW_REQUIRED | Merchant not currently allowlisted |
 | DUPLICATE_ATTEMPT | Trusted history identifies a prior attempt for this proposal |
 | PAYMENT_STATE_UNKNOWN | History is uncertain; backend/provider reconciliation needed |
-| PROPOSAL_CHANGED | Policy version or any supplied approval-bound term differs |
+| PROPOSAL_CHANGED | Policy version/approval-bound term differs, digest regeneration fails, or approval is INVALIDATED |
 | VERIFICATION_INVALID | Supplied result is not the recomputed current snapshot/result |
 | APPROVAL_PENDING | Supplied approval is not decided |
 | APPROVAL_EXPIRED | Supplied approval is expired or marked EXPIRED |
@@ -55,6 +55,6 @@ canonical proposal + current authority snapshots + explicit current time
   -> DENY / REQUIRE_APPROVAL / ALLOW_ELIGIBLE_FOR_CHECKOUT
 ```
 
-Eligibility is conditional, **not capture permission or payment success**. This stage does not create/approve/reject requests, compute/recompute a proposal digest, mutate an allowlist/limit, reserve money, persist audit events, enforce unique payment attempts transactionally, query a provider, or execute payment. Pure history/balance checks cannot prevent races: later checkout must reload/revalidate current state, verify the canonical digest, reserve funds atomically, enforce durable uniqueness/idempotency, and obtain mandatory PayPal buyer authorization before capture. Active policy changes must advance the version so prior proposals/approvals are invalidated.
+Eligibility is conditional, **not capture permission or payment success**. The separate [internal approval service](approvals.md) now owns binding/request/decision/expiry state and invokes this pure evaluator. The evaluator regenerates non-null digests but does not mutate an allowlist/limit, reserve money, persist audit events, enforce unique payment attempts transactionally, query a provider, or execute payment. Pure history/balance checks cannot prevent races: later checkout must reload/revalidate current state, verify the canonical digest, reserve funds atomically, enforce durable uniqueness/idempotency, and obtain mandatory PayPal buyer authorization before capture. Active policy changes must advance the version so prior proposals/approvals are invalidated.
 
 Verification snapshots and approvals passed here are assumed to have trusted provenance; shape and equality alone do not authenticate user consent. The synthetic merchant allowlist in tests is not a real PayPal merchant mapping. No provider acceptance, production payment support, or arbitrary-merchant checkout is claimed.
