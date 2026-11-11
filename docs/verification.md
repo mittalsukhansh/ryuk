@@ -44,9 +44,9 @@ Each preference uses the same per-attribute rules and is returned in `preferred_
 
 ## Scope and safety
 
-Budget, approval threshold, currency eligibility, quantity, category, merchant policy, and provider status are **not implicitly evaluated** by this attribute-only service. Location, nights, or other supported attributes can be included explicitly in the requirement map. Free-form `query` and `notes` are not parsed. The intent parser and policy/checkout services must handle their separate responsibilities; there is no hidden conversion from query text to requirements.
+Budget, approval threshold, currency eligibility, quantity, category, merchant policy, and provider status are **not implicitly evaluated** by this attribute-only service. Location, nights, or other supported attributes can be included explicitly in the requirement map. Free-form `query` and `notes` are not parsed. The intent parser and [pure policy service](policy.md), with later checkout services, handle their separate responsibilities; there is no hidden conversion from query text to requirements.
 
-Consequently, hotel 003 can receive mandatory PASS while exceeding the example budget; the future deterministic policy service must deny that purchase. Catalog retrieval or this verification result alone must never authorize checkout. The synthetic offers and excerpts remain fictional and do not prove real availability or booking terms.
+Consequently, hotel 003 can receive mandatory PASS while exceeding the example budget; the deterministic policy service denies that purchase when the active/requested cap is exceeded. Catalog retrieval or this verification result alone must never authorize checkout. The synthetic offers and excerpts remain fictional and do not prove real availability or booking terms.
 
 Input models are revalidated because callers can mutate Pydantic instances. Checks are returned in sorted attribute-name order and do not mutate input records or expose their evidence lists. The service has no network calls, LLM calls, or payment dependencies.
 

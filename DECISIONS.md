@@ -810,3 +810,45 @@ No live model evaluation was performed; responses in tests are synthetic gold fi
 
 ### Supersedes / superseded by
 None. Implements D-001 and D-017 intent parsing and refines D-008 money handling. The D-020 credential-free health/catalog startup remains intact; configured provider parsing is now an optional backend capability.
+
+## D-025 — Pure policy evaluation over explicit backend authority snapshots
+Date: 2026-11-11
+Status: Accepted
+
+### Context
+The policy stage needs final deterministic financial eligibility without letting parsed intent, model confidence, browser values, or human approval override hard limits. It precedes persistent policy/ledger/approval/payment services and must remain independently testable without side effects.
+
+### Decision
+Implement evaluate_policy as a pure synchronous function over canonical PurchaseProposal, current FinancialPolicy, BudgetSnapshot, AttemptSnapshot, explicit timezone-aware evaluation time, and optional backend-verified ApprovalRequest. Require explicit caps/thresholds, allowlist, ledger totals/reservations, and CLEAR/DUPLICATE/UNKNOWN history; no authority values default permissively. Revalidate input records and reject inconsistent ownership/currency/time contexts.
+
+Enforce the minimum requested/active/available hard ceiling and minimum requested/active review threshold. Deny incompatible currencies without comparing or converting their monetary numbers. Deny mandatory failures, known quantity mismatches, stale policy versions, fabricated/stale verification, duplicates, rejected/invalid approvals, and uncertain payment history. Recompute the current deterministic verifier result rather than trusting supplied PASS or preference scores. Require review for mandatory UNKNOWN, missing snapshots/quantity evidence, unallowlisted merchants, threshold excess, and pending/expired approvals. Check canonical hotel rooms (otherwise quantity) separately from explicit attribute verification.
+
+Allow only an exact, unexpired, already trusted approval record to resolve review, comparing all user/proposal/offer/merchant/money/currency/policy/snapshot/digest terms; it can never resolve hard denial. Keep DENY before REQUIRE_APPROVAL before ALLOW_ELIGIBLE_FOR_CHECKOUT, with stable unique reason codes and explicit budget currency in results. Add VERIFICATION_INVALID, PAYMENT_STATE_UNKNOWN, APPROVAL_PENDING, APPROVAL_REJECTED, APPROVAL_INVALID, and APPROVAL_GRANTED codes to the existing vocabulary. No LLM or tool is consulted in this decision path, and no public endpoint accepts authority records.
+
+### Alternatives considered
+- Use parsed budgets/thresholds as active policy or trust LLM-generated policy decisions.
+- Treat missing history, missing balances, or absent allowlists as eligible defaults.
+- Let preference confidence or approved status alone override hard denial or expired/changed consent.
+- Compare values across currencies or label an offer-currency amount and ledger balance with one currency.
+- Add policy storage, digest generation, approval transitions, reservations, or payment execution during this pure-service stage.
+
+### Why
+Explicit trusted inputs and deterministic precedence preserve financial authority in backend code. Recomputed verification and exact approval comparisons detect stale or fabricated records; independent hard limits prevent prompt-based limit inflation. A pure function can be regression-tested before side-effecting integrations exist, with honest boundaries around races and persistence.
+
+### Consequences
+The demo yields eligible/review/denied outcomes with explainable codes, and all authority inputs/clock are explicit. The additive optional PolicyDecision.budget_currency preserves older constructors while service outputs always label the balance correctly. Human approval can resolve UNKNOWN/merchant/threshold review but cannot legitimize failure, duplicate/uncertain execution, or insufficient funds. Only the existing deterministic verification version is accepted; semantic verification needs a later trusted integration. Read-only duplicate/approval checks exist, but durable uniqueness, consent authentication, digest computation, atomic reservations, and before-capture integration remain unfinished.
+
+### Constraints / assumptions
+Authority snapshots and approvals must originate in trusted backend loading/authentication, not an LLM or browser DTO. Policy changes must advance immutable versions. Availability is before the proposed reservation, not proof that funds were reserved. Stale snapshots and concurrent requests require transactional handling later. A supplied digest is compared, not calculated/authenticated here. Eligibility never substitutes for supported merchant/provider state, PayPal buyer approval, or capture confirmation. Invalid authority contexts stop explicitly instead of yielding permissive outcomes.
+
+### Related files
+- `backend/app/services/policy.py`
+- `backend/app/schemas/policy.py`
+- `backend/app/schemas/domain.py`
+- `backend/tests/test_policy.py`
+- `docs/policy.md`
+- `PLAN.md`
+- `ARCHITECTURE.md`
+
+### Supersedes / superseded by
+None. Implements D-002, refines D-006/D-009/D-015 read-only policy gates, and integrates D-023 verification; D-007 digest generation, approval workflows, and transactional payment controls remain separate stages.

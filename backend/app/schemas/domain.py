@@ -63,6 +63,12 @@ class PolicyReasonCode(StrEnum):
     DUPLICATE_ATTEMPT = "DUPLICATE_ATTEMPT"
     APPROVAL_EXPIRED = "APPROVAL_EXPIRED"
     PROPOSAL_CHANGED = "PROPOSAL_CHANGED"
+    VERIFICATION_INVALID = "VERIFICATION_INVALID"
+    PAYMENT_STATE_UNKNOWN = "PAYMENT_STATE_UNKNOWN"
+    APPROVAL_PENDING = "APPROVAL_PENDING"
+    APPROVAL_REJECTED = "APPROVAL_REJECTED"
+    APPROVAL_INVALID = "APPROVAL_INVALID"
+    APPROVAL_GRANTED = "APPROVAL_GRANTED"
 
 
 class ApprovalStatus(StrEnum):
@@ -187,6 +193,8 @@ class PolicyDecision(DomainModel):
     amount_minor: MinorUnits
     currency: Currency
     budget_remaining_minor: MinorUnits
+    # Explicit because denied offer currency can differ from the budget currency.
+    budget_currency: Currency | None = None
     policy_version: NonEmptyString
 
     @model_validator(mode="after")

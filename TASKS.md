@@ -36,11 +36,13 @@
 - [ ] evidence shown in UI
 
 ### Policy
-- [ ] max budget rule
-- [ ] approval threshold
-- [ ] missing evidence rule
-- [ ] merchant review
-- [ ] duplicate protection
+- [x] max budget rule
+- [x] approval threshold
+- [x] missing evidence rule
+- [x] merchant review
+- [x] duplicate/unknown-attempt policy checks against explicit backend history snapshots
+- [x] read-only approval binding/expiry/rejection policy checks
+- [ ] duplicate protection (persistent/atomic enforcement)
 - [ ] proposal digest
 
 ### Approval
