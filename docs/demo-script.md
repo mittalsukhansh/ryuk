@@ -40,3 +40,18 @@ Keep privately: exact checkout revision, actual elapsed time, reviewed amount/cu
 The five required scenarios pass isolated automated checks: [reproducible matrix](required-scenarios.md). Tampering and concurrency are demonstrated by those tests, not by mutating an existing payment. Run automated browser tests only against the isolated test fixture, never against the user's live demo ledger.
 
 **Timing status:** this schedule is prepared; an actual under-three-minute live run has not been measured. A prior-evidence walkthrough must be labeled as such and does not satisfy live execution timing acceptance.
+
+## Six-scenario test rehearsal (no live payments)
+
+Run the full backend suite with `pytest -q` in backend/ using the development virtual environment. The following existing regressions provide the six required checks; the [acceptance matrix](required-scenarios.md) explains the trust boundaries.
+
+| Scenario | Show / expected result | Automated proof |
+| --- | --- | --- |
+| Eligible | Trusted internal USD 1,180 proposal with complete evidence passes policy and settles once after buyer approval. Model-derived UI proposals still require application review. | test_policy.py::test_planned_fixture_decisions (001); test_checkout.py::test_checkout_success_exact_terms_durable_audit_and_reservation_before_post |
+| Approval required | USD 1,390 exceeds the review threshold; application approval precedes order creation, and separate PayPal buyer approval precedes capture. | test_checkout.py::test_application_approval_and_paypal_buyer_approval_are_separate; test_security_boundaries.py::test_every_model_candidate_requires_explicit_review |
+| Budget denied | USD 1,620 exceeds the initial USD 1,500 ceiling; approval cannot override DENY. | test_policy.py::test_planned_fixture_decisions (003); test_workspace.py::test_blocked_offer_and_rejected_approval_never_reach_checkout |
+| Mandatory attribute denied | USD 980 no-gym offer is under budget but fails a mandatory attribute; no order, hold or settlement. | test_required_scenarios.py::test_mandatory_requirement_denial_never_dispatches_provider |
+| Duplicate prevented | Repeated/concurrent checkout or capture yields one order, one capture dispatch and one settlement. | test_checkout.py::test_checkout_and_capture_retries_do_not_create_orders_or_double_settle; concurrent create/capture tests |
+| Amount tampering prevented | Extra browser amount fields are rejected; changed canonical amount during provider preflight prevents capture without reserving funds. | test_checkout.py::test_http_rejects_browser_authority_fields (amount_minor); test_checkout.py::test_canonical_changes_during_provider_preflight_block_capture (amount) |
+
+For presentation, use these isolated test results/recordings for tampering and duplicate scenarios. Never attempt to prove them by editing an existing financial record or manually repeating a live capture. The three-minute schedule above is a prepared walkthrough, not an actual measured live run.

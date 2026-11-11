@@ -220,3 +220,11 @@ See STATUS.md for the validation scope. This rerun made no live payment or exist
 - [ ] Independent inspection of user's private website receipt/provider match (not required to publish this explicitly scoped prerelease)
 
 The latest release summary in STATUS.md supersedes older “not started”/pending preparation entries. Production work remains open; no ledger reset or new charge is part of this release task.
+
+## Requested six-scenario regression and demo documentation
+- [x] Run complete backend suite: 1,070 passed
+- [x] Confirm eligible, approval required, budget denied, mandatory attribute denied, duplicate prevented and amount tampering prevented in test results
+- [x] Run Ruff/dependency consistency and frontend lint/typecheck/production build
+- [x] Update existing docs/demo-script.md with the six-case rehearsal and test references; align acceptance matrix
+- [x] Keep application implementation unchanged; use isolated mocks and preserve financial records/release tag
+- [x] Complete fresh standalone browser suite: 47 assertions passed; stop isolated fixture servers

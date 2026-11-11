@@ -171,3 +171,13 @@ Validated clean source revision `31367ae338faf494d6bbbcc5a0d6265c3585c6ad`, matc
 - Browser: 47 assertions passed against the newly built standalone server and isolated FastAPI/SQLite fixtures, with mocked SDK/model/provider, desktop/mobile.
 - Git whitespace checks passed. No application implementation changed; no live provider/payment calls or existing financial ledger mutations occurred.
 - Deployment identity, running artifact/configuration and deployed smoke checks remain unverified. No Docker image rebuild or deployment was performed in this rerun. User-local receipt export and timed live acceptance remain separate pending evidence.
+
+## Six-scenario full regression rerun
+
+Requested scope: run all tests, ensure eligible/approval-required/budget-denied/mandatory-attribute-denied/duplicate-prevented/amount-tampering-prevented scenarios, and maintain docs/demo-script.md. No features or application code changed; source baseline 9a3897f, with documentation-only updates.
+
+Backend suite: 1,070 passed. JUnit results explicitly confirm all six scenario regressions, including canonical amount mutation during provider preflight. Ruff and dependency consistency pass. Frontend lint, TypeScript and fresh standalone production build pass. The existing demo script now includes the six-case rehearsal table and named automated evidence; the acceptance matrix includes trusted eligible checkout and clarifies that model-derived requests still require review. Documentation local links and Git whitespace checks pass.
+
+Tests use isolated fixture ledgers and mocked model/SDK/provider; no live payment, existing ledger reset or deployment. Timed live acceptance and security/production residuals remain unchanged. Release tag is preserved.
+
+Browser rerun: **47 assertions passed** against the freshly built standalone server and fresh FastAPI/SQLite fixture, with mocked SDK/provider and desktop/mobile flows. Fixture servers stopped afterward. All requested automated checks passed. The authenticated GitHub connection was subsequently verified as mittalsukhansh for publication of these documentation changes. The existing Sandbox release tag remains unchanged.
