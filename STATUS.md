@@ -1,5 +1,12 @@
 # Ryuk Status
 
+## Current: Step 13 demo-readiness freeze
+
+Step 13 from CODEX_PROMPTS.md is complete in scope: all tests, six required scenarios and finalized demo instructions; no runtime features added in this freeze. Source baseline 8497325 includes the separately completed durable-authority stage. Prepare v0.1.1-sandbox-demo after final checks; retain v0.1.0-sandbox-demo unchanged. Final results: **1,082 backend tests**, all six scenarios, **51 mocked browser assertions** (36.67 seconds for the automated suite), Ruff/pip consistency and frontend lint/typecheck/production build pass. Both Docker images built in the isolated credential-disabled ryuk-step13-final project, both containers healthy, backend health OK, frontend HTTP 200, and session configuration/authentication false as expected. Compose config and Git whitespace checks pass. Rehearsal containers were stopped with volumes retained. Detailed results below are authoritative over older pending/not-started entries.
+
+This is not production completion. Actual buyer-approved under-three-minute live timing remains unmeasured; user-reported private website receipt/container evidence is from 0b24df8. No new payment, secret disclosure or existing financial ledger reset is part of this freeze.
+
+
 ## Latest: durable authority and recovery implementation
 
 Production-readiness stage 1: runtime canonical proposals/approvals and early audit now persist in the existing SQLite ledger; final consent and reservation/dispatch claims share a transaction. Added owner-scoped paginated saved history and inspection/GET-only provider reconciliation in the frontend. Sessions still require reauthentication after restart. Legacy checkout references are discoverable without inventing lost pre-upgrade consent. See docs/durable-authority.md and D-040. Historical process-local authority limitations below describe earlier revisions.

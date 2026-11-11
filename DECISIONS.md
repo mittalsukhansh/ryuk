@@ -1249,3 +1249,9 @@ Status: Accepted
 Runtime authority reloads a per-proposal persisted state into the existing approval state machine for each operation; schema/digest/identity checks and original consent expiry remain mandatory. Persist canonical/approval transitions and early audit in the existing protected SQLite ledger, and use the same store instance/transaction for final consent plus financial claims. Provider I/O stays outside synchronous transaction scopes. Expected pre-mutation consent failures preserve observed revocation/expiry; unexpected failures roll back. Process-local sessions still require login after restart.
 
 Add owner-scoped paginated history and audit inspection, with existing GET-only provider reconciliation and no automatic recapture or replacement order. Backfill legacy checkout references for discovery, never reconstruct pre-upgrade lost consent. Additive startup tables preserve financial state; full versioned migrations/PostgreSQL, atomic provisioning, production identity/quotas and provider monitoring remain separate stages. D-033/D-038's process-local authority limitation is superseded for newly persisted records, not for pre-upgrade losses or their remaining security residuals. See docs/durable-authority.md.
+
+## D-041 — Freeze Step 13 against durable runtime without expanding production scope
+Date: 2026-11-11 UTC
+Status: Accepted
+
+Complete the CODEX_PROMPTS.md Step 13 scope with fresh tests, all six scenarios and current startup/walkthrough instructions. Publish v0.1.1-sandbox-demo as a tested source freeze after packaging checks; preserve v0.1.0-sandbox-demo. Durability was implemented separately before this freeze. Do not treat mock browser runtime as measured live-buyer acceptance or mark the remaining production backlog complete. Financial records and private receipts remain untouched.

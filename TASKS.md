@@ -105,7 +105,7 @@
 - [x] Step 12 validation: independently reproduced 983-test baseline; final 1,004 backend tests, Ruff/pip check, frontend lint/type/build and 36 standalone-production mocked browser assertions pass
 - [ ] Step 12 remaining Medium/Low hardening: request/resource limits, semantic review residuals, durable recovery/discovery, SQLite ACL/migrations/atomic provisioning, terminal-provider monitoring, dev tooling and proxy/security headers
 - [ ] Docker/Compose revalidation (Docker CLI unavailable in review environment; no deployment attempted)
-- [ ] Step 13 (not started; requires separate instruction)
+- [x] Step 13 demo readiness (completed in final freeze below; historical live-timing gate remains separate)
 
 ### Audit
 - [x] checkout execution/reservation/provider-observation events persisted in SQLite
@@ -237,3 +237,15 @@ The latest release summary in STATUS.md supersedes older “not started”/pendi
 - [x] Add restart, revocation, concurrency, rollback, legacy and history regressions
 - [ ] Subsequent stages: versioned migrations/provisioning, multi-user identity, resource quotas, provider lifecycle and remaining security/operations work
 - [x] Stage 1 validation: 1,082 backend tests, Ruff/pip consistency, frontend lint/typecheck/build and 51 mocked browser assertions
+
+## Step 13 final freeze — current authoritative checklist
+- [x] Run complete backend suite and six required scenario regressions at durable runtime source 8497325
+- [x] Run frontend lint/typecheck/production build and isolated browser suite
+- [x] Finalize docs/demo-script.md and startup/recovery instructions without new features
+- [x] Document residual security/production limits and distinguish private receipts from independent evidence
+- [x] Prepare tested v0.1.1-sandbox-demo source freeze, preserving the old tag
+- [ ] Actual buyer-approved live walkthrough timed under three minutes (external acceptance evidence, not certified by automated Step 13 checks)
+
+Step 13 in CODEX_PROMPTS.md is tests, scenarios and demo documentation with no new features. Remaining production-readiness stages are separate and not marked complete.
+- [x] Final packaging: both images rebuilt, isolated credential-disabled Compose services healthy, backend/frontend smoke checks and fail-closed session response passed
+- [x] Record mock suite duration 36.67 seconds without claiming live-buyer timing

@@ -1,6 +1,6 @@
 # Ryuk — three-minute walkthrough
 
-Release: `v0.1.0-sandbox-demo` (private, single-buyer Sandbox prerelease). Start with [startup instructions](startup.md); see [release evidence and limitations](release-notes.md).
+Release: `v0.1.1-sandbox-demo` (private, single-buyer Sandbox prerelease). Start with [startup instructions](startup.md); see [release evidence and limitations](release-notes.md).
 
 ## Before presenting
 
@@ -8,7 +8,7 @@ Release: `v0.1.0-sandbox-demo` (private, single-buyer Sandbox prerelease). Start
 - All hotels and amenity evidence come from the labeled synthetic catalog. Ryuk does not perform a Google search, book a hotel or move real money. PayPal Sandbox buyer approval is a separate action from application review.
 - The user has already reported a successful website payment and a local export with `checks_passed=true`. Keep that private receipt and success screenshot available. Do not initiate another payment merely to rehearse this script.
 - Check the current available budget. A USD 1,390 settlement from an initial USD 1,500 budget leaves USD 110, so the original USD 1,180/1,390 examples will now be denied. Restarting or changing seed configuration does not replenish this account. Never delete the volume, reset spending or clear uncertain holds for a demo.
-- For an existing-payment walkthrough, use the saved success screenshot/receipt or an actual recording and label it as prior evidence. After backend restart, canonical proposals/approvals and their early audit are lost; the durable receipt is not a reconstructed full timeline.
+- For an existing-payment walkthrough, use the saved success screenshot/receipt or an actual recording and label it as prior evidence. For purchases created after the durable-authority upgrade, sign in again and use Load saved activity / Inspect saved record to recover the persisted audit. Pre-upgrade missing consent/early audit cannot be reconstructed.
 - A fresh buyer-approved live walkthrough requires sufficient legitimately provisioned test budget and a separate buyer account before starting. If unavailable, use the evidence walkthrough below; do not describe it as a newly executed payment. Any separately provisioned rehearsal environment must be isolated from the existing ledger.
 
 ## Run of show — target 3:00
@@ -37,7 +37,7 @@ Do not press Pay again. For pending/uncertain capture, preserve the reservation 
 
 Keep privately: exact checkout revision, actual elapsed time, reviewed amount/currency/merchant, user approval, success screenshot, payment/order/capture references and receipt. Compare the capture reference with seller Sandbox Activity for independent provider evidence. The exporter is a local ledger snapshot, not a fresh provider query or a UI timing measurement.
 
-The five required scenarios pass isolated automated checks: [reproducible matrix](required-scenarios.md). Tampering and concurrency are demonstrated by those tests, not by mutating an existing payment. Run automated browser tests only against the isolated test fixture, never against the user's live demo ledger.
+The six required scenarios pass isolated automated checks: [reproducible matrix](required-scenarios.md). Tampering and concurrency are demonstrated by those tests, not by mutating an existing payment. Run automated browser tests only against the isolated test fixture, never against the user's live demo ledger.
 
 **Timing status:** this schedule is prepared; an actual under-three-minute live run has not been measured. A prior-evidence walkthrough must be labeled as such and does not satisfy live execution timing acceptance.
 

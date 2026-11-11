@@ -1,3 +1,15 @@
+# v0.1.1-sandbox-demo — Step 13 freeze
+
+Current source release includes durable canonical proposals/approvals, persisted early audit and owner-scoped saved recovery history. This Step 13 pass adds documentation only; no runtime features. Automated baseline at 8497325: 1,082 backend tests, all six required scenarios, Ruff/dependency checks, frontend lint/typecheck/build and 51 mocked browser assertions. Container and browser rerun results are recorded in STATUS.md before publication.
+
+Startup and walkthrough target this new source tag. The earlier v0.1.0-sandbox-demo tag remains unchanged. This is a private single-buyer Sandbox demo; sessions still require reauthentication. Valid consent keeps its original expiry across restart, while legacy missing consent is never reconstructed. See [durable authority](durable-authority.md) for backup/upgrade details.
+
+Remaining production work: multi-user identity, versioned migrations/atomic provisioning, quotas/retention, full script CSP/dependency remediation, terminal provider monitoring/refunds/reversals and operational recovery validation. No live-money deployment, real inventory/booking or independent current website-provider verification is claimed. User-reported local successful payment/receipt evidence remains at 0b24df8; it does not prove deployment of this new revision.
+
+The walkthrough is prepared. A buyer-approved live run under three minutes remains unmeasured. Mock browser runtime is not a substitute. The previous release details below are historical and refer to its frozen source.
+
+---
+
 # v0.1.0-sandbox-demo
 
 Private single-buyer Sandbox prerelease. Annotated source tag; not a production deployment, a signed container artifact or a real hotel-booking service.

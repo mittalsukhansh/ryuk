@@ -33,3 +33,7 @@ From backend/ with development dependencies installed, this broader command reru
 For full regression, run `.venv/bin/pytest -q`. Financial fixtures are newly created by pytest; provider/model requests are mocked. Do not prove duplicate prevention by manually submitting another live capture, and never reset a real ledger for a demonstration. Keep real successful-payment receipts private, as described in operations.md.
 
 The later six-scenario rerun uses the full backend suite, including the eligible-policy/checkout cases and explicit amount mutation/browser amount-field cases. Its results are recorded in STATUS.md. No runtime features were added.
+
+## Step 13 final rerun
+
+The full 1,082-test suite at runtime source 8497325 covers all six scenarios, including trusted eligible execution, model-intent review, budget and mandatory denial, duplicate prevention and amount tampering. The browser suite includes saved-history recovery after reload. This documentation-only freeze does not grant any new financial authority. See STATUS.md for final packaging/rehearsal results.

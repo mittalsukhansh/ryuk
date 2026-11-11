@@ -7,13 +7,13 @@ Before updating, finish/reconcile active purchases. Restarting invalidates sessi
 ```sh
 git status --short
 git fetch origin --tags
-git show --no-patch v0.1.0-sandbox-demo
+git show --no-patch v0.1.1-sandbox-demo
 ```
 
 If there are edits, save/review them before switching; do not overwrite or blindly reapply them. From a clean checkout, use the tested tag (detached HEAD is expected):
 
 ```sh
-git switch --detach v0.1.0-sandbox-demo
+git switch --detach v0.1.1-sandbox-demo
 docker compose --env-file .env up -d --build --wait backend frontend
 git describe --tags --exact-match
 docker compose ps
