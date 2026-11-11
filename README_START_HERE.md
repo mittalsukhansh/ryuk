@@ -1,39 +1,12 @@
-# AgentPay Codex Pack — Start Here
+# Ryuk — start here
 
-Read in this order:
+For the tested private Sandbox demo:
 
-1. PLAN.md
-2. AGENTS.md
-3. ARCHITECTURE.md
-4. TASKS.md
-5. CODEX_PROMPTS.md
+1. [Startup/update instructions](docs/startup.md)
+2. [Three-minute walkthrough](docs/demo-script.md)
+3. [Release evidence and production limitations](docs/release-notes.md)
+4. [Backups, reconciliation and private receipts](docs/operations.md)
 
-Then give Codex Prompt 1 only.
+For development, read AGENTS.md, PLAN.md, ARCHITECTURE.md, STATUS.md and TASKS.md before the currently requested stage in CODEX_PROMPTS.md. Historical milestones remain in those logs; the latest release status is authoritative.
 
-Recommended loop:
-
-```text
-Ask/Plan
--> one scoped implementation task
--> tests
--> inspect diff
--> commit
--> next task
-```
-
-Core flow:
-
-```text
-User intent
--> AI proposal
--> pre-payment verification
--> deterministic policy
--> approval if required
--> PayPal Sandbox
--> provider verification
--> audit
-```
-
-Absolute rule:
-
-> The LLM proposes. The backend authorizes.
+The model proposes. The backend authorizes. PayPal buyer approval remains separate from application consent.

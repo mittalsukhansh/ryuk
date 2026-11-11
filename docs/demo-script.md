@@ -1,41 +1,42 @@
-# Ryuk — three-minute demo outline
+# Ryuk — three-minute walkthrough
 
-This is a proposed live script, not evidence that Sandbox acceptance passed.
-Configure the private workspace and live Sandbox app/buyer first; see frontend.md.
-All hotel records are synthetic. The payment must be a real Sandbox transaction.
+Release: `v0.1.0-sandbox-demo` (private, single-buyer Sandbox prerelease). Start with [startup instructions](startup.md); see [release evidence and limitations](release-notes.md).
 
-1. **0:00–0:25 — Intent.** Unlock the private workspace. Show the server's USD 1,500
-   available budget, USD 1,500 purchase ceiling and USD 1,300 review threshold.
-   Submit the supplied Switzerland/gym/mountain-view/cancellation instruction.
-2. **0:25–0:50 — Control.** Show the three records: review-required USD 1,180, review USD
-   1,390, blocked USD 1,620. Open the blocked record; backend DENY and no checkout
-   button make the hard ceiling visible.
-3. **0:50–1:25 — Evidence.** Open the USD 1,390 record. Point to mandatory evidence,
-   preferred pool and snapshot. Show REQUIRE_APPROVAL and the threshold reason.
-4. **1:25–1:45 — Application consent.** Compare the original request with the full parsed intent. Reject omissions or weakened requirements. Then show bound merchant,
-   amount/currency and expiry. Explicitly approve. Explain that this consent does
-   not replace PayPal's buyer authorization.
-5. **1:45–2:35 — Sandbox.** Use the actual PayPal button and Sandbox buyer account.
-   Wait for backend-confirmed success, capture reference, snapshot and USD 110
-   remaining. Do not describe a callback, pending status or test stub as payment.
-6. **2:35–3:00 — Trace.** Show the backend audit: verification, policy, application
-   approval, order, buyer approval, reservation, capture and settlement.
+## Before presenting
 
-Only one transaction is needed. Two successful USD 1,180/1,390 purchases cannot
-both fit in the same USD 1,500 ledger. A canceled/pending payment is not a successful
-demo; preserve pending reservations and query status rather than retrying capture.
-Do not reset a ledger with an uncertain provider outcome. Time the actual live
-sequence before claiming the three-minute acceptance criterion is met.
+- Start/rebuild and check both containers before the timer. Open exactly `http://localhost:3000`, unlock the workspace and keep credentials off-screen.
+- All hotels and amenity evidence come from the labeled synthetic catalog. Ryuk does not perform a Google search, book a hotel or move real money. PayPal Sandbox buyer approval is a separate action from application review.
+- The user has already reported a successful website payment and a local export with `checks_passed=true`. Keep that private receipt and success screenshot available. Do not initiate another payment merely to rehearse this script.
+- Check the current available budget. A USD 1,390 settlement from an initial USD 1,500 budget leaves USD 110, so the original USD 1,180/1,390 examples will now be denied. Restarting or changing seed configuration does not replenish this account. Never delete the volume, reset spending or clear uncertain holds for a demo.
+- For an existing-payment walkthrough, use the saved success screenshot/receipt or an actual recording and label it as prior evidence. After backend restart, canonical proposals/approvals and their early audit are lost; the durable receipt is not a reconstructed full timeline.
+- A fresh buyer-approved live walkthrough requires sufficient legitimately provisioned test budget and a separate buyer account before starting. If unavailable, use the evidence walkthrough below; do not describe it as a newly executed payment. Any separately provisioned rehearsal environment must be isolated from the existing ledger.
 
-## Automated acceptance already reproducible
+## Run of show — target 3:00
 
-Backend tests cover eligible trusted proposals, mandatory model-intent review, budget/required-attribute denial, proposal amount/merchant/currency tampering, duplicate capture, expired/replayed consent, concurrency and ambiguous provider recovery. The browser suite exercises the real UI/proxy/API/ledger with mocked SDK/provider, including below-threshold intent review, rejection, hard denial, held capture responses, reconciliation and mobile layout. Run the commands in operations.md. These are mock acceptance evidence, not a live three-minute measurement.
+| Time | Show | Say |
+| --- | --- | --- |
+| 0:00–0:25 | Request and current backend budget; enter the built-in hotel example if desired. | “Ryuk turns a request into typed constraints. The model proposes; the backend decides.” |
+| 0:25–0:55 | Original instruction and parsed mandatory/preferred constraints. | “A human must review every model-derived purchase. Missing or weakened requirements mean reject.” |
+| 0:55–1:20 | Synthetic shortlist, amenity evidence and policy reason codes. If funds are spent, show the current DENY and use the prior recording for earlier review-required offers. | “Missing mandatory evidence and exceeded budgets block checkout, even when a model suggests the offer.” |
+| 1:20–1:45 | Exact-term application review from a current eligible proposal or the labeled prior recording. | “Consent binds merchant, amount, currency, intent and snapshot. This is separate from PayPal buyer authorization.” |
+| 1:45–2:25 | Prior PayPal approval/result recording and Ryuk success screenshot, clearly labeled. In a prepared fresh live run, use the actual button and wait for backend SUCCEEDED instead. | “PayPal authorizes the buyer. Only provider-verified backend capture confirms payment; a callback or HTTP 200 is insufficient.” |
+| 2:25–2:50 | Private receipt: state SUCCEEDED, checks_passed=true and exactly one dispatch/settlement. Redact references for public sharing. | “The durable ledger records one settlement. Retried or concurrent requests cannot create a second payment in the tested scenarios.” |
+| 2:50–3:00 | Release limitations. | “This is a private Sandbox demo with synthetic inventory, not a production travel/payment service.” |
 
-## Live acceptance record — pending user action
+For a fresh live run, use the built-in instruction:
 
-Record the application revision, actual duration, authenticated buyer action, exact reviewed merchant/amount/currency, internal proposal/payment and provider order/capture references, final backend state, ledger movement and audit evidence. Keep references private and do not publish buyer identity, passwords, OAuth/session tokens or real credentials. Require backend SUCCEEDED and exactly one settlement. If the outcome is uncertain, stop and reconcile; do not reset or force another capture. The unused connection probe from a different workspace is not acceptance of this revision.
+> Find a hotel in Switzerland for 5 nights under USD 1,500. Gym, mountain view and free cancellation are required. Private pool preferred. Ask me above USD 1,300.
 
-Step 13 preparation is implemented; live acceptance/demo freeze remains pending. This document deliberately does not certify a live payment or semantic completeness.
+With an unspent initial budget, the examples are USD 1,180 review-required, USD 1,390 review-required and USD 1,620 denied. All model-derived offers require review, even below the USD 1,300 threshold. The expanded USD 980 no-gym offer demonstrates a mandatory-requirement denial when budget otherwise permits it.
 
-## Required-scenario acceptance matrix
-The five required approval/budget/mandatory/tampering/duplicate scenarios have a focused 32-test passing verification with isolated provider/model fixtures. See required-scenarios.md for expected outcomes and reproducible commands. These results are automated acceptance, not additional live charges or live UI timing.
+## When something stalls
+
+Do not press Pay again. For pending/uncertain capture, preserve the reservation and use the existing status/reconciliation control; never retry capture blindly. If PayPal resources show ERR_BLOCKED_BY_CLIENT, check site-specific browser Shields/extensions, pop-up and cookie permissions for the local site and PayPal Sandbox. Do not disable protection globally. A failed or pending run is not a completed live acceptance run.
+
+## Acceptance record
+
+Keep privately: exact checkout revision, actual elapsed time, reviewed amount/currency/merchant, user approval, success screenshot, payment/order/capture references and receipt. Compare the capture reference with seller Sandbox Activity for independent provider evidence. The exporter is a local ledger snapshot, not a fresh provider query or a UI timing measurement.
+
+The five required scenarios pass isolated automated checks: [reproducible matrix](required-scenarios.md). Tampering and concurrency are demonstrated by those tests, not by mutating an existing payment. Run automated browser tests only against the isolated test fixture, never against the user's live demo ledger.
+
+**Timing status:** this schedule is prepared; an actual under-three-minute live run has not been measured. A prior-evidence walkthrough must be labeled as such and does not satisfy live execution timing acceptance.

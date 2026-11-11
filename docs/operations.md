@@ -36,7 +36,16 @@ Start the backend fixture from backend/:
 RYUK_E2E_TEST_ONLY=1 PYTHONPATH=. python tests/frontend_server.py
 ```
 
-It always creates a fresh temporary ledger; its reset endpoints are not in production app/image startup. Start the production frontend from frontend/ with `RYUK_BACKEND_URL=http://127.0.0.1:8100 npm start -- --port 3100`, then run `npm run test:e2e`. Model/provider behavior is mocked. Stop these fixture processes after testing; do not use them for user purchases.
+It always creates a fresh temporary ledger; its reset endpoints are not in production app/image startup. In frontend/, build and start the standalone production server in another terminal:
+
+```sh
+npm run build
+mkdir -p .next/standalone/.next/static
+cp -r .next/static/. .next/standalone/.next/static/
+RYUK_BACKEND_URL=http://127.0.0.1:8100 HOSTNAME=127.0.0.1 PORT=3100 node .next/standalone/server.js
+```
+
+Then run `npm run test:e2e` in frontend/. If using an installed system Chromium, set `CHROMIUM_PATH=/usr/bin/chromium` for that command; otherwise install Playwright's matching Chromium. The default test frontend URL is http://localhost:3100 and backend is http://127.0.0.1:8100. Do not substitute your live demo URLs. Model/provider behavior is mocked. Stop these fixture processes after testing; do not use them for user purchases.
 
 ## Read-only payment acceptance receipt
 After updating/rebuilding the backend, run from the project directory:

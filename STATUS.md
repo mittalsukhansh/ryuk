@@ -1,5 +1,14 @@
 # Ryuk Status
 
+## Latest milestone — private Sandbox release preparation
+
+Prepared `v0.1.0-sandbox-demo`: finalized startup/update/stop instructions, three-minute run of show, release evidence and remaining production/security limitations. Application code is unchanged from the 1,070-test/47-browser-assertion baseline; final source-tag checks run before tagging. See docs/release-notes.md. Earlier pending statements below are historical and superseded where evidence is recorded here.
+
+User-reported local evidence: checkout 0b24df8, both rebuilt Compose containers healthy, and existing website payment export checks_passed=true. Private receipt/UI/provider details were not independently inspected by this agent. Retain receipt and success screenshot privately. The separate earlier USD100 evidence is not substituted for that website payment.
+
+Step 13 items 4/5 are prepared for release. **An actual under-three-minute live rehearsal remains unmeasured**; this schedule/source tag does not certify it or production readiness. No additional payment, financial reset, deployment or image rebuild was performed for documentation/release preparation. Existing spending must be preserved; the default presentation reuses labeled prior payment evidence.
+
+
 ## Groq compatibility repair — 2026-11-12
 Reproduced a real provider HTTP 400: Groq rejects the overlapping integer/number branches in the extracted attribute anyOf schema. Compile only the Groq transport schema by removing the redundant integer branch (number already includes integers), retaining the shared strict Pydantic/source/domain validation and mandatory original/parsed intent review. No JSON-mode downgrade, coercion or provider fallback.
 

@@ -209,3 +209,14 @@ These are isolated automated scenarios; no new live payment was made and no exis
 - [ ] Confirm user's deployed source/artifact revision and run deployed smoke checks; local build results do not establish deployment acceptance
 
 See STATUS.md for the validation scope. This rerun made no live payment or existing ledger changes.
+
+## Step 13 — walkthrough and Sandbox source release
+- [x] Prepare three-minute run of show, including honest prior-evidence mode for spent budgets
+- [x] Finalize tagged startup/update/stop, Groq and Sandbox buyer/seller instructions
+- [x] Record user-reported 0b24df8 healthy local containers and passing website receipt, without publishing private evidence
+- [x] Document remaining security/production limitations and source-tag scope
+- [x] Prepare annotated v0.1.0-sandbox-demo tag; publish only after final source checks pass
+- [ ] Measure an actual under-three-minute buyer-approved live run; the prepared schedule is not timing evidence
+- [ ] Independent inspection of user's private website receipt/provider match (not required to publish this explicitly scoped prerelease)
+
+The latest release summary in STATUS.md supersedes older “not started”/pending preparation entries. Production work remains open; no ledger reset or new charge is part of this release task.

@@ -1235,3 +1235,9 @@ Date: 2026-11-12
 Status: Accepted
 
 Use a local-only CLI and SQLite read-only/query-only snapshot to export allowlisted payment/order/capture references, amounts, recorded state and minimal audit. Check exactly one capture dispatch/settlement and a matching SETTLED reservation. Missing/incomplete evidence never triggers a new payment or provider query. Do not export credentials, actor identity, request text, idempotency keys or arbitrary audit detail blobs. Git-ignore receipt filenames and retain actual receipts privately. A standalone test receipt cannot certify a different user's UI transaction; UI timing and fresh provider verification remain distinct evidence.
+
+## D-039 — Publish a scoped Sandbox source prerelease without resetting demo funds
+Date: 2026-11-11 UTC
+Status: Accepted
+
+Tag v0.1.0-sandbox-demo as an annotated private-demo source prerelease only after exact-commit automated checks pass. Preserve the tested application; finalize operational/demo documentation and explicitly distinguish mocked tests, independently verified earlier standalone payment evidence, user-reported website receipt/container health, and unmeasured live timing. A spent demo budget uses clearly labeled prior evidence rather than resetting financial records or implying a fresh payment. The tag is not a production approval, deployed artifact attestation or promise of complete model semantics. Retain original security findings and add current mitigation/residual context without rewriting historical decisions.

@@ -307,3 +307,7 @@ or payment request, credential disclosure, financial reset, deployment or Step 1
 - npm audit: seven moderate dev dependency nodes; zero production dependency findings.
 - Docker/Compose validation blocked: `docker` command is unavailable. Images were not
   rebuilt or deployed. Live parser/Sandbox/buyer acceptance and payment timing untested.
+
+## Sandbox prerelease status addendum
+
+The finding descriptions above retain their original evidence and historical status. Later hardening added bounded streaming bodies/auth allocations/model requests, method/redirect-aware proxy checks, frame/base/object/referrer/MIME headers and protected container data storage; these mitigate portions of M-01, M-04 and L-01/L-02, without closing all production requirements. M-07's fixture now requires explicit opt-in and creates fresh temporary ledgers. Read-only receipt export improves operator evidence but does not implement durable canonical history/discovery (M-03). Semantic residuals (M-02), terminal provider monitoring (M-05), migration/provisioning/ACL assumptions and development advisories remain. Full script CSP and public-scale resource protections remain pending. See [release limitations](release-notes.md) and [later hardening](security-hardening.md); historical finding/audit counts are not a new vulnerability scan.

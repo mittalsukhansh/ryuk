@@ -17,7 +17,7 @@ For a local HTTP demo at exactly `http://localhost:3000`, configure:
 - `RYUK_DEMO_PASSWORD`: your own password of at least 16 characters; no default exists.
 - `RYUK_APP_ORIGIN=http://localhost:3000`
 - `RYUK_SECURE_COOKIES=false` **for local HTTP only**; use true with HTTPS.
-- `OPENAI_API_KEY` and an actual structured-output-capable `OPENAI_MODEL`.
+- `LLM_PROVIDER=groq`, private `GROQ_API_KEY` and `GROQ_MODEL=openai/gpt-oss-120b`; alternatively select `openai` and set `OPENAI_API_KEY`/`OPENAI_MODEL`.
 - `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, and `PAYPAL_MERCHANT_ID` from the
   supported Sandbox seller/app. Merchant ID is not the app client ID or a fictional
   fixture merchant ID. Use a separate Sandbox buyer account in the PayPal popup.
@@ -42,7 +42,7 @@ startup never resets the ledger or creates new funds. Changing `.env` seed budge
 does not overwrite an existing account. Do not reset an uncertain payment ledger.
 
 Health and catalog work with demo mode off. Private routes remain unavailable
-until explicitly configured. With demo mode on, missing OpenAI credentials give a
+until explicitly configured. With demo mode on, missing selected-provider credentials give a
 safe parsing error; missing PayPal credentials/mapping leaves checkout visibly
 unavailable. There is no fake runtime parser, fake buyer approval or fake payment
 fallback. The original `NEXT_PUBLIC_*` template variables remain for compatibility;
