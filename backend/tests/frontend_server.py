@@ -4,14 +4,20 @@ import json
 import os
 from contextlib import asynccontextmanager
 from pathlib import Path
+from tempfile import mkdtemp
 
 import httpx2
 import uvicorn
+from fastapi import Request
+from fastapi.responses import RedirectResponse
 from test_checkout import Sandbox
 
 from app.api.agent import get_intent_parser
 from app.main import app, lifespan
+from app.schemas.catalog import CatalogSearchRequest
+from app.schemas.policy import BudgetSnapshot
 from app.services.approvals import InMemoryApprovalService
+from app.services.checkout_store import CheckoutStore
 from app.services.intent_parser import FakeIntentParser
 from app.services.paypal import PayPalSandboxAdapter, PayPalSettings
 from app.services.session import DemoSessions
@@ -24,12 +30,26 @@ from tempfile import TemporaryDirectory
 _test_directory = TemporaryDirectory(prefix="ryuk-isolated-e2e-")
 
 PASSWORD = "synthetic-browser-password"
+
+
+def new_ledger_path() -> str:
+    """Always create a new isolated directory; never accept a preexisting database."""
+    directory = Path(mkdtemp(prefix="ryuk-e2e-", dir=os.environ.get("RYUK_E2E_ROOT")))
+    return str(directory / "ledger.sqlite3")
+
+
 os.environ.update(
     RYUK_DEMO_ENABLED="true",
     RYUK_DEMO_PASSWORD=PASSWORD,
     RYUK_APP_ORIGIN="http://localhost:3100",
     RYUK_SECURE_COOKIES="false",
+<<<<<<< HEAD
     RYUK_CHECKOUT_DB_PATH=_test_directory.name + "/ledger.sqlite3",
+=======
+    RYUK_CHECKOUT_DB_PATH=new_ledger_path(),
+    PAYPAL_ENV="sandbox",
+    PAYPAL_BASE_URL="https://api-m.sandbox.paypal.com",
+>>>>>>> 83d921d (local changes before merging)
     PAYPAL_CLIENT_ID="synthetic-browser-client",
     PAYPAL_CLIENT_SECRET="synthetic-browser-secret",
     PAYPAL_MERCHANT_ID="DEMOSELLER",
@@ -52,13 +72,37 @@ for attribute in example["required_attributes"]:
 parser = FakeIntentParser({gold["query"]: gold["extraction"], QUERY: example})
 app.dependency_overrides[get_intent_parser] = lambda: parser
 sandbox = Sandbox()
+redirect_visits = 0
+
+
+@app.middleware("http")
+async def proxy_redirect_fixture(request: Request, call_next):
+    if (
+        request.url.path == "/v1/session"
+        and request.cookies.get("synthetic_proxy_mode") == "redirect"
+    ):
+        return RedirectResponse("http://127.0.0.1:8100/__test__/redirect-target")
+    return await call_next(request)
+
+
+@app.get("/__test__/redirect-target")
+def redirect_target() -> dict:
+    global redirect_visits
+    redirect_visits += 1
+    return {"visits": redirect_visits}
+
+
+@app.get("/__test__/redirect-visits")
+def redirect_count() -> dict:
+    return {"visits": redirect_visits}
 
 
 @asynccontextmanager
 async def e2e_lifespan(application):
     async with lifespan(application):
         async with PayPalSandboxAdapter(
-            PayPalSettings.from_env(), transport=httpx2.MockTransport(sandbox.handle)
+            PayPalSettings.from_env(),
+            transport=httpx2.MockTransport(lambda req: sandbox.handle(req)),
         ) as paypal:
             application.state.checkout_service.paypal = paypal
             yield
@@ -72,20 +116,27 @@ def test_approve(order_id: str, mode: str = "success") -> dict:
     return {"ok": True}
 
 
-@app.post("/__test__/reset")
-def test_reset() -> dict:
-    store = app.state.workspace.store
-    with store.transaction() as connection:
-        for table in ("checkout_audit", "reservations", "checkouts"):
-            connection.execute("DELETE FROM " + table)
-        connection.execute("UPDATE accounts SET settled_minor=0, limit_minor=150000")
+@app.post("/__test__/new-case")
+def test_new_case() -> dict:
+    global sandbox
+    previous = app.state.workspace.store
+    actor = app.state.demo_sessions.actor
+    with previous.transaction() as connection:
+        policy = previous.policy(connection, actor)
+    store = CheckoutStore(new_ledger_path())
+    store.create_account(
+        BudgetSnapshot(user_id=actor, currency="USD", limit_minor=150000,
+                       settled_minor=0, reserved_minor=0)
+    )
+    store.put_policy(policy)
+    for offer in app.state.catalog.search(CatalogSearchRequest()).offers:
+        store.map_merchant(offer.merchant_id, "DEMOSELLER")
     approvals = InMemoryApprovalService()
     app.state.workspace = WorkspaceService(app.state.catalog, store, approvals)
     app.state.checkout_service.approvals = approvals
+    app.state.checkout_service.store = store
     app.state.demo_sessions = DemoSessions(PASSWORD, origin="http://localhost:3100", secure=False)
-    sandbox.orders.clear()
-    sandbox.calls.clear()
-    sandbox.capture_mode = "success"
+    sandbox = Sandbox()
     return {"ok": True}
 
 

@@ -86,6 +86,7 @@ class WorkspaceService:
                     policy_version=policy.version,
                     created_at=datetime.now(timezone.utc),
                     verification=verify_offer(intent, offer),
+                    intent_review_required=True,
                 ),
                 at=datetime.now(timezone.utc),
             )

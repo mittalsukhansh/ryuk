@@ -152,8 +152,19 @@ def _attributes(
         _source_quote(query, attribute.quote)
         if attribute.name in values:
             raise InvalidParserOutput("Duplicate extracted attributes are not allowed.")
-        has_required = bool(_REQUIRED_CUE.search(attribute.quote))
-        has_preferred = bool(_PREFERRED_CUE.search(attribute.quote))
+        # The model cannot evade role checks by quoting only "Gym" from "Gym required".
+        # Check the enclosing source clause as well. This is not a completeness proof;
+        # model-derived workspace proposals also require bound human intent review.
+        start = query.index(attribute.quote)
+        end = start + len(attribute.quote.rstrip()) - 1
+        left = max((query.rfind(c, 0, start) for c in ".!?;\n"), default=-1) + 1
+        right = min(
+            (pos for c in ".!?;\n" if (pos := query.find(c, end)) >= 0),
+            default=len(query),
+        )
+        source = query[left:right]
+        has_required = bool(_REQUIRED_CUE.search(source))
+        has_preferred = bool(_PREFERRED_CUE.search(source))
         if (preferred and has_required) or (not preferred and has_preferred):
             raise InvalidParserOutput(
                 "Mandatory and preferred requirement wording is inconsistent."

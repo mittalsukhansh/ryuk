@@ -90,6 +90,16 @@ records and their early audit events remain process-local, as before; checkout
 state/keys/terms/reservations/audit remain SQLite durable. A restart still loses
 canonical authority and blocks new capture; durable attempted payments can reconcile.
 
+### Step 12 security change: intent review is always required
+
+All model-derived candidates require application review, including otherwise
+below-threshold eligible offers. The review dialog shows original instruction,
+parsed mandatory/preferred values, quantity and requested money limits. Reject
+omissions or changed meaning. Approval binds the backend review flag and the
+intent-bearing snapshot using proposal digest v2; current policy and consent still
+revalidate before capture. This does not establish complete model semantic fidelity.
+See [security review](security-review.md) and D-033.
+
 ## Authentication and proxy boundary
 
 This is an explicitly enabled **single-buyer private Sandbox demo**, not a
@@ -106,9 +116,11 @@ also requires the exact configured origin. Credentials never enter browser build
 configuration. API ownership checks and pre-capture authorization remain in the
 existing services. No financial policy is evaluated in TypeScript.
 
-Production authentication, multi-worker durable canonical authority and broader
-security assessment remain separate work. HTTPS cookies must be enabled outside
-local HTTP development. Step 12 has not been started in this task.
+Production authentication and multi-worker durable canonical authority remain
+separate work. Step 12's source/mock review is recorded in `security-review.md`;
+remaining Medium/Low risks are not production acceptance. HTTPS now rejects
+insecure-cookie configuration at startup. Validation errors contain no submitted
+values. Direct parser HTTP calls require private authentication before provider setup.
 
 ## Tests
 
@@ -126,16 +138,19 @@ npm run build
 ```
 
 The committed browser suite uses a **test-only** FastAPI server with the real
-services/SQLite and mocked OpenAI extraction/PayPal transport. Its reset/approval
-hooks are defined only in `backend/tests/frontend_server.py`, never imported by
+services/SQLite and mocked OpenAI extraction/PayPal transport. Its new-case/approval
+  hooks are defined only in `backend/tests/frontend_server.py`, never imported by
 production startup and excluded from the backend Docker build. The SDK is
 intercepted only by the browser test. It is not a demo-mode financial fallback.
+Every new case allocates a fresh uniquely named temporary ledger; no existing
+reservations/checkouts/spending are deleted or reset. `RYUK_E2E_ROOT` chooses only
+the temporary parent directory, never an existing database file.
 
 Run in separate terminals from repository root:
 
 ```sh
 # Test fixtures only; no live credentials are read for these provider calls.
-PYTHONPATH=backend:backend/tests RYUK_E2E_DB=/tmp/ryuk-e2e.sqlite3 \
+PYTHONPATH=backend:backend/tests \
   backend/.venv/bin/python backend/tests/frontend_server.py
 
 # A dedicated Next instance; stop any instance using the same .next directory.
@@ -146,7 +161,7 @@ RYUK_BACKEND_URL=http://127.0.0.1:8100 npm run dev -- --port 3100
 npm run test:e2e
 ```
 
-Verified in this stage: 962 backend cases including 16 new session/workspace cases;
+Historical Step 11 evidence: 962 backend cases including 16 new session/workspace cases;
 ESLint, TypeScript, production build; 13 Chromium assertions over the actual
 Next proxy/FastAPI flow at desktop and mobile sizes, with no page runtime errors
 or horizontal overflow. The production browser suite took 14.6 seconds for all
@@ -167,8 +182,8 @@ is implemented, but its popup/account/capture acceptance remains unverified.
 Before closing Step 11, run the real parser and Sandbox buyer flow using private
 configuration, verify the final provider capture/reference/ledger/audit, and time
 the live happy path under three minutes. Do not substitute the browser test hook.
-Finish that acceptance before treating the demo as ready for Step 12. The source
-is available for review now; this task does not execute the Step 12 security review.
+Step 12 was subsequently requested and performed on the current source without live
+provider calls. That review does not close Step 11 live acceptance or certify the demo.
 
 ## Changed files in this stage
 

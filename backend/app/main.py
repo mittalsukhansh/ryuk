@@ -30,6 +30,14 @@ async def lifespan(application: FastAPI) -> AsyncIterator[None]:
 
 
 app = FastAPI(title="Ryuk API", version="0.1.0", lifespan=lifespan)
+
+
+@app.exception_handler(RequestValidationError)
+async def invalid_request(request: Request, error: RequestValidationError) -> JSONResponse:
+    """Never reflect raw input, field names, validator context, or submitted secrets."""
+    return JSONResponse(status_code=422, content={"detail": "Please check the request fields."})
+
+
 app.include_router(offers_router)
 app.include_router(agent_router)
 app.include_router(checkout_router)

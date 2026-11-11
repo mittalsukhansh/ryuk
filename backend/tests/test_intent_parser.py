@@ -38,6 +38,16 @@ CASES = json.loads(
 GOLD = CASES[0]
 
 
+@pytest.fixture
+def parser_api():
+    """Explicit trusted actor only in API contract tests, not production authentication."""
+    app.dependency_overrides[get_checkout_actor] = lambda: "synthetic-parser-user"
+    try:
+        yield
+    finally:
+        app.dependency_overrides.pop(get_checkout_actor, None)
+
+
 def provider_response(payload: Any, *, status: str = "completed", refusal: bool = False) -> dict:
     """Build a Responses API message; the actual SDK performs structured parsing."""
     content = (
@@ -145,6 +155,7 @@ def test_missing_values_never_become_unlimited_or_default_currency(field: str, v
     "field,value",
     [
         ("capture_now", True),
+        ("intent_review_required", False),
         ("query", "rewritten by provider"),
         ("quantity", True),
         ("quantity", 0),
@@ -325,7 +336,7 @@ def test_bad_requests_fail_before_provider_call(query: Any) -> None:
     assert captured == []
 
 
-def test_parse_api_with_injected_fake_preserves_roles() -> None:
+def test_parse_api_with_injected_fake_preserves_roles(parser_api) -> None:
     fake = FakeIntentParser({case["query"]: case["extraction"] for case in CASES})
     app.dependency_overrides[get_intent_parser] = lambda: fake
     try:
@@ -345,7 +356,7 @@ def test_parse_api_with_injected_fake_preserves_roles() -> None:
 
 
 def test_unconfigured_parser_is_unavailable_but_other_routes_work(
-    monkeypatch: pytest.MonkeyPatch,
+    monkeypatch: pytest.MonkeyPatch, parser_api,
 ) -> None:
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     monkeypatch.delenv("OPENAI_MODEL", raising=False)
@@ -364,7 +375,9 @@ def test_unconfigured_parser_is_unavailable_but_other_routes_work(
         (IntentParserUnavailable("private-provider-detail"), 503),
     ],
 )
-def test_api_sanitizes_model_and_provider_errors(error: Exception, expected_code: int) -> None:
+def test_api_sanitizes_model_and_provider_errors(
+    error: Exception, expected_code: int, parser_api,
+) -> None:
     class BrokenParser:
         async def parse(self, query: str) -> PurchaseIntent:
             raise error
@@ -395,6 +408,19 @@ def test_money_quote_can_include_sentence_punctuation() -> None:
     assert asyncio.run(sdk_parse(GOLD["query"], payload)).budget_max_minor == 150_000
 
 
+@pytest.mark.parametrize("implementation", ["fake", "sdk"])
+def test_attribute_quote_punctuation_does_not_include_the_next_role_clause(implementation):
+    case = next(case for case in CASES if case["id"] == "separate-preferences")
+    payload = deepcopy(case["extraction"])
+    gym = next(a for a in payload["required_attributes"] if a["name"] == "gym")
+    gym["quote"] += "."
+    operation = (
+        FakeIntentParser({case["query"]: payload}).parse(case["query"])
+        if implementation == "fake" else sdk_parse(case["query"], payload)
+    )
+    assert asyncio.run(operation) == PurchaseIntent.model_validate(case["expected"])
+
+
 def test_hotel_quantity_cannot_be_confused_with_nights() -> None:
     payload = deepcopy(GOLD["extraction"])
     payload["quantity"] = 5
@@ -413,7 +439,7 @@ def test_hotel_room_count_and_quantity_must_agree() -> None:
 
 
 def test_production_dependency_calls_sdk_with_backend_only_configuration(
-    monkeypatch: pytest.MonkeyPatch,
+    monkeypatch: pytest.MonkeyPatch, parser_api,
 ) -> None:
     monkeypatch.setenv("OPENAI_API_KEY", "test-only-placeholder")
     monkeypatch.setenv("OPENAI_MODEL", "test-structured-model")

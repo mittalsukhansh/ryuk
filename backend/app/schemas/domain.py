@@ -58,6 +58,7 @@ class PolicyReasonCode(StrEnum):
     REQUIRED_ATTRIBUTE_FAILED = "REQUIRED_ATTRIBUTE_FAILED"
     MISSING_EVIDENCE = "MISSING_EVIDENCE"
     APPROVAL_THRESHOLD_EXCEEDED = "APPROVAL_THRESHOLD_EXCEEDED"
+    INTENT_REVIEW_REQUIRED = "INTENT_REVIEW_REQUIRED"
     MERCHANT_REVIEW_REQUIRED = "MERCHANT_REVIEW_REQUIRED"
     DUPLICATE_ATTEMPT = "DUPLICATE_ATTEMPT"
     APPROVAL_EXPIRED = "APPROVAL_EXPIRED"
@@ -219,6 +220,8 @@ class PurchaseProposal(DomainModel):
     verification: VerificationResult | None = None
     policy_decision: PolicyDecision | None = None
     proposal_digest: ProposalDigest | None = None
+    # Set only by trusted orchestration; no browser or model DTO accepts this flag.
+    intent_review_required: Annotated[bool, Field(strict=True)] = False
 
     @model_validator(mode="after")
     def validate_references(self) -> Self:

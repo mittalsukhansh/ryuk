@@ -101,7 +101,11 @@
 - [ ] Real configured model + real Sandbox buyer/capture acceptance (credentials absent here)
 - [ ] Live happy path timed under three minutes
 - [ ] Stage 11 acceptance complete; do not infer completion from mocked tests
-- [ ] Stage 12 security review (not started)
+- [x] Stage 12 actual-source security review and Critical/High remediation (four High fixes/containments; `docs/security-review.md`, D-033)
+- [x] Step 12 validation: independently reproduced 983-test baseline; final 1,004 backend tests, Ruff/pip check, frontend lint/type/build and 36 standalone-production mocked browser assertions pass
+- [ ] Step 12 remaining Medium/Low hardening: request/resource limits, semantic review residuals, durable recovery/discovery, SQLite ACL/migrations/atomic provisioning, terminal-provider monitoring, dev tooling and proxy/security headers
+- [ ] Docker/Compose revalidation (Docker CLI unavailable in review environment; no deployment attempted)
+- [ ] Step 13 (not started; requires separate instruction)
 
 ### Audit
 - [x] checkout execution/reservation/provider-observation events persisted in SQLite
@@ -123,7 +127,7 @@
 
 ## P1 — Strong differentiators
 - [ ] semantic evidence matcher
-- [ ] prompt-injection test
+- [x] Step 12 adversarial extraction/role-shortening/omission tests with mandatory bound intent-review containment (not live model fidelity)
 - [x] checkout duplicate/overspend concurrency tests (broader security review remains pending)
 - [x] checkout merchant/provider mapping substitution tests (mocked HTTP)
 - [ ] "Why this purchase?" summary

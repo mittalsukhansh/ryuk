@@ -97,8 +97,9 @@ Canonical versioned payload includes:
 - currency
 - policy_version
 - verification_snapshot_id
+- intent_review_required (backend-owned; all model-derived workspace proposals)
 
-Serialize compact sorted-key JSON and SHA-256 it; bind approval to the hash. Validate the current verification snapshot first.
+Serialize compact sorted-key JSON and SHA-256 it using `agentpay-proposal-v2`; bind approval to the hash. Validate the current verification snapshot first.
 Before checkout/capture, regenerate and compare.
 
 `proposal_binding.py` and `InMemoryApprovalService` implement this binding and the internal approval lifecycle. Canonical updates invalidate outstanding grants permanently; expiry, current-request ownership, and current financial policy are rechecked. The canonical reference store is process-local. Checkout now uses it for a final authority gate, while a SQLite ledger persists payment claims, holds and audit. Identifier-only checkout HTTP routes fail closed until trusted authentication/service provisioning. Durable canonical approval storage remains pending. See `docs/approvals.md`.
@@ -139,3 +140,13 @@ Financial authority remains outside all agents.
 ## Ryuk frontend integration
 
 The visible product is Ryuk. A Next same-origin allowlist proxy connects its casebook to thin authenticated workspace/proposal/approval/audit endpoints. An explicitly enabled private single-buyer demo session uses backend password verification and an opaque HttpOnly cookie; no browser identity header authenticates. Runtime provisioning is off by default and seeds an account/policy only once, preserving the ledger. The frontend displays backend intent/evidence/policy and passes only proposal/payment identifiers into the existing checkout flow. The actual PayPal JS v5 SDK handles buyer authorization; only a backend-confirmed capture displays success. Canonical authority remains process-local and the single-host SQLite execution ledger is unchanged. Production multi-user identity, durable canonical storage and live provider acceptance remain pending; see `docs/frontend.md`, D-030 and D-031.
+
+Step 12 requires exact application intent review for every model-derived workspace
+proposal, even below the requested review threshold. The existing approval service
+binds original/parsed intent via its verification snapshot and the backend-owned
+review flag via digest v2; deterministic policy rechecks this at checkout/capture.
+This contains incomplete extraction, not a proof of semantic fidelity. Direct parser
+HTTP calls now require the same private session/origin gate before provider creation;
+validation responses never reflect inputs and HTTPS requires Secure cookies. See
+`docs/security-review.md` and D-033. Financial claims/recovery still use the same
+SQLite ledger; no financial reset or migration was performed.

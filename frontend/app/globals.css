@@ -1051,6 +1051,12 @@ footer {
   margin: 25px 0 10px;
   color: var(--muted);
 }
+.intent-review {
+  overflow-wrap: anywhere;
+}
+.original-instruction {
+  white-space: pre-wrap;
+}
 .modal input {
   background: #10100f;
   border: 1px solid #534c42;

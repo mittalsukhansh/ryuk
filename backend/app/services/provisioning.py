@@ -47,6 +47,8 @@ async def provision(application: FastAPI, stack: AsyncExitStack) -> None:
         secure = os.environ.get("RYUK_SECURE_COOKIES", "true")
         if secure not in {"true", "false"} or (parsed.scheme == "https" and secure != "true"):
             raise ValueError
+        if secure == "false" and parsed.scheme != "http":
+            raise ValueError  # HTTP is already restricted to loopback above.
         stage = "RYUK_BUDGET_LIMIT_MINOR: use an integer from 0 to 9223372036854775807"
         limit = int(os.environ.get("RYUK_BUDGET_LIMIT_MINOR", "150000"))
         if not 0 <= limit <= 9223372036854775807:

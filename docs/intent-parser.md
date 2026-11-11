@@ -8,6 +8,11 @@ The provider returns `LLMIntentExtraction`, a closed Pydantic schema with every 
 
 The original query is preserved by the backend; the provider cannot rewrite it. Attribute quotes must be exact, uniquely occurring substrings of the query. Explicit mandatory/preferred wording in those quotes is checked against the chosen list. Category labels are trimmed and case-normalized. Hotel room counts must agree with quantity; a multiroom hotel request needs an explicit mandatory `rooms` requirement so quantity cannot silently become the number of nights. An unspecified quantity defaults to one unless the quoted rooms requirement provides it. Location and stay requirements use canonical keys compatible with the catalog/verifier.
 
+Step 12 also checks explicit role wording in the enclosing source clause so a model
+cannot evade it with a shortened quote. This still does not prove completeness:
+every model-derived workspace proposal now requires bound buyer review of the
+original instruction versus parsed requirements before checkout (D-033).
+
 These checks catch inconsistent structured output; they do not prove that the model captured every nuance or requirement. Natural-language extraction remains untrusted and needs live evaluation and later user review/current-policy checks. Tests using gold responses do not measure live model accuracy.
 
 ## Financial input rules
@@ -21,18 +26,23 @@ These checks catch inconsistent structured output; they do not prove that the mo
 
 ## Endpoint and errors
 
-`POST /v1/agent/parse` accepts `{"query":"..."}` with nonblank text up to 4000 characters. It returns PurchaseIntent. A missing provider configuration does not prevent API startup, health checks, or catalog search.
+`POST /v1/agent/parse` accepts `{"query":"..."}` with nonblank text up to 4000 characters. It returns PurchaseIntent. It now requires the configured opaque private session and exact mutation Origin before initializing a billable provider. Unsigned Bearer/user-ID headers do not authenticate; unconfigured auth returns 503, missing/invalid session 401, and wrong Origin 403. A missing provider configuration does not prevent API startup, health checks, or catalog search.
 
 ```sh
 curl --fail http://localhost:8000/v1/agent/parse \
+  --cookie private-session.cookies \
+  -H 'Origin: http://localhost:3000' \
   -H 'Content-Type: application/json' \
   --data '{"query":"Find a hotel in Switzerland for 5 nights. Budget USD 1,500. Gym mandatory. Mountain view required. Free cancellation required. Private pool preferred. Ask me above USD 1,300."}'
 ```
 
+The cookie file in this illustrative command must come from an authenticated private
+session; protect it as a credential. The browser normally uses the workspace proxy.
+
 | Outcome | HTTP | Error code |
 | --- | --- | --- |
 | Clarification needed / no safely extractable finite intent | 422 | INTENT_CLARIFICATION_REQUIRED |
-| Invalid request shape, blank/oversized query, unexpected request fields | 422 | FastAPI validation error |
+| Invalid request shape, blank/oversized query, unexpected request fields | 422 | Fixed input-free validation message |
 | Invalid, incomplete, or refused provider output | 502 | INVALID_PARSER_OUTPUT |
 | Missing API key/model, provider error, rate limit, or timeout | 503 | PARSER_UNAVAILABLE |
 

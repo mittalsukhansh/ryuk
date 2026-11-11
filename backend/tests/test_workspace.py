@@ -126,6 +126,7 @@ def test_shortlist_verification_policy_all_come_from_backend(client):
     assert all(c["evidence"] for c in candidates[0]["proposal"]["verification"]["required_checks"])
     assert candidates[0]["proposal"]["verification"]["preference_score"] == 0
     assert not client.sandbox.orders
+    assert "INTENT_REVIEW_REQUIRED" in candidates[0]["policy"]["reason_codes"]
 
 
 def test_approval_ui_backend_to_order_capture_and_audit(client):

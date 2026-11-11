@@ -37,6 +37,7 @@ def canonical_proposal_digest(proposal: PurchaseProposal) -> str:
         "currency": proposal.offer.currency,
         "policy_version": proposal.policy_version,
         "verification_snapshot_id": proposal.verification.verification_snapshot_id,
+        "intent_review_required": proposal.intent_review_required,
     }
     serialized = json.dumps(
         payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True, allow_nan=False

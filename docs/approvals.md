@@ -6,11 +6,12 @@
 
 The canonical payload contains:
 
-- format: `agentpay-proposal-v1`;
+- format: `agentpay-proposal-v2` (Step 12);
 - proposal_id and created_at (UTC ISO timestamp with six fractional digits);
 - user_id, offer_id, merchant_id;
 - exact integer amount_minor and currency;
-- policy_version and verification_snapshot_id.
+- policy_version and verification_snapshot_id;
+- backend-owned intent_review_required.
 
 Serialize as compact, sorted-key JSON with ASCII escapes and non-finite numbers forbidden, encode UTF-8, then SHA-256 to lowercase 64-character hex. IDs are exact values and are not case/Unicode-normalized. Equivalent timezone representations of the same creation instant have the same hash. Map insertion order does not affect identity.
 
@@ -23,6 +24,13 @@ The verification result must equal a freshly recomputed current deterministic re
 | require_proposal_binding(proposal) | Regenerate and constant-time compare; fail if stored digest is missing/wrong or verification is stale |
 
 A digest detects changes; it is not a signature, authenticated ownership, buyer consent, or financial authority. Only trusted backend code may select canonical records or rebind changed proposals. Never hash browser-submitted amount/merchant values and treat the resulting hash as canonical authority.
+
+Step 12 marks every model-derived workspace proposal as requiring explicit original
+versus parsed intent review, regardless of monetary threshold. The existing approval
+lifecycle resolves that policy requirement; changes to the review flag invalidate
+consent just like changed intent/evidence. Digest v1 is not reused to authorize new
+capture after restart. Attempted durable checkouts still reconcile from original
+stored terms without creating new spending authority. See D-033 and `security-review.md`.
 
 ## Workflow and ownership
 
@@ -38,7 +46,7 @@ The reference service owns proposal and approval records. Callers receive deep c
 | get_request | Read owned history and persist expiry; returned history is not checkout authorization |
 | revalidate_for_checkout | Reload current canonical proposal/current approval, regenerate digest, enforce ownership/expiry/replay rules, and rerun current financial policy |
 
-Every user-facing operation requires a trusted `actor_user_id`. That value must come from authenticated backend context; it must never be forwarded from an LLM, request-body user ID, or unverified identity header. Only an explicit buyer-confirmation handler may call approve_request; an agent must never do so automatically. No public approval/proposal endpoints are added while application authentication and durable authority loading remain absent. Their TASKS.md entries remain incomplete.
+Every user-facing operation requires a trusted `actor_user_id`. That value must come from authenticated backend context; it must never be forwarded from an LLM, request-body user ID, or unverified identity header. Only an explicit buyer-confirmation handler may call approve_request; an agent must never do so automatically. Stage 11 added opt-in private-demo endpoints with session authentication; production identity and durable canonical authority remain incomplete.
 
 ## Expiry, changes, and replay
 
@@ -48,10 +56,15 @@ Every user-facing operation requires a trusted `actor_user_id`. That value must 
 - Canonical updates must go through register_proposal (or an equivalent durable implementation with the same invalidation contract). This service does not poll external catalogs or detect changes that a caller never loads/registers. Rejected malformed updates do not alter the stored canonical proposal.
 - A request is decided once. Repeated/conflicting decisions cannot reset timestamps or overwrite consent. A new review invalidates previous grants, even if the new review is rejected. Checkout uses the latest request automatically; omitting its ID cannot bypass a current pending/rejected/expired request. Explicit stale IDs cannot replay an old grant.
 - Current active policy version changes observed during approval/checkout invalidate prior grants. Hard budget, currency, verification, duplicate/history, and other policy denials always win. Approval cannot override them.
-- Checkout revalidation checks the canonical digest, every bound field, owner, latest record, time, current policy/budget/history, and verification. Invoke the gate again immediately before capture in the future payment coordinator; never rely on an earlier eligibility response as lasting permission.
+- Checkout revalidation checks the canonical digest, every bound field, owner, latest record, time, current policy/budget/history, and verification. The checkout coordinator invokes the gate again at the final pre-capture claim; never rely on an earlier eligibility response as lasting permission.
 
 ## Concurrency and deployment limits
 
 A process-local lock serializes registration and decisions. Expected-digest checks prevent stale canonical updates. Tests cover concurrent approval and update attempts. This does not implement atomic financial reservations, durable duplicate prevention, cross-process transactions, payment idempotency, or provider reconciliation.
 
-The store is explicitly **in memory** and not wired to app startup/HTTP routes. A restart loses approvals; client-held old records/IDs cannot restore grants. Durable PostgreSQL storage, authenticated handlers, audit events, UI, and checkout/capture integration remain pending. Backend callers must load fresh trusted offers/policy/balances/history before the gate. No real-world buyer approval, PayPal order, capture, or payment is performed in this stage.
+The store remains explicitly **in memory**. Stage 11 subsequently connected it to
+opt-in authenticated workspace/approval/checkout routes and UI; Step 12 hardens that
+integration. A restart loses approvals; client-held records/IDs cannot restore grants.
+Durable canonical authority and production multi-user identity remain pending. Backend
+callers must load fresh trusted offers/policy/balances/history before the gate. Current
+review/provider tests are mocked and do not establish live buyer/payment acceptance.

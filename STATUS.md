@@ -3,7 +3,7 @@
 Last verified: 2026-11-11, latest GitHub baseline 674bdf0 plus this security/demo-preparation change. Changes were prepared in an isolated worktree; older workspace edits were preserved.
 
 ## Current milestone
-Step 12 review and feasible non-live fixes/preparation are complete. Step 13 rehearsal/runbook preparation is complete; **live buyer-approved Step 11 acceptance and demo freeze remain pending**. No production readiness claim.
+Step 12 — Current-source security review completed with four confirmed High findings fixed/contained and documented regression evidence. Remaining Medium/Low risks are open in `docs/security-review.md`. **Step 11 live acceptance remains incomplete**; no live model/Sandbox transaction or timing was attempted. Step 13 has not started.
 
 ## Implemented
 - Existing casebook UI, synthetic catalog, deterministic evidence/policy/approval, PayPal SDK/backend adapter and atomic persistent SQLite checkout coordinator retained.
@@ -24,12 +24,87 @@ Step 12 review and feasible non-live fixes/preparation are complete. Step 13 reh
 - No live model/provider/payment calls, private secret-value inspection, or existing financial record reset/deletion in this stage. Mock reset actions are confined to newly created temporary fixture ledgers.
 - The externally supplied 1,004-test/36-assertion review summary was not present in origin/main; it was not independently verifiable and is superseded by the evidence above.
 
-## Remaining requiring buyer/operator or later production work
-1. Privately configure the real demo password/origin/model/Sandbox seller and use a distinct Sandbox buyer to explicitly authorize a reviewed payment. Never share passwords or private .env in chat/Git.
-2. Verify one backend-confirmed live capture, exact ledger settlement and audit; record actual timing before certifying the three-minute demo. Step 11 live acceptance remains unverified.
-3. Review residual Medium constraints: volatile canonical authority/early audit, manual long-lived/orphaned provider uncertainty handling, and private single-buyer auth/availability architecture. Keep one protected backend worker; production multi-user/multi-worker operation needs further architecture.
-4. Resolve/accept development tooling advisories and design fully tested script CSP for the dynamic PayPal SDK. No confirmed current XSS/Critical exploit was found.
-5. Pull/rebuild the user's deployment from the pushed revision. Isolated container rehearsal is not a deployment of private settings or a buyer-approved payment.
 
-## Source control
-Prepared for commit/push as requested. No force-push, remote-history rewrite or financial deployment is authorized/needed. Existing local checkout was not reset or overwritten.
+## Completed
+- [x] Next.js/TypeScript/Tailwind and FastAPI/Compose foundation, strict integer-money domain contracts, eight labeled synthetic hotel offers and trusted search.
+- [x] Deterministic evidence-backed required/preferred verification and snapshots, structured OpenAI parser interface/fake/15 test prompts and pure financial policy.
+- [x] Canonical digest v2 and process-local approval ownership/expiry/permanent invalidation/replay checks; exact nine-state payment graph. Backend-owned intent-review flag and intent-bearing snapshot bind all model-derived workspace proposals to explicit application consent.
+- [x] Backend Sandbox OAuth/create/status/capture adapter, immutable provider binding, stable request IDs and safe ambiguous outcomes.
+- [x] Durable SQLite checkout/payment/key/terms/state/ledger/hold/checkout-audit records; atomic final policy/approval/digest/merchant/reservation claim, exactly-once settlement/release and GET-only uncertainty recovery.
+- [x] Visible Ryuk branding, original monochrome casebook with restrained red, serif/monospace typography, subtle grain, three-record primary shortlist and optional expansion. No franchise artwork or generic AI gradients/glassmorphism.
+- [x] Working command entry and backend-parsed intent display, backend candidate/verdict/evidence/preference matrix, exact-term approve/reject dialog, snapshot and backend timeline.
+- [x] Real SDK integration code: server-owned order ID -> PayPal buyer authorization -> backend capture. Result waits for backend SUCCEEDED; callback alone never displays paid. Pending state offers reconciliation, not a capture retry.
+- [x] Thin workspace/proposal/approval/audit APIs reuse existing services; query/identifier/decision bodies reject browser authority fields.
+- [x] Explicitly enabled single-buyer demo password verification, opaque hashed session tokens, HttpOnly/SameSite cookie, origin checks, rate limit/logout; default missing configuration stays blocked. Direct parser HTTP now authenticates before provider initialization; HTTPS cannot disable Secure cookies.
+- [x] Same-origin Next proxy with allowlisted paths, credential isolation, no cache/redirect forwarding and safe errors. Only PayPal's public client ID reaches the SDK.
+- [x] Trusted runtime account/policy/payee provisioning and protected persistent Compose ledger volume. Startup preserves existing funds/holds and never resets spending.
+- [x] Independently reran pre-fix baseline: **983 passed**. Six new failing pre-fix assertions reproduced four High findings. Final backend suite **1,004 passed** (21 additional regression cases), no pytest warnings; Ruff and `pip check` pass.
+- [x] Frontend ESLint, TypeScript and optimized production build pass. Chromium against the intended standalone production server passes **36 assertions** over actual Next proxy/FastAPI/services/SQLite with mocked SDK/provider, desktop/mobile and mobile intent-review dialog, no page errors or horizontal overflow. No live timing claim.
+- [x] Browser bundles checked for backend credential names/synthetic-secret markers; image inputs reviewed for test/environment exclusion. Secret values were not inspected; no full historical credential-audit claim. Docker/Compose validation could not be rerun because the Docker CLI is unavailable here.
+- [x] Step 12 fixes: authenticated billable parser; enclosing-clause role checks plus mandatory exact intent review for every model-derived workspace proposal; input-free validation errors; enforced secure HTTPS cookies. Detailed exploit sequences/preconditions/fixes/tests and remaining risks: `docs/security-review.md`, D-033.
+- [x] Browser test harness now allocates new isolated mock ledgers per case, never deletes reservations or resets existing financial records. Production fixture-control routes and proxy forwarding are rejected; redirect regression proves no upstream redirect is followed.
+
+- [x] Local startup troubleshooting fix: setting-specific sanitized diagnostics, validated HTTPS/loopback origins, preflight budget/merchant checks and SQLite error classification; 21 regression cases pass. The user’s exact local invalid setting remains unconfirmed until they run the updated image.
+
+## In Progress
+- [ ] Step 11 live acceptance remains unverified. This review deliberately made no real model/payment calls and did not inspect private provider configuration. UI/integration mock evidence is not live acceptance.
+
+## Remaining
+### P0
+- [ ] Make actual provider configuration available to the runtime and run the real structured parser/Sandbox checkout through the UI. No production fake fallback exists.
+- [ ] Verify live SDK popup, separate buyer authorization, backend provider-confirmed capture/reference, ledger settlement and audit under three minutes.
+- [ ] Complete Step 11 live acceptance before calling the demo ready. Step 12 was explicitly requested and reviewed without performing that live acceptance.
+- [ ] Durable canonical proposal/approval/evidence and early audit storage; these remain process-local. Production multi-user identity and multi-worker authority deployment remain unimplemented.
+- [ ] Operator recovery for unknown/orphaned creates and permanently inconclusive captures; preserve uncertain holds.
+- [ ] Validate the proposed demo script on a live Sandbox run. Checkout/audit browser flow is mock-tested, not live accepted.
+
+### P1
+- [ ] Residual semantic omissions/changed meaning need buyer scrutiny and separate evaluation; automatic review bypass is contained, not semantic completeness proven.
+- [ ] Bound request buffering, parser quotas/concurrency, session/canonical retention and proxy-aware login limiting (M-01).
+- [ ] Enforce schema migrations, OS-specific ledger/backup ACLs, atomic provisioning and immutable policy versions (M-04).
+- [ ] Address terminal-provider monitoring, dev-tool advisory chain and proxy/header defense-in-depth gaps (M-05/M-06/L-01/L-02).
+- [ ] Production PostgreSQL-backed authority/ledger deployment and migration; SQLite remains a single-host reference.
+- [ ] Extend visual/accessibility/browser/device coverage after live acceptance; desktop and phone are verified, not all device/provider combinations.
+
+### P2
+- [ ] Other purchase verticals, real external search, multi-rail/team approvals and conceptual UPI/P3P.
+- [ ] LangGraph/specialized agents only after the core demo works.
+
+## Blockers
+- Live acceptance was outside this review's permitted actions. A root `.env` exists in this local checkout but its values were never opened; existence does not establish provider readiness. Keep it private, not in chat/Git upload.
+- Actual model/Sandbox account, seller verification and buyer popup/capture behavior remain unverified by mocks. No provider credential readiness assertion is made.
+- Docker CLI is unavailable; Compose/container validation and image rebuild were not performed. No deployment changes were applied.
+- A private demo also needs opt-in password/origin/cookie configuration. Production multi-user authentication and durable canonical authority are still separate limitations.
+
+## Risks
+- Demo auth and canonical approvals/early audit are process-local/single-buyer. Restart invalidates sessions/consent and blocks new capture; durable attempted captures still reconcile using original terms.
+- SQLite must use a protected persistent local directory/volume, not ephemeral storage or NFS. Pending holds cannot be released just because time passed or the browser closed.
+- Candidate verdicts are backend snapshots; selection and capture recheck current rules/budget. One USD 1,500 ledger cannot fund both USD 1,180 and USD 1,390 successful demo purchases.
+- Local cancellation does not void a PayPal order; refunds/external merchant actions and long-lived provider uncertainty need operator support.
+- Hotel data is synthetic and checkout targets a configured demo payee, not a real hotel booking. Preference percentages cannot override mandatory checks or financial rules.
+- Live model fidelity, SDK/account behavior and buyer timing are not established by mocks.
+- Current npm audit reports seven moderate **development dependency nodes** in one minimatch/TypeScript-ESLint advisory chain; `npm audit --omit=dev` reports zero. Dev-tool upgrade remains separate work; no broad audit fix or lockfile rewrite was performed.
+- Source-role checks and required human review cannot prove complete model fidelity. Resource limits, reload discovery/operator recovery, SQLite/ACL/migration/provisioning and external-terminal-provider monitoring remain open; see M-01 through M-06 and L-01/L-02.
+
+## Next 3 actions
+1. Review the remaining Medium/Low findings and separately authorize prioritized hardening; protect the existing ledger and private settings.
+2. When explicitly permitted, complete Step 11 real model/Sandbox acceptance and timing without substituting mocked evidence.
+3. Stop after Step 12. Step 13 requires a separate instruction.
+
+## Demo readiness
+- Intent parsing: UI and protected backend parser orchestration implemented; fake/SDK tests pass. Live model response/fidelity unverified.
+- Offer search: Backend candidates appear in the shortlist; six USD records from eight labeled fixtures, top three initially visible. No live hotel availability or booking.
+- Verification: Real backend evidence/status/preference counts and snapshot displayed in matrix; no invented evidence/PASS.
+- Policy: Backend deterministic verdict/reasons displayed. UI does not calculate eligibility. Current rules rerun before capture with an atomic hold.
+- Approval: Every model-derived proposal requires original/parsed intent review; exact terms/expiry/reasons use authenticated backend consent. Process-local authority remains a deployment limitation.
+- PayPal: Actual SDK integration and server-order/capture/status code complete; mock browser flow passes. **Real Sandbox buyer/capture acceptance remains unverified and Step 11 remains incomplete.**
+- Audit: UI uses backend canonical/approval events and durable checkout events/timestamps. Early events remain in memory; broader durable audit deployment is pending.
+- Security review: Step 12 actual-source review and isolated adversarial regressions complete; four High findings fixed/contained, Medium/Low residuals documented. Live demo and production deployment are not certified.
+
+## Test status
+- Unit: Backend `pytest -q`: **1,004 passed**, no pytest warnings; independently verified pre-fix **983 passed**; Ruff passes; `pip check` reports no broken requirements.
+- Integration: Real-adapter/SQLite checkout tests plus authenticated session/proxy/workspace paths, exact backend evidence/verdicts, consent, forbidden fields, origin/owner checks, cancellation races, duplicate/overspend, rollback and restart/lost-response GET-only recovery pass. Bundle marker check passes. Compose validation blocked by missing CLI.
+- E2E: Standalone production Next -> same-origin proxy -> actual FastAPI/services/SQLite -> mocked SDK/HTTP provider: **36 Chromium assertions** pass at 1440px/390px. Required intent-review/rejection, secret-safe errors, origin/allowlist/method/redirect checks, spoofed callback, cancellation, no false success, timeout reconciliation and mobile dialog pass. Test external browser traffic is blocked. Not real Sandbox acceptance.
+- Security: Confirmed High reproductions, bound review, authenticated direct parser, input-safe errors, cookie hardening and existing financial tampering/race/recovery tests pass. No production deployment, power-loss durability or live provider acceptance claimed.
+
+Step 12 changes application review policy for model-derived proposals and advances the canonical digest format; active financial caps, payment graph, atomic claims/accounting and GET-only uncertainty recovery are unchanged. Provider credentials remain backend-only. Only isolated mock backend and local standalone production frontend were booted for validation. No secret values read, live calls/captures, existing financial resets/deletes, image rebuild, deployment or Step 13 work.

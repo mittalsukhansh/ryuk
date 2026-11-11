@@ -59,6 +59,8 @@ def evaluate_policy(
     hard: list[PolicyReasonCode] = []
     review: list[PolicyReasonCode] = []
     intent, offer = proposal.intent, proposal.offer
+    if proposal.intent_review_required:
+        review.append(PolicyReasonCode.INTENT_REVIEW_REQUIRED)
     remaining = budget.remaining_minor
     if proposal.policy_version != policy.version:
         hard.append(PolicyReasonCode.PROPOSAL_CHANGED)

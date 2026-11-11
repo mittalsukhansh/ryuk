@@ -768,7 +768,7 @@ None. Implements D-003 and D-004; extends the D-021 result contract with preferr
 
 ## D-024 — Structured, source-checked intent parsing behind an async interface
 Date: 2026-11-11
-Status: Accepted
+Status: Superseded in part by D-033 (HTTP authentication and source-role checks only)
 
 ### Context
 The intent-parser stage must convert purchase language to typed intent while preserving mandatory/preferred constraints, rejecting missing or unlimited budgets, and keeping probabilistic extraction outside financial authority. Tests must run without credentials or paid model calls.
@@ -809,7 +809,7 @@ No live model evaluation was performed; responses in tests are synthetic gold fi
 - `docs/intent-parser.md`
 
 ### Supersedes / superseded by
-None. Implements D-001 and D-017 intent parsing and refines D-008 money handling. The D-020 credential-free health/catalog startup remains intact; configured provider parsing is now an optional backend capability.
+Superseded in part by D-033 for HTTP authentication and source-role checks; other D-001/D-017/D-008 parsing decisions and credential-free health/catalog startup remain in force.
 
 ## D-025 — Pure policy evaluation over explicit backend authority snapshots
 Date: 2026-11-11
@@ -855,7 +855,7 @@ None. Implements D-002, refines D-006/D-009/D-015 read-only policy gates, and in
 
 ## D-026 — Canonical proposal hashes and service-owned expiring approval records
 Date: 2026-11-11
-Status: Accepted
+Status: Superseded in part by D-033 (proposal digest format only)
 
 ### Context
 Approvals must authorize exact canonical terms, expire, and stop being usable when terms change. Comparing two caller-supplied SHA-shaped strings is insufficient, and old approvals must not revive after a change is reverted or a newer review is rejected. The repository currently has no database/authenticated-user HTTP layer.
@@ -893,7 +893,7 @@ Backend loaders and authentication must establish canonical data/actor provenanc
 - `ARCHITECTURE.md`
 
 ### Supersedes / superseded by
-None. Implements D-007 and refines D-006/D-025 binding/approval consumption with real digest regeneration and owned lifecycle state; durable authorization/transactional execution remain pending.
+Superseded in part by D-033 for digest format only; D-007/D-006/D-025 binding/approval lifecycle decisions remain in force and durable authorization remains separate work.
 
 ## D-027 — Exact nine-state event-driven payment transition graph
 Date: 2026-11-11
@@ -1131,20 +1131,71 @@ Diagnostic messages interpolate only code-owned descriptions, never environment 
 ### Supersedes / superseded by
 None. Refines D-031 startup validation/diagnostics; authentication and payment-authority decisions are unchanged.
 
-## D-033 — Verified security boundary hardening and non-live release preparation
+## D-033 — Mandatory review of model-derived intent and credential-safe HTTP boundaries
 Date: 2026-11-11
 Status: Accepted
 
 ### Context
-The remote baseline 674bdf0 did not contain the externally reported review changes. Review the actual latest repository instead of asserting the reported findings/counts were present. Preserve older local work in its existing checkout; use an isolated worktree from origin/main.
+Step 12 reproduced an unauthenticated billable parser route, mandatory-role evasion
+through shortened source quotes, credential reflection in validation responses and
+remote HTTPS startup accepting insecure session cookies. Quoted structured output
+does not prove that every mandatory requirement or preference was preserved.
 
 ### Decision
-Authenticate both model request entry points and limit model consumption independently of financial recovery. Require every model-derived workspace proposal to receive explicit original-versus-parsed intent review. Digest v2 binds the full original/parsed intent plus review marker and canonical terms; trusted internal proposals retain explicit behavior. This contains automatic review bypass without claiming semantic completeness. Return fixed validation/clarification errors, enforce secure cookies on HTTPS, bound auth allocations/proxy streaming bodies and add compatible frame/security headers.
+Require the existing authenticated actor and exact mutation-origin gate before
+initializing the parser for direct HTTP calls. Keep internal parser orchestration
+separate from its authenticated HTTP wrapper. Return fixed input-free request
+validation errors across the application. Refuse insecure cookies except for
+validated local HTTP origins.
 
-Restore backend-only Groq structured parsing onto the newer architecture without weakening schema/source checks or adding a fake fallback. Guard the test reset server and force its ledger to a fresh temporary directory. Provide exclusive private SQLite backups without source resets/overwrites. Keep public/multi-worker identity, durable canonical authority, external uncertainty operations and strict script-CSP work explicit rather than declaring production ready.
+Check the enclosing source clause for explicit requirement-role wording. Because
+this cannot prove semantic completeness, mark every model-derived workspace
+proposal with a backend-owned `intent_review_required` flag. Pure policy always
+requires application approval for these proposals, independently of the requested
+or active monetary review threshold. Reuse existing owned, expiring, one-time
+approval and checkout revalidation, rather than granting authority to the model
+or adding another parallel consent mechanism. Display the original instruction,
+parsed required/preferred values, quantity and requested limits in the exact-term
+approval dialog; the buyer must reject omissions/changed meaning.
 
-### Verification
-1,034 backend tests; frontend lint/typecheck/production build; 23 real UI/proxy/API/ledger browser assertions with mocked model/SDK/provider; production npm audit zero findings (eight moderate development-tool findings remain). Both Docker images built and a separate credential-disabled Compose project reached healthy state on isolated ports/volume. No actual provider/model/payment call or existing ledger reset/deletion in this stage. Live buyer-approved Sandbox acceptance remains pending.
+Advance canonical proposal digest format to `agentpay-proposal-v2` and include the
+review flag. Existing verification snapshot already binds the complete original
+query and parsed intent. Changing either interpretation or the review requirement
+invalidates old consent. Old canonical authority is process-local and fails closed
+on restart; persisted attempted payments continue GET-only reconciliation from
+their original terms. No ledger migration, reset or capture retry is introduced.
 
-### Consequences
-All model-derived candidates below threshold now also require application review before buyer checkout. Old canonical proposal digests cannot be silently reinterpreted as v2 consent. In-memory authority must be re-established through fresh explicit review; durable unknown captures still reconcile against their original stored terms. The prior externally quoted 1,004/36 numbers are not used as evidence for this commit.
+### Alternatives considered
+- Treat exact quoted/schema-valid model output as semantically complete.
+- Add keyword heuristics and claim all natural-language requirements are preserved.
+- Change the user's parsed monetary threshold to zero, obscuring the original request.
+- Implement another approval store or put financial authority in the frontend/model.
+
+### Why
+Bound explicit human review closes the automatic authorization gap without pretending
+the parser is a semantic oracle or rewriting spending limits. Existing deterministic
+denials, PayPal buyer approval, reservations and provider verification remain mandatory.
+
+### Consequences / constraints
+Below-threshold model-derived offers initially show REQUIRE_APPROVAL, not automatic
+eligibility. Model fidelity still needs user scrutiny and separate evaluation. This
+is source/mock security review, not live Sandbox acceptance or production deployment.
+All tests use isolated mock providers. Browser tests allocate new disposable ledgers
+and never reset/delete existing records. Remaining resource limits, durable authority,
+SQLite/provisioning/ACL assumptions and operator/provider recovery are documented.
+
+### Related files
+- `docs/security-review.md`, `STATUS.md`, `TASKS.md`
+- `backend/app/api/agent.py`, `backend/app/main.py`
+- `backend/app/services/intent_parser.py`, `backend/app/services/provisioning.py`
+- `backend/app/schemas/domain.py`, `backend/app/services/policy.py`
+- `backend/app/services/proposal_binding.py`, `backend/app/services/workspace.py`
+- `frontend/app/page.tsx`, `frontend/app/globals.css`
+- `backend/tests/test_security_review.py`, `backend/tests/frontend_server.py`
+- `frontend/tests/e2e.mjs`
+
+### Supersedes / superseded by
+Supersedes D-024's unauthenticated parser HTTP boundary/quote-only role checks and
+D-026's v1 digest format only; their other decisions remain in force. Adds mandatory
+intent review to D-031 workspace orchestration and enforces its stated HTTPS-cookie
+constraint. No prior historical decision body is rewritten. Step 13 is not started.
