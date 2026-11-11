@@ -36,3 +36,6 @@ Backend tests cover eligible trusted proposals, mandatory model-intent review, b
 Record the application revision, actual duration, authenticated buyer action, exact reviewed merchant/amount/currency, internal proposal/payment and provider order/capture references, final backend state, ledger movement and audit evidence. Keep references private and do not publish buyer identity, passwords, OAuth/session tokens or real credentials. Require backend SUCCEEDED and exactly one settlement. If the outcome is uncertain, stop and reconcile; do not reset or force another capture. The unused connection probe from a different workspace is not acceptance of this revision.
 
 Step 13 preparation is implemented; live acceptance/demo freeze remains pending. This document deliberately does not certify a live payment or semantic completeness.
+
+## Required-scenario acceptance matrix
+The five required approval/budget/mandatory/tampering/duplicate scenarios have a focused 32-test passing verification with isolated provider/model fixtures. See required-scenarios.md for expected outcomes and reproducible commands. These results are automated acceptance, not additional live charges or live UI timing.

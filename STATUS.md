@@ -147,3 +147,8 @@ Added app.export_acceptance CLI for the operator to export recorded capture/orde
 The separately authorized USD100 Sandbox test in this workspace has exported evidence: recorded SUCCEEDED, capture reference, exactly one dispatch/settlement, matching settled reservation and 15 audit events. This does not certify the user's separate website payment or UI timing; that receipt must be exported from their local Docker ledger. No new payment was attempted in this task.
 
 Evidence exporter validation: 1,069 backend tests passed; Ruff and diff checks passed. Frontend unchanged; no live provider operation performed. Actual receipts remain private outside Git.
+
+## Required scenarios verified — 2026-11-12
+Approval-required, budget-denied, mandatory-requirement-denied, tampering-blocked and duplicate-prevented checks pass in a focused 32-test run. New API regression proves an under-budget USD980 no-gym offer cannot create an approval/order, with zero provider calls or funds settled/reserved. Existing approval/buyer gates, canonical/browser tampering and duplicate/concurrency tests were rerun. Evidence and commands: docs/required-scenarios.md. No financial implementation change, live payment, private configuration change or existing ledger reset.
+
+Required-scenario final validation: 1,070 full backend tests passed; focused acceptance run 32 passed; Ruff and diff checks pass. Frontend/financial implementation unchanged in this verification task.

@@ -192,3 +192,13 @@ Groq repair: 1,063 backend tests/Ruff/diff checks pass. User installation must p
 - [x] Pending/missing ledger regression checks, no financial writes/provider calls
 - [x] Independently export the separate USD100 test receipt from this workspace
 - [ ] Export the user's website payment receipt locally and retain UI confirmation screenshot
+
+## Required scenario verification — 2026-11-12
+- [x] Approval required, including below-threshold model-intent review and separate buyer consent
+- [x] Budget denial and independent requested/policy/available ceilings
+- [x] Mandatory attribute denial under budget; API refuses review/checkout with zero provider/ledger activity
+- [x] Browser authority fields and changed canonical/provider terms blocked
+- [x] Repeated/concurrent handlers cannot create duplicate order/capture/settlement or overspend holds
+- [x] Focused 32-test run and documented reproducible matrix (docs/required-scenarios.md)
+
+These are isolated automated scenarios; no new live payment was made and no existing ledger was reset. Full live UI timing/demo freeze remains distinct.
