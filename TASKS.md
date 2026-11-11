@@ -257,3 +257,11 @@ Step 13 in CODEX_PROMPTS.md is tests, scenarios and demo documentation with no n
 - [x] Reclaim inactive bounded-client entries and add spoof/isolation regressions
 - [x] Document new private proxy setting and trust/NAT/distributed limitations
 - [x] Validate 1,090 backend tests, 51 browser assertions, lint/type/build/Ruff and real Docker ingress client isolation/spoof resistance
+
+## Definitive decline and operator recovery
+- [x] Preserve narrow authenticated capture-decline evidence bound to original request/order
+- [x] Recheck provider binding/capture state before atomic release; prioritize observed capture truth
+- [x] Add read-only hold listing and audited GET-only operator reconciliation
+- [x] Keep unknown/historical unproven outcomes held; no force-release, new order or capture retry
+- [x] Add decline, restart/repeat, unknown-error, pending/success-priority and read-only regressions
+- [x] Full backend validation: 1,102 tests, Ruff/dependency consistency and diff checks passed

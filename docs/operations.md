@@ -59,3 +59,6 @@ For a specific Ryuk internal payment reference, replace `--latest-success` with 
 `checks_passed: true` means the stored backend record is SUCCEEDED, has a capture reference, exactly one capture-dispatch event, exactly one settlement event, and one SETTLED reservation matching the exact amount/currency. A failed check exits with status 2; investigate that existing payment instead of paying again. No match/configuration error exits with status 1. A receipt is a snapshot of backend evidence, not a fresh provider query or proof of UI timing. Compare its capture reference with the seller's Sandbox Activity for independent provider evidence.
 
 Keep the receipt private; its default filename pattern is Git-ignored. Redirection creates a local receipt file, so protect it with your OS account/file permissions. Never commit private transaction receipts or upload .env. For UI acceptance, also keep a screenshot of Ryuk's Payment confirmed result. Standalone test receipts do not prove that a different transaction passed through the website.
+
+## Held capture investigation
+Use the local [operator recovery command](operator-recovery.md) to list held attempts without writes, then explicitly reconcile one through provider GET and the existing atomic coordinator. Never release an ambiguous hold by TTL or repeat capture.

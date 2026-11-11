@@ -1,7 +1,7 @@
 """Backend checkout records. Browser actions carry identifiers, never payment terms."""
 
 from enum import StrEnum
-from typing import Self
+from typing import Literal, Self
 
 from pydantic import model_validator
 
@@ -22,9 +22,13 @@ class CheckoutRecord(DomainModel):
     order_creation: OrderCreationState = OrderCreationState.CREATING
     order_id: Identifier | None = None
     capture_id: Identifier | None = None
+    capture_decline_code: Literal["INSTRUMENT_DECLINED"] | None = None
+    decline_request_id: Identifier | None = None
 
     @model_validator(mode="after")
     def validate_terms(self) -> Self:
+        if (self.capture_decline_code is None) != (self.decline_request_id is None):
+            raise ValueError("Decline evidence requires both code and dispatch reference")
         if (self.terms.reference_id, self.terms.amount_minor, self.terms.currency) != (
             self.payment.payment_intent_id,
             self.payment.amount_minor,

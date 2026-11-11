@@ -8,6 +8,7 @@ import asyncio
 import sqlite3
 from collections.abc import Callable, Iterator
 from contextlib import ExitStack, contextmanager
+from dataclasses import replace
 from datetime import datetime, timezone
 from uuid import uuid4
 
@@ -21,6 +22,7 @@ from app.services.checkout_store import CheckoutStore
 from app.services.durable_approvals import DurableApprovalService, authority_transaction
 from app.services.payment_state_machine import PaymentEvent, transition_payment_intent
 from app.services.paypal import (
+    PayPalCaptureDeclined,
     PayPalError,
     PayPalOrderResult,
     PayPalOrderTerms,
@@ -314,6 +316,27 @@ class CheckoutService:
                 idempotency_key=record.payment.idempotency_key,
                 before_capture=before_capture,
             )
+        except PayPalCaptureDeclined as error:
+            with self.store.transaction() as connection:
+                persisted = self.store.load(connection, payment_id, actor_user_id)
+                if (
+                    not claimed
+                    or error.order_id != persisted.order_id
+                    or error.request_id != request_id("capture", persisted.payment.idempotency_key)
+                ):
+                    raise CheckoutBlocked("Decline evidence does not match dispatched capture")
+                persisted.capture_decline_code = error.code
+                persisted.decline_request_id = error.request_id
+                self.store.save(connection, persisted)
+                self.store.audit(
+                    connection,
+                    payment_id,
+                    "CAPTURE_DECLINE_RECORDED",
+                    self._now(),
+                    {"code": error.code},
+                )
+            self._mark_pending(payment_id, actor_user_id)
+            return await self.reconcile(payment_id, actor_user_id=actor_user_id)
         except PayPalUncertain:
             self._mark_pending(payment_id, actor_user_id)
             return self.store.get_checkout(payment_id, actor_user_id=actor_user_id)
@@ -357,6 +380,16 @@ class CheckoutService:
         except PayPalError:
             self._note(payment_id, actor_user_id, "PROVIDER_STATUS_UNAVAILABLE")
             return self.store.get_checkout(payment_id, actor_user_id=actor_user_id)
+        if (
+            record.capture_decline_code == "INSTRUMENT_DECLINED"
+            and record.decline_request_id == request_id("capture", record.payment.idempotency_key)
+            and result.order_id == record.order_id
+            and result.capture_absent
+            and result.capture_id is None
+            and result.provider_status in {"CREATED", "SAVED", "APPROVED", "PAYER_ACTION_REQUIRED"}
+            and result.state == PaymentState.PENDING_PROVIDER
+        ):
+            result = replace(result, state=PaymentState.FAILED)
         return self._finish(payment_id, actor_user_id, result)
 
     def _finish(self, payment_id: str, actor: str, result: PayPalOrderResult) -> CheckoutRecord:

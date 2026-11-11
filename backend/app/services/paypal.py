@@ -39,6 +39,16 @@ class PayPalUncertain(PayPalError):
         self.state = PaymentState.PENDING_PROVIDER
 
 
+class PayPalCaptureDeclined(PayPalError):
+    """Authenticated capture response explicitly rejected this dispatch's instrument."""
+
+    def __init__(self, order_id: str, operation_key: str) -> None:
+        super().__init__("PayPal capture instrument declined; verify order before release")
+        self.order_id = order_id
+        self.request_id = operation_key
+        self.code = "INSTRUMENT_DECLINED"
+
+
 class PayPalSettings(DomainModel):
     model_config = ConfigDict(extra="forbid", frozen=True, hide_input_in_errors=True)
     environment: Literal["sandbox"] = "sandbox"
@@ -89,6 +99,7 @@ class PayPalOrderResult:
     state: PaymentState
     buyer_approved: bool
     capture_id: str | None = None
+    capture_absent: bool = False
 
 
 def request_id(operation: Literal["create", "capture"], key: str) -> str:
@@ -176,7 +187,9 @@ def map_order(
         elif status in {"CREATED", "SAVED", "APPROVED", "PAYER_ACTION_REQUIRED"}:
             if not capture_attempted:
                 state = PaymentState.AWAITING_PAYPAL_BUYER
-        return PayPalOrderResult(actual_id, status, state, status == "APPROVED", capture_id)
+        return PayPalOrderResult(
+            actual_id, status, state, status == "APPROVED", capture_id, not captures
+        )
     except (KeyError, TypeError, ValueError, AttributeError):
         raise PayPalError("PayPal order binding or representation invalid") from None
 
@@ -269,6 +282,24 @@ class PayPalSandboxAdapter:
             response = await self._client.request(method, path, headers=headers, json=body)
             if response.status_code == 401:
                 self._token = None  # Refresh on the next explicit operation; never replay POST.
+            if (
+                method == "POST"
+                and order_id is not None
+                and key is not None
+                and path == f"/v2/checkout/orders/{order_id}/capture"
+                and response.status_code == 422
+            ):
+                error = response.json()
+                details = error.get("details") if isinstance(error, dict) else None
+                if (
+                    isinstance(error, dict)
+                    and error.get("name") == "UNPROCESSABLE_ENTITY"
+                    and isinstance(details, list)
+                    and len(details) == 1
+                    and isinstance(details[0], dict)
+                    and details[0].get("issue") == "INSTRUMENT_DECLINED"
+                ):
+                    raise PayPalCaptureDeclined(order_id, key)
             if response.status_code not in ({200} if method == "GET" else {200, 201}):
                 raise ValueError
             return response.json()
@@ -347,7 +378,7 @@ class PayPalSandboxAdapter:
                 order_id=order_id,
                 before_dispatch=before_capture,
             )
-        except PayPalUncertain:
+        except (PayPalUncertain, PayPalCaptureDeclined):
             self._uncertain_orders.add(order_id)
             raise
         try:

@@ -1,5 +1,10 @@
 # Ryuk Status
 
+## Current: explicit decline evidence and operator hold recovery
+
+Retain validated INSTRUMENT_DECLINED capture rejection evidence with its original dispatch key; GET and verify the exact bound order before resolving the hold. Completed/pending capture evidence takes precedence. Added local read-only hold discovery and audited explicitly applied GET-only operator reconciliation; no force-release/capture-retry path. Legacy unknown outcomes without saved evidence remain held pending provider truth. See docs/operator-recovery.md and D-043. Validation: **1,102 backend tests passed** (12 new recovery regressions), Ruff and dependency consistency passed, Git whitespace checks passed. Frontend is unchanged; no browser/image rebuild claim for this backend-only change. No live provider call, installation deployment or existing financial reset performed.
+
+
 ## Current: proxy-aware login throttling
 
 Implemented authenticated ingress-derived IP keys for login; browser forwarding headers cannot choose their bucket. Compose publishes Nginx instead of the frontend, Next/backend share a private proxy token, and Uvicorn ignores proxy headers for direct peer identity. Inactive login buckets are reclaimed before the bounded client-cap check. Requires RYUK_PROXY_SHARED_SECRET in the private .env and recreation of backend/frontend/ingress; see docs/login-rate-limits.md and D-042. Validation: **1,090 backend tests** and **51 mocked browser assertions** passed; frontend lint/typecheck/build and Ruff passed. Isolated Docker ingress testing confirmed forged headers cannot rotate the first socket client’s exhausted allowance while an independent second socket can sign in. Backend/frontend/ingress health checks pass; the ingress loopback probe ignores outbound proxy settings. No installation deployment, live provider call or financial record changes were performed. Public multi-user/distributed availability controls remain separate.

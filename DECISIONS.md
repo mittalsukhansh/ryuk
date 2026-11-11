@@ -1261,3 +1261,11 @@ Date: 2026-11-11 UTC
 Status: Accepted
 
 Next route handlers do not expose a trustworthy socket peer. Use a loopback-published Nginx ingress that overwrites identity headers, with no directly published frontend port. Next forwards its canonical IP assertion only in trusted-ingress mode, authenticated by a backend-only shared secret. Backend verifies the token and normalizes IPs; unverified requests use their direct peer, and Uvicorn proxy-header trust is disabled. Missing Compose channel config fails login closed. Keep financial actor authentication separate. Reclaim inactive limiter buckets without evicting live ones; shared/distributed limiter work remains separate.
+
+## D-043 — Preserve definitive instrument-decline evidence and expose operator reconciliation
+Date: 2026-11-11 UTC
+Status: Accepted
+
+Recognize only the authenticated capture endpoint's HTTP422 UNPROCESSABLE_ENTITY/single INSTRUMENT_DECLINED issue as explicit rejected-dispatch evidence. Persist the sanitized code and stable dispatch reference. Query the exact bound order before release, prioritizing actual completed/pending captures and retaining unknown outcomes. Existing atomic settlement/release and no-recapture rules remain authoritative. All other non-2xx/malformed/unknown outcomes remain uncertain.
+
+Provide a local operator CLI with read-only bounded hold inspection and explicitly applied GET-only reconciliation, auditing operator label/reason and outcome. Never force release by age, user assertion or unrecorded historical error; no mutation retry/new purchase/refund. Legacy missing evidence and later external provider activity remain unresolved operational boundaries. See docs/operator-recovery.md.
