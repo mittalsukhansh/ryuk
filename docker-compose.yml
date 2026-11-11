@@ -1,7 +1,9 @@
 name: agentpay
 services:
   backend:
-    build: ./backend
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
     environment:
       APP_ENV: ${APP_ENV:-development}
     ports:

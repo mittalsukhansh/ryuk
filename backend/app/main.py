@@ -1,11 +1,25 @@
 """AgentPay foundation API. No AI or payment endpoints are exposed."""
 
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from typing import Literal
 
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-app = FastAPI(title="AgentPay API", version="0.1.0")
+from app.api.offers import router as offers_router
+from app.services.catalog import CatalogService
+
+
+@asynccontextmanager
+async def lifespan(application: FastAPI) -> AsyncIterator[None]:
+    """Load trusted fixtures once; invalid data prevents the API from starting."""
+    application.state.catalog = CatalogService()
+    yield
+
+
+app = FastAPI(title="AgentPay API", version="0.1.0", lifespan=lifespan)
+app.include_router(offers_router)
 
 
 class HealthResponse(BaseModel):

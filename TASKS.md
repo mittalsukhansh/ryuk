@@ -22,11 +22,11 @@
 - [ ] 15 test prompts
 
 ### Catalog
-- [ ] hotels.json
-- [ ] 6+ synthetic offers
-- [ ] merchant IDs
-- [ ] evidence fields
-- [ ] search endpoint
+- [x] hotels.json
+- [x] 6+ synthetic offers
+- [x] merchant IDs
+- [x] evidence fields
+- [x] search endpoint
 
 ### Verification
 - [ ] required attribute checks

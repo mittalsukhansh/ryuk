@@ -679,3 +679,48 @@ Zero is explicit zero, not unlimited; currency conversion and storage/provider i
 
 ### Supersedes / superseded by
 None. Refines D-004, D-007, D-008, D-016, and D-017. VERIFYING remains a vocabulary choice only; legal transition design is deferred to the state-machine stage.
+
+## D-022 — Read-only labeled fixtures and explicit catalog retrieval
+Date: 2026-11-11
+Status: Accepted
+
+### Context
+The hotel catalog stage needs reproducible offers and evidence without live hotel APIs. Retrieval must preserve unknown and unsafe candidates for later verification and policy instead of presenting search as purchase authorization.
+
+### Decision
+Add eight synthetic offers in `fixtures/hotels.json`, labeled at catalog, offer title, source, and response levels. Prices are integer minor-unit totals for one room and the stated nights, including fictional taxes/fees. Include the planned three demo prices, a false mandatory amenity, missing cancellation evidence, and different currency/country/stay-length cases. Merchant identifiers are fictional and are not provider merchant mappings.
+
+Load and validate the entire read-only catalog at application startup. Missing/invalid fixtures, duplicate offer IDs, absent synthetic labels, or schema-invalid offers prevent startup. Return deep copies from search and canonical ID lookup. Expose POST /v1/offers/search with explicit AND-combined country, nights, currency, price, boolean-attribute, and lexical title/location filters, stable offer-ID ordering, and bounded pagination. A price ceiling requires currency; no currency conversion, semantic matching, policy evaluation, or automatic filtering from PurchaseIntent occurs. Missing boolean attributes match neither true nor false. Preserve evidence gaps unchanged.
+
+Use the repository root as the backend Docker build context, allowlist runtime inputs in root .dockerignore, and retain the /app/backend plus /app/fixtures layout so fixture lookup works independent of working directory, locally and in containers.
+
+### Alternatives considered
+- Require external search APIs, real inventory, or real merchant accounts before the demo.
+- Return unlabeled offers or silently treat missing evidence as confirmed attributes.
+- Apply implicit budget/mandatory filtering or price comparisons across currencies.
+- Return mutable internal offer objects, silently overwrite duplicate IDs, or serve a partial invalid catalog.
+- Duplicate fixtures under backend solely for Docker packaging.
+
+### Why
+A labeled, fail-closed fixture catalog makes search reproducible and testable while preserving the later verification/policy stages. Deep copies protect canonical in-memory records from callers, and root-context packaging keeps a single fixture source in local and container execution.
+
+### Consequences
+Search runs without credentials, network calls, or database setup and is documented/tested at service and HTTP boundaries. Malformed fixtures prevent API startup; editing them requires restarting the app. Lexical filters do not interpret free-form purchase intent, and results do not certify requirements, budget, merchant eligibility, or payment permission. Backend image builds must use the repository root context; the allowlist excludes environment files, tests, development dependencies, and unrelated content. No frontend search UI is added yet.
+
+### Constraints / assumptions
+Fixtures are not real hotels, dated availability, booking contracts, or supported payment destinations. Boolean filters use actual boolean types; an integer 1 cannot satisfy true. Currency codes retain domain-schema validation, with matching offers restricted to the supplied currency before a price filter. A search price ceiling is a retrieval constraint, never a replacement for later financial policy. Actual verification, digest/approval binding, reservations, and provider integration remain subsequent stages.
+
+### Related files
+- `fixtures/hotels.json`
+- `backend/app/services/catalog.py`
+- `backend/app/schemas/catalog.py`
+- `backend/app/api/offers.py`
+- `backend/app/main.py`
+- `backend/tests/test_catalog.py`
+- `backend/Dockerfile`
+- `.dockerignore`
+- `docker-compose.yml`
+- `docs/catalog.md`
+
+### Supersedes / superseded by
+None. Implements D-012 and D-013. Refines the backend packaging in D-020 while retaining the same two-service architecture and no database dependency.
