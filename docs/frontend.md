@@ -182,3 +182,23 @@ is available for review now; this task does not execute the Step 12 security rev
 - `frontend/package.json`, `frontend/package-lock.json`
 - `README.md`, `ARCHITECTURE.md`, `TASKS.md`, `STATUS.md`, `DECISIONS.md`
 - `docs/frontend.md`, `docs/demo-script.md`, `docs/checkout.md`
+
+## Startup failure: backend exited (3)
+
+The original generic `Invalid private Ryuk demo configuration` error did not
+identify the failing input. The updated build reports only the setting name and
+expected format; private values and raw exception contents stay omitted.
+
+```sh
+git pull origin main
+docker compose --env-file .env up --build -d --wait
+docker compose logs --no-color --tail=30 backend
+```
+
+Check the named setting locally. Passwords require at least 16 characters; origins
+must be complete HTTPS origins or HTTP localhost/127.0.0.1/[::1] origins, without
+paths/credentials; cookie flags are true/false; seed budget uses integer minor
+units; merchant ID is the actual Sandbox seller ID, not an email or secret.
+A database error identifies the private SQLite directory/volume for inspection.
+The new diagnostics do not prove the cause on a user's device until that device
+runs the updated image. Share only the sanitized final error, never `.env`.

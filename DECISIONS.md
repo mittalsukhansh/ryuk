@@ -1096,3 +1096,37 @@ The operator protects private `.env`, database directory/volume and credentials,
 
 ### Supersedes / superseded by
 None. Implements the missing private-demo auth/provisioning seam in D-029, retaining its ledger and canonical-authority constraints. No production identity or live acceptance decision is implied.
+
+## D-032 — Setting-specific startup diagnostics without private values
+Date: 2026-11-11
+Status: Accepted
+
+### Context
+A user's local Docker backend exited during demo provisioning, but the catch-all startup message hid which setting failed. The provided traceback cannot establish the actual invalid local value. The earlier prefix-based origin check also rejected valid HTTP loopback IP origins.
+
+### Decision
+Validate demo origin/password/cookie flag/seed budget/merchant/path before provisioning side effects and report a fixed setting name plus expected format, never its supplied value or raw exception. Classify SQLite/permission and password-hashing/TLS initialization failures safely. Parse origins as URLs: allow complete HTTPS origins and local HTTP localhost/127.0.0.1/::1 origins; reject credentials, paths, query/fragment and invalid ports. Retain exact-origin session checks, fail-closed startup, private environment configuration and all financial rules.
+
+### Alternatives considered
+- Continue using one opaque catch-all error and repeatedly guess at the user's configuration.
+- Log environment values/raw validation exceptions or request a private `.env` upload.
+- Disable authentication or replace invalid settings with permissive defaults.
+
+### Why
+Operators can correct the actual named setting without exposing credentials. Structural URL validation supports legitimate local device usage while preserving the browser origin boundary.
+
+### Consequences
+Startup failures become actionable and regression-tested; invalid configuration still prevents demo startup. This does not identify the user's existing local root cause until they run the updated image, nor establish live Sandbox acceptance.
+
+### Constraints / assumptions
+Diagnostic messages interpolate only code-owned descriptions, never environment contents. Existing account spending/holds are preserved; no database reset or permission bypass is introduced. Live Step 11 acceptance remains pending and Step 12 is not started.
+
+### Related files
+- `backend/app/services/provisioning.py`
+- `backend/tests/test_provisioning.py`
+- `docs/frontend.md`
+- `STATUS.md`
+- `TASKS.md`
+
+### Supersedes / superseded by
+None. Refines D-031 startup validation/diagnostics; authentication and payment-authority decisions are unchanged.

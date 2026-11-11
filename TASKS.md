@@ -90,6 +90,7 @@
 - [ ] Live Sandbox checkout acceptance
 
 ### Frontend — Stage 11
+- [x] Sanitized setting-specific demo startup diagnostics and 21 configuration regression cases
 - [x] Visible Ryuk branding and restrained dark editorial casebook design
 - [x] Command input, backend intent, candidate records and evidence/preference detail
 - [x] Backend policy verdict and exact-term approval/reject modal

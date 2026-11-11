@@ -3,7 +3,7 @@
 Last verified: 2026-11-11. Completion follows implementation and actual checks, not planning checkboxes.
 
 ## Current milestone
-Step 11 — Frontend integration implemented and mock-tested; **live acceptance remains blocked**. The user's required real parser/Sandbox buyer transaction and live three-minute timing are unverified. Step 11 is not marked complete. Step 12 has not started.
+Step 11 — Frontend integration and startup diagnostic repair implemented and mock-tested; **live acceptance remains blocked**. The user's required real parser/Sandbox buyer transaction and live three-minute timing are unverified. Step 11 is not marked complete. Step 12 has not started.
 
 ## Overall status
 In Progress
@@ -23,9 +23,11 @@ Ryuk now has a responsive dark casebook connected to backend intent, catalog, ve
 - [x] Explicitly enabled single-buyer demo password verification, opaque hashed session tokens, HttpOnly/SameSite cookie, origin checks, rate limit/logout; default missing configuration stays blocked.
 - [x] Same-origin Next proxy with allowlisted paths, credential isolation, no cache/redirect forwarding and safe errors. Only PayPal's public client ID reaches the SDK.
 - [x] Trusted runtime account/policy/payee provisioning and protected persistent Compose ledger volume. Startup preserves existing funds/holds and never resets spending.
-- [x] 16 new backend session/workspace integration cases; complete suite **962 passed**, no pytest warnings. Ruff/dependency checks pass.
+- [x] 16 new backend session/workspace integration cases; complete suite **983 passed**, no pytest warnings. Ruff/dependency checks pass.
 - [x] Frontend ESLint, TypeScript and optimized production build pass. Chromium production-browser suite passes **13 assertions** over the actual proxy/backend/services/SQLite with mocked SDK/provider at desktop/mobile sizes, no page errors or horizontal overflow. All mocked scenarios took **14.6 seconds**, not a live payment measurement.
 - [x] Browser bundles checked for backend credential names/synthetic-secret markers; Compose config validates and sends private settings only to backend. No real credentials committed or live calls made.
+
+- [x] Local startup troubleshooting fix: setting-specific sanitized diagnostics, validated HTTPS/loopback origins, preflight budget/merchant checks and SQLite error classification; 21 regression cases pass. The user’s exact local invalid setting remains unconfirmed until they run the updated image.
 
 ## In Progress
 - [ ] Step 11 acceptance: configure actual private model/Sandbox credentials, authenticate a real Sandbox buyer, verify capture/ledger/audit and time the live happy path. UI/integration code is complete for review; acceptance is not.
@@ -76,10 +78,10 @@ Ryuk now has a responsive dark casebook connected to backend intent, catalog, ve
 - Approval: Exact bound terms/expiry/reasons and approve/reject UI use authenticated backend service. Process-local authority remains a deployment limitation.
 - PayPal: Actual SDK integration and server-order/capture/status code complete; mock browser flow passes. **Real Sandbox buyer/capture acceptance remains unverified and Step 11 remains incomplete.**
 - Audit: UI uses backend canonical/approval events and durable checkout events/timestamps. Early events remain in memory; broader durable audit deployment is pending.
-- Security tests: Existing 946 cases plus 16 session/workspace cases and 13 browser assertions pass. Comprehensive Step 12 review has not been performed. Live demo is not ready to certify.
+- Security tests: Existing 946 cases plus 16 session/workspace and 21 startup diagnostic cases and 13 browser assertions pass. Comprehensive Step 12 review has not been performed. Live demo is not ready to certify.
 
 ## Test status
-- Unit: Backend `pytest -q`: **962 passed**, no pytest warnings; Ruff passes; `pip check` reports no broken requirements.
+- Unit: Backend `pytest -q`: **983 passed**, no pytest warnings; Ruff passes; `pip check` reports no broken requirements.
 - Integration: Existing real-adapter/SQLite checkout tests plus authenticated session/proxy/workspace paths, exact backend evidence/verdicts, consent, forbidden fields, origin/owner checks, cancellation, duplicate/overspend and pending recovery. Compose config/private-variable separation and browser-bundle secret-marker checks pass.
 - E2E: Production Next -> same-origin proxy -> actual FastAPI/services/SQLite -> mocked SDK/HTTP provider: 13 Chromium assertions pass at 1440px/390px, no page errors or horizontal overflow, 14.6-second suite. Blocked/rejected purchases have no checkout; no paid label before backend response; timeout reconciles. This is not a real Sandbox E2E acceptance.
 - Security: Session forgery/guess limit/logout/expiry/origin tests, browser authority rejection and existing financial tampering/race/recovery tests pass. No comprehensive production security acceptance claimed.
