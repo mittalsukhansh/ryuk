@@ -3,13 +3,13 @@
 ## P0 — Must ship
 
 ### Foundation
-- [ ] Repo initialized
-- [ ] Next.js frontend
-- [ ] FastAPI backend
-- [ ] .env.example
-- [ ] Docker Compose
-- [ ] health endpoints
-- [ ] lint/test commands
+- [x] Repo initialized
+- [x] Next.js frontend
+- [x] FastAPI backend
+- [x] .env.example
+- [x] Docker Compose
+- [x] health endpoints
+- [x] lint/test commands
 
 ### Intent
 - [ ] PurchaseIntent schema

@@ -178,3 +178,29 @@ At the end of each stage:
 5. report blockers,
 6. recommend the next stage,
 7. stop and wait for the next instruction.
+
+
+## Documentation maintenance
+
+After every meaningful implementation task:
+
+1. Update STATUS.md to reflect the actual repository state.
+2. Append a DECISIONS.md entry only if a meaningful architecture, product, security, scope, or integration decision was made.
+3. Never mark work complete unless the implementation exists and relevant tests pass.
+4. Never rewrite historical decision entries. If a decision changes, create a new entry and mark the old one Superseded.
+5. Keep TASKS.md and STATUS.md consistent.
+
+## Stage execution
+
+Work only on the currently requested stage.
+
+Do not automatically begin the next stage.
+
+At the end of each stage:
+1. run relevant tests,
+2. update STATUS.md,
+3. update DECISIONS.md if needed,
+4. summarize what was completed,
+5. list blockers,
+6. recommend the next stage,
+7. stop.

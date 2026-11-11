@@ -1,0 +1,642 @@
+# AgentPay Decisions
+
+Append-only Architecture / Product Decision Log. Record meaningful technical, product, security, architecture, scope, and integration decisions; omit trivial formatting and typo changes. Start at D-001 and append new sequential entries. Never rewrite historical decision bodies. When a decision changes, append a replacement, mark the previous entry Superseded, and link the entries in their status/supersession metadata.
+
+These entries capture existing planning decisions, not completed implementation. Dates record when decisions were captured in this log; original decision dates are not established. Alternatives describe the choices implied by the planning constraints, not a claim that an earlier evaluation occurred.
+
+## D-001 — LLM proposals have no payment authority
+Date: 2026-11-11
+Status: Accepted
+
+### Context
+Language models interpret user requests and untrusted listing content.
+
+### Decision
+The LLM may parse, rank, explain, and propose. Only deterministic backend services authorize financial actions; the payment adapter performs PayPal calls. The LLM cannot capture, change limits or approved terms, or declare success.
+
+### Alternatives considered
+- Let the LLM execute payment tools directly
+- Let model confidence override backend decisions
+
+### Why
+This preserves the explicit reasoning/authority boundary and limits prompt-injection impact.
+
+### Consequences
+Financial behavior can be checked independently of model output; backend validation and orchestration are required.
+
+### Constraints / assumptions
+All model outputs, listing text, external tool output, and browser inputs remain untrusted.
+
+### Related files
+- `AGENTS.md`
+- `ARCHITECTURE.md`
+- `PLAN.md`
+- `README_START_HERE.md`
+
+### Supersedes / superseded by
+None.
+
+## D-002 — Deterministic financial policy
+Date: 2026-11-11
+Status: Accepted
+
+### Context
+An attractive offer can still violate spending or merchant constraints.
+
+### Decision
+Use a pure deterministic backend policy service returning DENY, REQUIRE_APPROVAL, or ALLOW_ELIGIBLE_FOR_CHECKOUT with reason codes. Enforce budget, currency, mandatory checks, approval threshold, merchant review, duplicate protection, expiry, and proposal revalidation.
+
+### Alternatives considered
+- LLM-selected financial decisions
+- Client-side policy enforcement
+
+### Why
+Explicit rules make financial authorization reproducible and testable.
+
+### Consequences
+Hard failures cannot be overridden by prompting; policy versions and canonical backend inputs must be managed.
+
+### Constraints / assumptions
+ALLOW_ELIGIBLE_FOR_CHECKOUT does not replace required application approval or PayPal buyer authorization.
+
+### Related files
+- `PLAN.md`
+- `ARCHITECTURE.md`
+- `CODEX_PROMPTS.md`
+- `AGENTS.md`
+
+### Supersedes / superseded by
+None.
+
+## D-003 — Verify purchase intent before payment
+Date: 2026-11-11
+Status: Accepted
+
+### Context
+Spending controls alone cannot ensure that a purchase matches the request.
+
+### Decision
+Compare the selected offer with typed intent before payment, separating mandatory requirements from preferences and retaining verification evidence and a snapshot. Revalidate before capture.
+
+### Alternatives considered
+- Check only price and budget
+- Review semantic correctness after payment
+
+### Why
+Intent-aware pre-payment verification is the flagship product requirement.
+
+### Consequences
+Incorrect purchases can be blocked before funds move; verification and evidence add work to checkout.
+
+### Constraints / assumptions
+Preference scores never replace mandatory checks or financial policy.
+
+### Related files
+- `PLAN.md`
+- `ARCHITECTURE.md`
+- `CODEX_PROMPTS.md`
+
+### Supersedes / superseded by
+None.
+
+## D-004 — Three-state evidence-backed verification
+Date: 2026-11-11
+Status: Accepted
+
+### Context
+Offer evidence may be false, incomplete, or ambiguous.
+
+### Decision
+Return only PASS, FAIL, or UNKNOWN. Mandatory false means FAIL; missing mandatory evidence means UNKNOWN; all mandatory requirements verified means PASS. Every semantic PASS needs supporting evidence. Mandatory UNKNOWN requires review; mandatory FAIL is denied.
+
+### Alternatives considered
+- Binary pass/fail with guessed missing facts
+- Use a confidence score to override deterministic failures
+
+### Why
+UNKNOWN represents insufficient evidence without fabricating certainty.
+
+### Consequences
+Incomplete offers trigger review and may slow checkout; decisions remain explainable.
+
+### Constraints / assumptions
+LLM interpretation is limited to evidence-backed semantic checks; subjective or ambiguous cases require review.
+
+### Related files
+- `AGENTS.md`
+- `PLAN.md`
+- `ARCHITECTURE.md`
+- `CODEX_PROMPTS.md`
+
+### Supersedes / superseded by
+None.
+
+## D-005 — PayPal Sandbox is the MVP payment rail
+Date: 2026-11-11
+Status: Accepted
+
+### Context
+The demo needs a supported real integration with bounded scope.
+
+### Decision
+Use PayPal Sandbox Orders API v2, the PayPal JavaScript SDK for buyer approval, and server-side create/capture/status calls through a PayPal adapter. Use an AgentPay-controlled or compatible Sandbox demo merchant.
+
+### Alternatives considered
+- Production payment processing for the MVP
+- Claim direct payment to arbitrary merchants
+
+### Why
+The planning scope explicitly selects Sandbox and excludes arbitrary-merchant payment claims.
+
+### Consequences
+The demo can exercise provider checkout; it does not establish production readiness or universal merchant support.
+
+### Constraints / assumptions
+Compatible Sandbox buyer/merchant accounts and app credentials must be configured; credentials stay server-side.
+
+### Related files
+- `PLAN.md`
+- `AGENTS.md`
+- `CODEX_PROMPTS.md`
+- `env.example`
+
+### Supersedes / superseded by
+None.
+
+## D-006 — Buyer approval and expiring application approval
+Date: 2026-11-11
+Status: Accepted
+
+### Context
+Policy eligibility and user consent are separate requirements.
+
+### Decision
+Always preserve PayPal buyer authorization. Collect application approval when policy requires it; bind it to user, proposal, merchant, amount, currency, policy version, and verification snapshot. Expire approvals and invalidate them when bound fields change.
+
+### Alternatives considered
+- Skip PayPal buyer approval for policy-eligible purchases
+- Reuse blanket or expired application approvals
+
+### Why
+Consent must apply to the exact purchase and satisfy provider requirements.
+
+### Consequences
+Users can review escalated purchases; changed terms require renewed approval and additional UI/state handling.
+
+### Constraints / assumptions
+Application approval cannot override hard policy denial or substitute for PayPal buyer approval.
+
+### Related files
+- `PLAN.md`
+- `ARCHITECTURE.md`
+- `CODEX_PROMPTS.md`
+- `AGENTS.md`
+
+### Supersedes / superseded by
+None.
+
+## D-007 — Bind approvals to a canonical proposal digest
+Date: 2026-11-11
+Status: Accepted
+
+### Context
+Approved terms can be tampered with or changed before checkout.
+
+### Decision
+Hash a canonical payload containing user_id, offer_id, merchant_id, amount_minor, currency, policy_version, and verification_snapshot_id. Bind approval to that digest; regenerate and compare before checkout/capture.
+
+### Alternatives considered
+- Bind approval only to an offer ID
+- Trust browser-submitted merchant and amount
+
+### Why
+A digest ties authorization to exact backend-verified terms.
+
+### Consequences
+Changes invalidate approval; canonicalization and immutable snapshot references must be implemented consistently.
+
+### Constraints / assumptions
+The backend reloads canonical data and reruns policy; hashing alone does not establish authorization.
+
+### Related files
+- `ARCHITECTURE.md`
+- `PLAN.md`
+- `CODEX_PROMPTS.md`
+
+### Supersedes / superseded by
+None.
+
+## D-008 — Represent money in integer minor units
+Date: 2026-11-11
+Status: Accepted
+
+### Context
+Intent, offers, policy, and payment records need consistent monetary values.
+
+### Decision
+Store money in integer minor units and carry currency explicitly across domain schemas and payment binding.
+
+### Alternatives considered
+- Binary floating-point money
+- Use display-formatted monetary strings as internal values
+
+### Why
+The coding rules and schema task explicitly require integer minor units.
+
+### Consequences
+Internal arithmetic is exact; display and provider-boundary conversion must respect currency units.
+
+### Constraints / assumptions
+Currency mismatch is denied; no currency-conversion behavior is specified by the plan.
+
+### Related files
+- `AGENTS.md`
+- `PLAN.md`
+- `CODEX_PROMPTS.md`
+
+### Supersedes / superseded by
+None.
+
+## D-009 — Idempotent payment execution
+Date: 2026-11-11
+Status: Accepted
+
+### Context
+Duplicate requests or repeated payment attempts can charge the same proposal twice.
+
+### Decision
+Give every payment attempt a unique internal ID, bind it to one canonical proposal, use a stable idempotency key, and deny duplicate payment attempts for the same approved proposal.
+
+### Alternatives considered
+- Create a fresh idempotency key on every retry
+- Rely on the UI to prevent duplicate clicks
+
+### Why
+Duplicate prevention must hold at the backend and provider boundary.
+
+### Consequences
+Retries can be correlated safely; durable attempt records and duplicate enforcement are necessary.
+
+### Constraints / assumptions
+Idempotency does not resolve ambiguous provider outcomes by itself; see D-010.
+
+### Related files
+- `AGENTS.md`
+- `PLAN.md`
+- `ARCHITECTURE.md`
+- `CODEX_PROMPTS.md`
+
+### Supersedes / superseded by
+None.
+
+## D-010 — Reconcile ambiguous provider outcomes before retry
+Date: 2026-11-11
+Status: Accepted
+
+### Context
+A capture timeout does not prove that payment failed.
+
+### Decision
+Move ambiguous outcomes to PENDING_PROVIDER, query provider state before any retry, and reconcile the internal result. Display paid only after provider-confirmed success.
+
+### Alternatives considered
+- Blindly retry capture after timeout
+- Treat timeout as confirmed failure or success
+
+### Why
+Provider reconciliation avoids duplicate capture and false payment status.
+
+### Consequences
+An uncertain result can remain pending; status queries and reconciliation audit events are required.
+
+### Constraints / assumptions
+Provider status and events must be verified server-side; never invent provider semantics.
+
+### Related files
+- `ARCHITECTURE.md`
+- `AGENTS.md`
+- `PLAN.md`
+- `CODEX_PROMPTS.md`
+
+### Supersedes / superseded by
+None.
+
+## D-011 — Modular backend instead of microservices
+Date: 2026-11-11
+Status: Accepted
+
+### Context
+The hackathon MVP needs clear boundaries without unnecessary deployment complexity.
+
+### Decision
+Organize one FastAPI backend into focused parser, catalog, verifier, policy, approval, payment, audit, and provider-adapter modules rather than introducing microservices.
+
+### Alternatives considered
+- Independent microservices for each component
+- One undifferentiated service with mixed responsibilities
+
+### Why
+The planned single backend layout and instruction to avoid unnecessary microservices favor a small, testable modular monolith.
+
+### Consequences
+Local integration and debugging are simpler; internal module boundaries still require discipline.
+
+### Constraints / assumptions
+This records the existing planned structure, not an implemented deployment.
+
+### Related files
+- `PLAN.md`
+- `AGENTS.md`
+- `ARCHITECTURE.md`
+
+### Supersedes / superseded by
+None.
+
+## D-012 — Use trusted synthetic fixture data for the MVP
+Date: 2026-11-11
+Status: Accepted
+
+### Context
+Reproducible search and evidence are needed without requiring a live search integration.
+
+### Decision
+Build the initial catalog from trusted, clearly labeled synthetic fixtures with at least six hotel offers, merchant IDs, structured attributes, evidence, and source fields. Real search APIs remain optional later work.
+
+### Alternatives considered
+- Require live external search before the demo
+- Present synthetic listings as real merchant availability
+
+### Why
+The fixture catalog makes the core safety workflow reproducible and is explicitly accepted by the scope.
+
+### Consequences
+Less external dependency and more predictable tests; listings do not prove real-world booking availability.
+
+### Constraints / assumptions
+Fixture status must be visible; fixture catalog data is still subject to verification and policy.
+
+### Related files
+- `PLAN.md`
+- `TASKS.md`
+- `CODEX_PROMPTS.md`
+
+### Supersedes / superseded by
+None.
+
+## D-013 — Hotels are the initial demo vertical
+Date: 2026-11-11
+Status: Accepted
+
+### Context
+The demo needs a concrete purchase with mandatory and preferred attributes.
+
+### Decision
+Start with the hotel scenario: budget and approval threshold, required gym/mountain view/free cancellation, and preferred private pool. Demonstrate eligible, approval-required, and denied outcomes.
+
+### Alternatives considered
+- Build electronics and subscriptions simultaneously
+- Use a generic purchase demo without concrete evidence
+
+### Why
+The hotel example and initial fixture task provide a defined end-to-end demonstration.
+
+### Consequences
+Hotel checks and UX can be focused; other category verifiers remain P2.
+
+### Constraints / assumptions
+Hotel offers are synthetic demo data; checkout uses the compatible Sandbox merchant, not arbitrary hotel booking systems.
+
+### Related files
+- `PLAN.md`
+- `TASKS.md`
+- `CODEX_PROMPTS.md`
+
+### Supersedes / superseded by
+None.
+
+## D-014 — Defer multi-agent orchestration
+Date: 2026-11-11
+Status: Accepted
+
+### Context
+Multi-agent coordination adds complexity before the core checkout flow is established.
+
+### Decision
+Begin with one orchestrated workflow. Defer specialized subagents and LangGraph checkpointing to P2 after core P0/P1 work; any future agents still produce proposals only.
+
+### Alternatives considered
+- Multi-agent orchestration as a prerequisite
+- Delegate financial authority to specialized agents
+
+### Why
+One workflow is easier to test, debug, secure, and demo.
+
+### Consequences
+The critical path stays smaller; advanced orchestration capabilities wait.
+
+### Constraints / assumptions
+Financial authority remains outside every agent even if orchestration is expanded.
+
+### Related files
+- `ARCHITECTURE.md`
+- `TASKS.md`
+- `PLAN.md`
+
+### Supersedes / superseded by
+None.
+
+## D-015 — Atomically reserve available budget
+Date: 2026-11-11
+Status: Accepted
+
+### Context
+Concurrent requests can each pass a budget check and jointly overspend.
+
+### Decision
+Compute available budget as limit minus settled amounts minus active reservations. Reserve atomically before irreversible payment action, after current proposal, policy, and approval revalidation.
+
+### Alternatives considered
+- Check balance without reservation
+- Reserve only after capture
+
+### Why
+Atomic reservations address concurrent overspend across payment attempts.
+
+### Consequences
+Concurrent requests cannot safely reuse the same available funds; reservation lifecycle management is required.
+
+### Constraints / assumptions
+The implementation must provide transactional atomicity; detailed reservation lifecycle rules remain to be implemented.
+
+### Related files
+- `ARCHITECTURE.md`
+- `PLAN.md`
+- `CODEX_PROMPTS.md`
+
+### Supersedes / superseded by
+None.
+
+## D-016 — Centralized payment states and isolated provider adapter
+Date: 2026-11-11
+Status: Accepted
+
+### Context
+Checkout spans verification, approvals, provider interaction, and uncertain results.
+
+### Decision
+Use explicit enum-based payment states, centralized transitions, and illegal-transition rejection. Isolate PayPal URLs, OAuth, operations, and provider mapping in the PayPal adapter.
+
+### Alternatives considered
+- Ad hoc payment status updates across routes
+- Mix provider calls into the LLM or frontend
+
+### Why
+This makes payment progression and provider trust boundaries explicit.
+
+### Consequences
+States and transitions can be tested; a transition table must still be implemented.
+
+### Constraints / assumptions
+ARCHITECTURE.md includes VERIFYING while CODEX_PROMPTS.md task 8 omits it. Resolve that detail during the state-machine stage rather than treating either list as implemented.
+
+### Related files
+- `AGENTS.md`
+- `ARCHITECTURE.md`
+- `CODEX_PROMPTS.md`
+
+### Supersedes / superseded by
+None.
+
+## D-017 — Typed validated interfaces and the MVP stack
+Date: 2026-11-11
+Status: Accepted
+
+### Context
+Untrusted natural-language and browser data must enter a maintainable application.
+
+### Decision
+Use Next.js, TypeScript, and Tailwind for the frontend; Python, FastAPI, and Pydantic for the backend. Require structured LLM output and schema validation. Prefer PostgreSQL for persistence, pytest for backend tests, and frontend tests where useful.
+
+### Alternatives considered
+- Accept unvalidated free-form model output
+- Introduce an unrelated application stack
+
+### Why
+The required stack and typed boundary rules are explicit project instructions.
+
+### Consequences
+Contracts can be checked consistently; scaffold, migrations, and test infrastructure are still needed.
+
+### Constraints / assumptions
+PostgreSQL is a preference, not a documented absolute requirement. Playwright is conditional on time. Never infer unlimited budget from missing intent.
+
+### Related files
+- `AGENTS.md`
+- `PLAN.md`
+- `CODEX_PROMPTS.md`
+
+### Supersedes / superseded by
+None.
+
+## D-018 — Audit verified decisions and provider outcomes
+Date: 2026-11-11
+Status: Accepted
+
+### Context
+The demo must explain why a purchase was allowed, reviewed, blocked, or paid.
+
+### Decision
+Record verification, policy, approval, budget reservation, provider actions, and reconciliation as audit events; retain verification snapshots and expose a timeline/result view. Payment success requires server-side provider confirmation.
+
+### Alternatives considered
+- Show only a final paid flag
+- Trust client-reported success or unverified provider events
+
+### Why
+The project requires a verifiable audit trail for the full decision path.
+
+### Consequences
+Decisions become inspectable; persistent audit records and UI work are required.
+
+### Constraints / assumptions
+No secrets in source or raw credential-bearing exception dumps. Audit records must respect the same credential boundary.
+
+### Related files
+- `PLAN.md`
+- `ARCHITECTURE.md`
+- `AGENTS.md`
+- `TASKS.md`
+
+### Supersedes / superseded by
+None.
+
+## D-019 — Stage-scoped delivery and a safety-focused demo freeze
+Date: 2026-11-11
+Status: Accepted
+
+### Context
+The MVP must remain reviewable and prioritize correctness over feature breadth.
+
+### Decision
+Execute only the requested stage, run relevant checks, maintain status and meaningful decision records, report blockers, recommend the next stage, and stop. Prioritize correctness, payment safety, reproducibility, and clear UX. Freeze features for demo readiness and exercise safe and blocked checkout scenarios.
+
+### Alternatives considered
+- Build the entire project in one task
+- Automatically proceed to the next stage or add features during demo freeze
+
+### Why
+The staged prompts, execution instructions, and MVP priorities require bounded, verifiable increments.
+
+### Consequences
+Progress is easier to assess; later stages wait for explicit instructions. Documentation must track implemented evidence rather than planned checklists.
+
+### Constraints / assumptions
+Security-sensitive code needs tests. Demo readiness requires real Sandbox checkout, one approval escalation, blocked unsafe behavior, and an audit explanation.
+
+### Related files
+- `AGENTS.md`
+- `PLAN.md`
+- `CODEX_PROMPTS.md`
+- `README_START_HERE.md`
+- `TASKS.md`
+
+### Supersedes / superseded by
+None.
+
+## D-020 — Credential-free foundation with two Compose services
+Date: 2026-11-11
+Status: Accepted
+
+### Context
+The scaffold stage must boot the required frontend and backend without implementing AI or payment behavior. Persistence has no consumers or domain models yet.
+
+### Decision
+Provide a Next.js App Router preview and a FastAPI API in two Compose services. Use a standalone production frontend image, non-root runtime users, loopback host ports, and HTTP health checks. `/health` reports process liveness only. Defer database provisioning, domain schemas, AI, and payment integrations to their requested stages. Make `.env.example` the canonical configuration template with empty credential fields; retain the original `env.example` for reference. Keep credentials out of frontend configuration and build contexts. Support the managed environment's public proxy CA through an optional build-time secret mount.
+
+### Alternatives considered
+- Require database and provider credentials to boot the scaffold.
+- Add unused database services and AI/payment endpoints during foundation work.
+- Copy the session proxy CA into image layers or disable TLS verification.
+
+### Why
+A credential-free, bounded scaffold can be validated independently. Two services implement the current stage while preserving the planned modular backend and future PostgreSQL preference. Build-time CA mounts preserve TLS verification without persisting session-specific trust files.
+
+### Consequences
+Local and Compose startup are available without third-party accounts. Health checks establish liveness, not full product readiness. Persistence and integrations remain incomplete. The frontend Dockerfile installs dependencies and builds in one layer to reduce temporary disk consumption on the managed environment's VFS Docker storage; source changes therefore rerun installation rather than reusing a separate dependency layer.
+
+### Constraints / assumptions
+This is a development foundation, not a production deployment or working checkout. No live provider readiness or payment safety is asserted. Only current non-secret configuration is passed to Compose services; future integrations must explicitly wire their backend configuration. Proxy CA overrides are environment-specific and kept outside the repository.
+
+### Related files
+- `frontend/Dockerfile`
+- `frontend/next.config.ts`
+- `backend/app/main.py`
+- `backend/Dockerfile`
+- `docker-compose.yml`
+- `.env.example`
+- `.gitignore`
+- `README.md`
+- `PLAN.md`
+
+### Supersedes / superseded by
+None. Implements the foundation within D-005, D-011, and D-017; the PostgreSQL preference remains unchanged.
