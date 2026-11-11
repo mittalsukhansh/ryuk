@@ -4,6 +4,8 @@ Not an authentication provider, durable database, public API, or payment executo
 Only trusted backend code may register proposals or supply an authenticated actor ID.
 """
 
+from collections.abc import Iterator
+from contextlib import contextmanager
 from datetime import datetime, timedelta
 from threading import RLock
 from uuid import uuid4
@@ -217,6 +219,43 @@ class InMemoryApprovalService:
                     request = self._requests[current_id]
             return evaluate_policy(
                 proposal, policy, budget, attempts, evaluated_at=now, approval=request
+            )
+
+    @contextmanager
+    def checkout_guard(
+        self,
+        proposal_id: str,
+        *,
+        actor_user_id: str,
+        at: datetime,
+        policy: FinancialPolicy,
+        budget: BudgetSnapshot,
+        attempts: AttemptSnapshot,
+        approval_request_id: str | None = None,
+    ) -> Iterator[tuple[PurchaseProposal, ApprovalRequest | None]]:
+        """Hold canonical consent stable through a synchronous reservation/dispatch claim.
+
+        Never await inside this guard. Callers acquire their ledger transaction first.
+        It is not a distributed approval lock; lost authority fails closed on restart.
+        """
+        with self._lock:
+            decision = self.revalidate_for_checkout(
+                proposal_id,
+                actor_user_id=actor_user_id,
+                at=at,
+                policy=policy,
+                budget=budget,
+                attempts=attempts,
+                approval_request_id=approval_request_id,
+            )
+            if decision.decision != PolicyOutcome.ALLOW_ELIGIBLE_FOR_CHECKOUT:
+                raise ApprovalPolicyError(decision)
+            proposal = self._proposal(proposal_id, actor_user_id)
+            current_id = self._current.get(proposal_id)
+            request = self._requests.get(current_id) if current_id is not None else None
+            yield (
+                proposal.model_copy(deep=True),
+                request.model_copy(deep=True) if request is not None else None,
             )
 
     def _proposal(self, proposal_id: str, actor_user_id: str) -> PurchaseProposal:

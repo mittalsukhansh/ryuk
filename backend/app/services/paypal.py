@@ -252,6 +252,7 @@ class PayPalSandboxAdapter:
         key: str | None = None,
         body: dict | None = None,
         order_id: str | None = None,
+        before_dispatch: Callable[[], None] | None = None,
     ) -> Any:
         token = await self._access_token()  # Failure before dispatch is not a capture timeout.
         headers = {
@@ -261,6 +262,9 @@ class PayPalSandboxAdapter:
         }
         if key is not None:
             headers["PayPal-Request-Id"] = key
+        # The coordinator commits authorization/reservation after OAuth and provider preflight.
+        if before_dispatch is not None:
+            before_dispatch()
         try:
             response = await self._client.request(method, path, headers=headers, json=body)
             if response.status_code == 401:
@@ -319,6 +323,7 @@ class PayPalSandboxAdapter:
         terms: PayPalOrderTerms,
         *,
         idempotency_key: str,
+        before_capture: Callable[[], None] | None = None,
     ) -> PayPalOrderResult:
         order_id = _identifier(order_id)
         terms = PayPalOrderTerms.model_validate(terms.model_dump())
@@ -340,6 +345,7 @@ class PayPalSandboxAdapter:
                 key=key,
                 body={},
                 order_id=order_id,
+                before_dispatch=before_capture,
             )
         except PayPalUncertain:
             self._uncertain_orders.add(order_id)

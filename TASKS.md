@@ -42,7 +42,7 @@
 - [x] merchant review
 - [x] duplicate/unknown-attempt policy checks against explicit backend history snapshots
 - [x] read-only approval binding/expiry/rejection policy checks
-- [ ] duplicate protection (persistent/atomic enforcement)
+- [x] duplicate protection (SQLite checkout uniqueness and atomic capture claim)
 - [x] proposal digest
 
 ### Approval
@@ -59,7 +59,7 @@
 - [x] Illegal transitions, same-state moves, and terminal exits rejected
 - [x] Approval returns to policy; pending-provider recovery requires reconciliation events
 - [x] State-only updates preserve binding, identity, and idempotency; exhaustive tests
-- [ ] Durable conditional state updates, coordinator integration, and audit persistence
+- [x] Durable conditional checkout state updates, coordinator integration, and checkout audit (SQLite reference)
 
 ### PayPal
 - [ ] Sandbox accounts/app
@@ -68,15 +68,28 @@
 - [ ] buyer approval
 - [x] capture (internal adapter with provider approval preflight; mocked HTTP)
 - [x] stable operation-specific PayPal-Request-Id (adapter; mocked HTTP)
-- [ ] durable operation-key/terms storage and atomic execution lock
+- [x] durable operation-key/terms storage and atomic execution claim (SQLite)
 - [x] get status and exact order/capture binding/state mapping (mocked HTTP)
 - [ ] live Sandbox final-state acceptance
-- [ ] decline/cancel handling
+- [x] verified capture decline and local pre-dispatch cancel handling (mocked HTTP)
+- [ ] buyer UI cancel/decline presentation
 - [x] ambiguous timeout classification, no automatic capture retry, status reconciliation (adapter tests)
-- [ ] durable pending-provider recovery and unknown-create recovery procedure
+- [x] durable pending-provider GET-only recovery and held-budget accounting
+- [ ] unknown-create/operator recovery procedure
+
+### Checkout integration
+- [x] Canonical proposal -> server-owned PayPal order -> provider-verified buyer approval -> capture (mocked HTTP)
+- [x] Final reload/digest/current policy/approval/merchant mapping checks after provider preflight
+- [x] Atomic reserve/dispatch claim, success settlement, verified-failure release, uncertain-hold retention
+- [x] Identifier-only create/read/capture/reconcile/cancel HTTP contracts with forbidden authority fields
+- [x] Default routes fail closed until trusted authentication/service provisioning
+- [x] Duplicate/concurrent budget, expiry/tampering, transaction rollback and restart tests
+- [ ] Production session/token verifier and trusted runtime service provisioning
+- [ ] Buyer UI and live Sandbox checkout acceptance
 
 ### Audit
-- [ ] audit table
+- [x] checkout execution/reservation/provider-observation events persisted in SQLite
+- [x] checkout_audit table (checkout-only; broader domain audit remains pending)
 - [ ] verification events
 - [ ] policy events
 - [ ] approval events
@@ -95,8 +108,8 @@
 ## P1 — Strong differentiators
 - [ ] semantic evidence matcher
 - [ ] prompt-injection test
-- [ ] concurrency test
-- [ ] merchant substitution test
+- [x] checkout duplicate/overspend concurrency tests (broader security review remains pending)
+- [x] checkout merchant/provider mapping substitution tests (mocked HTTP)
 - [ ] "Why this purchase?" summary
 - [ ] requirement matrix UI
 - [ ] human review when evidence is insufficient

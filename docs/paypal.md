@@ -97,3 +97,5 @@ Implementation semantics were checked against official PayPal references:
 [Orders schema](https://developer.paypal.com/api/orders/v2/schema.json),
 [idempotency](https://developer.paypal.com/api/rest/reference/idempotency/), and
 [currencies](https://developer.paypal.com/api/codes/currency).
+
+Stage 10 integration: [checkout coordination](checkout.md) now supplies the adapter’s synchronous `before_capture` gate after preflight/OAuth and before POST. It provides durable original terms/keys, reservations, state/audit and GET-only recovery. Direct adapter calls do not acquire financial authority; public routing remains disabled until real authentication and service provisioning.

@@ -970,3 +970,48 @@ Only trusted authenticated backend coordination may invoke execution after curre
 
 ### Supersedes / superseded by
 None. Implements the adapter portion of D-005/D-009/D-010 and preserves D-027 reconciliation-only transitions. Durable checkout coordination remains pending.
+
+## D-029 — Durable checkout claims with a final canonical authority gate
+Date: 2026-11-11
+Status: Accepted
+
+### Context
+Stage 10 must connect validated proposals to order creation, PayPal buyer consent and capture, and reload policy, approval and digest while reserving funds before capture. The existing approval authority is process-local, and there is no authenticated public checkout or durable ledger. Provider I/O must not allow duplicate execution, overspend or loss of uncertain reservations.
+
+### Decision
+Add an internal CheckoutService and a local-file SQLite checkout ledger using built-in Python, WAL/FULL synchronous transactions, a unique checkout per proposal, stable operation keys, immutable provider terms, atomic budget holds/state/audit and exactly-once settlement/release. Persist dispatch claims before provider I/O. Add an adapter callback that runs after provider approval/binding preflight and OAuth, immediately before capture dispatch. It reloads canonical authority, regenerates the digest, reruns deterministic policy with current ledger availability, checks current approval/expiry/reference and merchant mapping, then reserves and commits CAPTURE_PENDING atomically. Hold the process-local canonical lock through the claim commit, never through network I/O.
+
+Expose identifier-only FastAPI checkout routes with extra financial/identity/approval fields forbidden. Leave authentication and service provisioning fail-closed (503) until a trusted server session/token adapter is installed; do not invent browser-header authentication. Reuse the existing in-memory approval service instead of silently treating persisted/browser snapshots as fresh authority. Lost canonical authority blocks new capture. Persisted attempted captures can reconcile against original immutable terms without rerunning permission for a financial action that already occurred.
+
+Keep uncertain holds across errors/cancellation/restart; reconciliation performs GET only and never interprets an open order as capture failure. Unknown create outcomes stop without automatic retry. Record an already captured exact order discovered at preflight as provider accounting, including an explicit external-capture audit event, without dispatching another capture. Local cancellation does not claim to void a PayPal order.
+
+### Alternatives considered
+- In-memory budget holds, random retry keys, unguarded check-then-capture, or trusting browser amount/merchant/success callbacks.
+- Start a new PostgreSQL deployment or replace the entire canonical approval/authentication system in this integration stage.
+- Expose permissive user headers or constant-identity production routes to make checkout appear configured.
+- Release uncertain holds on timeout, rerun capture on restart, or suppress confirmed past spending because current approval/policy changed.
+
+### Why
+SQLite provides reproducible durable transactions without new services/dependencies for this single-host reference. A final gate after provider I/O closes the tested stale-proposal/approval/budget gap, while unique claims and ledger serialization prevent duplicate capture and concurrent overspend. Failing closed preserves missing authentication/authority boundaries. Accurate reconciliation accounts for original provider outcomes without authorizing a new purchase.
+
+### Consequences
+Backend checkout and guarded HTTP contracts are implemented with real-adapter mocked HTTP, persistent holds/audit and race/restart cases. SQLite is an interim single-host ledger, not the preferred production PostgreSQL deployment. Canonical proposals/approvals remain in memory; public deployment and durable multi-worker authority require further work. Uncertain create/capture may require operator recovery and can retain funds indefinitely. Each proposal has at most one checkout, even after failure; changed/replaced consent uses a fresh canonical proposal. Buyer UI, live Sandbox acceptance, full audit timeline and real authentication remain pending.
+
+### Constraints / assumptions
+Only trusted backend code configures accounts/policy, maps supported Sandbox payees, registers canonical offers/proposals, supplies authenticated actors and installs dependencies. The local database and its directory/backups must be protected and persist across restart; SQLite is not placed on a network filesystem. Approval writers must preserve the documented ledger-then-canonical lock order. Authorization is committed at a specific point before dispatch; later revocation cannot undo a committed request. All hotel data remains synthetic. No live provider call or fully configured public checkout is claimed.
+
+### Related files
+- `backend/app/services/checkout.py`
+- `backend/app/services/checkout_store.py`
+- `backend/app/services/approvals.py`
+- `backend/app/services/paypal.py`
+- `backend/app/schemas/checkout.py`
+- `backend/app/api/checkout.py`
+- `backend/app/main.py`
+- `backend/tests/test_checkout.py`
+- `docs/checkout.md`
+- `TASKS.md`
+- `STATUS.md`
+
+### Supersedes / superseded by
+None. Implements checkout portions of D-002/D-006/D-007/D-009/D-010 and integrates D-025 through D-028. PostgreSQL preference and in-memory canonical-authority limitations are not superseded.

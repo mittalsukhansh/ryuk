@@ -101,7 +101,7 @@ Canonical versioned payload includes:
 Serialize compact sorted-key JSON and SHA-256 it; bind approval to the hash. Validate the current verification snapshot first.
 Before checkout/capture, regenerate and compare.
 
-`proposal_binding.py` and `InMemoryApprovalService` implement this binding and the internal approval lifecycle. Canonical updates invalidate outstanding grants permanently; expiry, current-request ownership, and current financial policy are rechecked. The reference store is process-local; authenticated HTTP adapters, durable storage, and payment integration remain pending. See `docs/approvals.md`.
+`proposal_binding.py` and `InMemoryApprovalService` implement this binding and the internal approval lifecycle. Canonical updates invalidate outstanding grants permanently; expiry, current-request ownership, and current financial policy are rechecked. The canonical reference store is process-local. Checkout now uses it for a final authority gate, while a SQLite ledger persists payment claims, holds and audit. Identifier-only checkout HTTP routes fail closed until trusted authentication/service provisioning. Durable canonical approval storage remains pending. See `docs/approvals.md`.
 
 ## Threat model
 
@@ -131,3 +131,7 @@ Semantic PASS requires evidence. Missing evidence -> UNKNOWN.
 One orchestrated workflow is easier to test, debug, secure, and demo.
 If subagents are added, they still produce proposals only.
 Financial authority remains outside all agents.
+
+## Checkout integration reference
+
+`CheckoutService` connects canonical approval/policy to the Sandbox adapter. `CheckoutStore` uses a private local SQLite file for durable execution records, unique proposal claims, budget holds and checkout audit, with a final reload/digest/approval/policy/reservation gate immediately before capture dispatch. Reconciliation uses original stored terms and never retries capture. SQLite is a single-host reference; PostgreSQL remains preferred, and canonical proposal/approval authority is still process-local. Public routes require real authentication and trusted provisioning. See `docs/checkout.md` and D-029.

@@ -1,123 +1,91 @@
 # AgentPay Status
 
-Last verified: 2026-11-11. Evidence: source inspection, local builds, pytest/lint/type checks, live HTTP requests, Chromium smoke checks, and a healthy Docker Compose deployment. Planning checklists alone are not completion evidence.
+Last verified: 2026-11-11. Completion evidence is implementation and passing checks, not planning checklists.
 
 ## Current milestone
-Codex Prompt 9 — PayPal Sandbox adapter implemented with mocked HTTP tests. Next recommended stage: Codex Prompt 10 — Checkout integration, awaiting instruction. Authenticated APIs, durability, payment coordination, live Sandbox acceptance, and live LLM evaluation remain pending.
+Codex Prompt 10 — Checkout integration implemented and tested with mocked provider HTTP. Next recommended stage: Prompt 11 — Frontend. It has not been started.
 
 ## Overall status
 In Progress
 
-The foundation runs locally and in Docker Compose. The Next.js preview serves HTTP 200 and FastAPI `/health` returns HTTP 200 with `{"status":"ok"}`. Eight Pydantic domain contracts and the synthetic hotel catalog/search API are implemented. The catalog contains eight labeled offers with evidence and explicit filtering. The full commerce flow is not implemented and the product is not demo ready. Deterministic attribute verification now returns mandatory PASS/FAIL/UNKNOWN, independent preference scores, and evidence-backed in-memory snapshots. LLM-backed parsing and a deterministic fake now implement one interface with structured extraction, source checks, Pydantic validation, exact minor-unit conversion, and the /v1/agent/parse endpoint. Pure financial policy now evaluates explicit backend authority records with deterministic outcomes, reason codes, current-verification checks, and read-only approval/history gates. Canonical proposal digests and a service-owned in-memory approval workflow now enforce exact bindings, expiry, permanent invalidation, replay checks, and checkout policy revalidation. The payment state machine now enforces legal backend events, terminal states, and reconciliation-only capture uncertainty. The backend-only Sandbox adapter now implements OAuth/create/status/capture, exact bindings, stable operation request IDs, and conservative uncertainty/reconciliation. Persistent/authenticated infrastructure, transactional coordination, buyer checkout and live Sandbox acceptance remain unimplemented; live LLM evaluation has not been performed.
+Backend checkout connects canonical proposals/current approvals and policy to PayPal order creation, provider-verified buyer approval and capture. A SQLite ledger persists exact terms, stable operation keys, unique dispatch claims, budget holds/settlement and checkout audit. The public routes fail closed until real authentication and trusted service provisioning. The frontend remains a scaffold preview; the complete product is not demo ready. No live model or PayPal acceptance is claimed.
 
 ## Completed
-- [x] Git repository initialized and checked out on `main`.
-- [x] Planning artifacts exist: PLAN.md, AGENTS.md, ARCHITECTURE.md, TASKS.md, CODEX_PROMPTS.md, and README_START_HERE.md.
-- [x] Canonical `.env.example` added with empty credential fields; original `env.example` retained for reference. Local environment files and dependency/build outputs are ignored. Credential-pattern checks passed; no real credentials were introduced.
-- [x] Initial decision log and live status tracker created; documentation/stage instructions appended to AGENTS.md.
-- [x] Next.js + TypeScript + Tailwind preview, lockfile, ESLint/typecheck commands, and standalone production build.
-- [x] FastAPI backend with a Pydantic health response, pinned runtime/dev dependencies, Ruff, and a passing pytest health-contract test.
-- [x] Dockerfiles and Compose with non-root runtime users, loopback ports, and health checks; both services built and reached healthy status.
-- [x] Frontend startup verified locally and in containers; Chromium smoke checks passed at 1440px and 390px with styling, no horizontal overflow, and no browser runtime errors.
-- [x] README.md documents local and Compose startup, checks, configuration boundaries, and optional proxy CA build support.
-- [x] Eight domain schemas exported from `app.schemas` with strict integer minor units, explicit enums, evidence/status consistency, proposal references, and approval timing validation.
-- [x] Domain-schema stage introduced 190 schema test cases plus the health test; the expanded suite total appears below. Ruff and dependency checks pass. Contract usage and trust boundaries are documented in `docs/domain-schemas.md`; D-021 records schema choices.
-
-- [x] Eight synthetic hotel offers with merchant IDs, price/location/stay/amenity evidence, and deliberate absent/false mandatory attributes for future verification cases.
-- [x] Read-only catalog service, canonical ID lookup returning deep copies, and POST /v1/offers/search with explicit filters, pagination, and synthetic response labels.
-- [x] Catalog stage added 76 catalog/service/API test cases; the expanded test total appears below. Backend container rebuilt with root-context fixture packaging, reached healthy status, and passed live health/search/validation requests.
-- [x] Catalog behavior and limitations documented in `docs/catalog.md` and decision D-022.
-
-- [x] Deterministic required/preferred attribute checks, strict scalar comparisons, evidence-gap handling, mandatory FAIL/UNKNOWN/PASS, and independent equal-weight preference scoring.
-- [x] Preferred check details and deterministic content-derived verification snapshots, with source evidence and input/version identity. Snapshots are generated in memory; no database persistence is claimed.
-- [x] Verifier stage added 56 regression cases; the expanded suite total appears below, and Ruff passes. Rules, trust boundaries, and snapshot semantics documented in `docs/verification.md` and D-023.
-
-- [x] Async parser interface, OpenAI strict structured-output adapter, closed extraction schema, required/preferred quote checks, exact quoted-money conversion, and deterministic fake using the same validation path.
-- [x] POST /v1/agent/parse with lazy backend-only provider configuration, safe error responses, and no fake production fallback. The existing TestClient warning is resolved by the SDK httpx2 dependency.
-- [x] 15 labeled synthetic gold prompts tested through both implementations; 83 parser/SDK/API regression cases added. That stage passed 406 tests with no warnings; the current suite total appears below. Ruff and pinned dependency checks passed.
-- [x] Parser configuration, limits, trust boundaries, and mock-only evidence documented in `docs/intent-parser.md` and D-024.
-- [x] Rebuilt the backend image with pinned SDK dependencies; both containers are healthy. Live Docker checks confirm health/catalog HTTP 200, parse route in OpenAPI, and safe parser HTTP 503 with the currently absent API key/model. No paid model call was made.
-
-- [x] Pure financial policy with explicit policy/budget/history/time inputs, strict requested/active/available caps, currency checks, current deterministic verification, quantity checks, merchant review, and review thresholds.
-- [x] Stable reason codes, exact read-only approval binding/expiry/rejection gates, duplicate/unknown-history denial, and separate budget-currency output. No LLM chooses financial eligibility.
-- [x] Financial-policy stage added 97 regression cases; that stage passed 503 tests and Ruff. The expanded suite total appears below. Pure function, integration boundaries, and race/persistence limits documented in `docs/policy.md` and D-025.
-
-- [x] Versioned canonical SHA-256 proposal digests bind identity/creation, user, offer, merchant, integer money/currency, policy version, and current verification snapshot; regeneration is enforced by policy and approval consumption.
-- [x] Internal in-memory canonical/request ownership, pending creation, one-time approve/reject operations, exact expiry, permanent INVALIDATED grants on term changes, latest-request replay protection, and checkout policy revalidation.
-- [x] Process-local locking and expected-digest update checks; returned copies cannot create or extend consent. Restart loses approvals and cannot restore client-held grants.
-- [x] Binding/approval stage added 60 regression cases and passed 563 tests/Ruff; the expanded total appears below. Documentation and D-026 explain the in-memory/authentication/persistence boundary.
-
-- [x] Centralized immutable graph for exactly CREATED, POLICY_CHECK, AWAITING_APPROVAL, CHECKOUT_READY, AWAITING_PAYPAL_BUYER, CAPTURE_PENDING, SUCCEEDED, FAILED, PENDING_PROVIDER; unused VERIFYING removed per current user request.
-- [x] Event-based transitions reject illegal paths/terminal exits; application approval returns to policy, and ambiguous capture only resolves through conclusive reconciliation events.
-- [x] Validated state-only PaymentIntent updates preserve identity, terms, creation/approval data, and idempotency; optional local stale-state check implemented.
-- [x] 250 state/event/pair/lifecycle/schema regression cases added; all 813 backend tests pass without warnings and Ruff passes. Graph and trust boundaries documented in `docs/payment-state-machine.md` and D-027; D-021 metadata marks its superseded vocabulary.
-
-- [x] Backend-only Sandbox OAuth with token cache/expiry/refresh lock, fixed HTTPS origin, redirects disabled, safe errors and private environment credentials.
-- [x] Orders v2 create/get/capture, strict positive integer USD/EUR conversion, actual payee/reference/amount/currency/order checks, provider buyer-approval preflight, stable operation-specific request IDs and verified capture-state observations.
-- [x] Ambiguous mutation errors retain uncertainty; no automatic retry, GET reconciliation and process-local uncertain-capture guard. Durable recovery remains pending.
-- [x] 84 adapter/configuration/HTTP/mapping tests added; full 897-test backend suite and Ruff pass. Configuration, limitations and official provider sources documented in docs/paypal.md and D-028.
+- [x] Next.js/TypeScript/Tailwind scaffold, FastAPI health/catalog/parse APIs, Dockerfiles/Compose and empty backend credential templates. Earlier scaffold builds, boots and desktop/mobile smoke checks passed; frontend is unchanged in this stage.
+- [x] Eight validated domain contracts with strict integer minor units, explicit enums and security boundary checks.
+- [x] Eight labeled synthetic hotel fixtures, evidence, trusted catalog lookup and explicit search/filter API.
+- [x] Deterministic mandatory/preferred verification, PASS/FAIL/UNKNOWN, independent preference score and content-derived evidence snapshots.
+- [x] Parser interface, structured OpenAI extraction with Pydantic/source checks, deterministic fake, and 15 gold prompt fixtures tested through mocked SDK HTTP.
+- [x] Pure deterministic financial policy, reason codes, current-verification checks, caps/currency/quantity/merchant rules and approval/history gates. The LLM has no financial authority.
+- [x] Canonical SHA-256 proposal binding and in-memory approval creation/approve/reject/expiry/permanent invalidation/current-request ownership. Canonical authority is not durable.
+- [x] Exact nine-state immutable event graph with illegal/terminal transition rejection and reconciliation-only capture uncertainty.
+- [x] Backend-only Sandbox OAuth/create/status/capture adapter, stable operation-specific provider request IDs, strict USD/EUR conversion, exact binding/provider-state checks and safe errors.
+- [x] CheckoutService reloads canonical authority and current policy/budget, regenerates digest and checks approval before creating a server-owned order. One durable checkout/key per proposal prevents repeat order creation.
+- [x] Final capture gate runs after provider buyer-approval/binding preflight and OAuth. It reloads proposal/current approval/policy, verifies original digest and mapped payee, and atomically reserves funds, claims capture and writes state/audit before POST.
+- [x] SQLite local-file ledger with WAL/FULL synchronous transactions, persistent account/policy/mapping/payment/key/terms records, unique claims and exactly-once hold settlement/release. No lock spans provider I/O.
+- [x] Ambiguous capture/cancellation retains holds; restart and repeated capture actions use GET-only reconciliation. Open orders and GET errors do not release holds or trigger capture retries. Unknown create stops without automatic retry.
+- [x] Identifier-only create/read/capture/reconcile/cancel HTTP contracts reject browser amount/merchant/user/approval/status/order fields. Default authentication/service dependencies return 503; ownership checks and safe HTTP errors are implemented.
+- [x] Checkout audit records revalidation, proposal/snapshot/policy/approval references, operation IDs, reservation/dispatch, provider observations and settlement/release. Full cross-domain audit/timeline is incomplete.
+- [x] 49 new checkout service/HTTP/recovery/concurrency cases; full backend suite: 946 passed, no pytest warnings. Ruff and dependency checks pass. Documentation: docs/checkout.md and D-029.
 
 ## In Progress
-- [ ] No active implementation stage; requested PayPal adapter is complete with mocked HTTP verification. Checkout integration is recommended next and has not been started. Authenticated HTTP integration, durability, execution coordination, and live model evaluation remain pending.
+- [ ] No active implementation stage after Prompt 10. Prompt 11 frontend, real authentication/provisioning, durable canonical authority and live Sandbox acceptance remain pending.
 
 ## Remaining
 ### P0
-- [ ] Configure a valid structured-output-capable OPENAI_MODEL and backend API credentials, then evaluate live parsing/semantic fidelity on the prompt cases. The interface, provider adapter, validation, fake, endpoint, and deterministic tests are implemented.
-- [ ] Persist verification snapshots and display evidence/required/preferred checks in the UI. The deterministic engine and in-memory snapshots are implemented.
-- [ ] Implement durable/atomic duplicate prevention and ledger reservations. Canonical digest generation and pure policy/approval gates are complete.
-- [ ] Add authenticated proposal/approval endpoints and durable storage, and wire the implemented binding/expiry/checkout gate into the future payment coordinator before capture.
-- [ ] Implement persistent payment state/audit, atomic budget reservations, and execution coordination. Centralized graph validation exists; it does not perform these side effects.
-- [ ] Configure Sandbox accounts/app and canonical supported demo-payee mapping; integrate the tested adapter with buyer checkout, authenticated coordination, durable operation keys, decline/cancel handling and pending-provider/unknown-create recovery. Verify a live Sandbox transaction separately.
-- [ ] Persist audit events and build command, shortlist, verification, approval, checkout, result, and timeline UI.
-- [ ] Add relevant unit, integration, and security tests; validate eligible, escalation, denial, amount-tampering, and duplicate scenarios.
-- [ ] Add seed/reset command and demo script; verify reproducible startup and a full Sandbox demo.
+- [ ] Implement the command/shortlist/verification/policy/approval/PayPal buyer/result/timeline frontend; current UI is a static scaffold.
+- [ ] Install a real server-side session/token verifier and trusted runtime checkout service/merchant/account/policy provisioning before exposing payment actions. Unsigned identity headers are rejected.
+- [ ] Replace in-memory canonical proposal/approval authority with durable authenticated storage; persist verification snapshots. SQLite checkout execution is durable, canonical authority is not.
+- [ ] Configure supported Sandbox buyer/merchant/app credentials and verify a live buyer-authorized transaction. Backend mocked HTTP does not establish account readiness or live acceptance.
+- [ ] Define operator recovery for unknown/orphaned order creation and permanently inconclusive captures. No automatic retry or timed release of uncertain holds exists.
+- [ ] Add broader domain verification/policy/approval/provider audit persistence and UI timeline; checkout-specific audit exists.
+- [ ] Configure/evaluate live structured parsing against the 15 prompts. No paid/live model call has been made.
+- [ ] Add full purchase browser E2E and comprehensive security review; validate visible ALLOW/REQUIRE_APPROVAL/DENY/tampering/duplicate demo scenarios.
+- [ ] Add seed/reset and demo script; verify reproducible full Sandbox demo with persistent storage and actual auth. Rebuild deployed images when runtime provisioning is ready.
 
 ### P1
-- [ ] Semantic evidence matching and human review for insufficient evidence.
-- [ ] Prompt-injection, concurrency, and merchant-substitution tests.
-- [ ] Requirement matrix UI and “Why this purchase?” summary.
+- [ ] Semantic evidence matching/human review, prompt-injection/runtime authorization review, requirement matrix and purchase explanation.
+- [ ] Extend targeted checkout concurrency/merchant substitution tests into a comprehensive security suite.
+- [ ] Production PostgreSQL-backed authority/ledger deployment; SQLite currently provides a single-host execution reference.
 
 ### P2
-- [ ] Electronics and subscription verifiers; real external search API.
-- [ ] LangGraph checkpointing and specialized subagents after P0/P1.
-- [ ] Multi-rail adapter, conceptual UPI Circle/P3P adapter, and team approvals.
+- [ ] Electronics/subscriptions, live external search, multi-rail/team approvals and conceptual UPI/P3P support.
+- [ ] LangGraph/specialized agents only after the core demo works.
 
 ## Blockers
-- No unresolved blocker for the requested mock-tested adapter. Live PayPal acceptance needs Sandbox accounts/app credentials and supported buyer/merchant configuration. Public approval deployment requires a real authenticated-user layer and durable repository, neither present in the current application. Live model acceptance remains unverified and requires valid backend OPENAI_API_KEY/OPENAI_MODEL configuration; no paid/live provider call was made.
-- Container validation required the managed proxy CA override documented in README.md. Parser rebuilds hit the environment disk limit; unused task build caches/images were cleared and the backend build order reduced temporary VFS layer duplication. A disk-exhaustion failure was resolved by removing task-created build caches and reducing frontend build layers; both containers then passed health checks.
-- Sandbox account/app setup and usable credentials are unverified; empty template fields do not establish readiness. They will be required for live Sandbox acceptance, but need not block scaffolding.
+- No unresolved blocker for the requested mocked backend checkout integration.
+- Public checkout intentionally returns 503 until trusted authentication and runtime service provisioning. There is no production session/token verifier or durable canonical approval source.
+- Live Sandbox acceptance needs configured supported app/merchant/buyer accounts. Credential/account readiness remains unverified; no live provider call was made.
+- Live semantic parsing needs valid backend model credentials/configuration and evaluation.
 
 ## Risks
-- The approval reference store is in memory and has no public endpoints/authentication adapter. Only trusted backend callers may register canonical records or supply actor identities; deployment requires durable storage/authenticated handlers. Process-local locking does not prevent cross-process overspend or duplicate capture.
-- npm audit reports seven moderate development-tool findings through the TypeScript ESLint/minimatch dependency chain after a compatible update attempt. The production dependency audit reports zero findings. Review tooling updates before broader development.
-- Live semantic quality is not established by the 15 canned gold responses. Source/role checks constrain extraction but cannot prove all mandatory requirements were preserved; parsed values remain untrusted proposals.
-- Docker VFS builds consume substantial temporary storage; monitor free disk space during rebuilds.
-- Schemas cannot establish authenticity of supplied statuses, evidence, IDs, or digests. Digest regeneration and service-owned approval lifecycle checks now exist; authenticated external canonical loading, durable repositories, broader prompt-injection defenses, atomic duplicate protection/budget reservations, and durable provider reconciliation still need integration and tests.
-- PaymentState now follows the explicit nine-state request (D-027); VERIFYING was removed and D-021 vocabulary metadata superseded. Event spelling/graph legality does not authenticate provider outcomes or financial permission; the later coordinator must enforce those facts and durable state/audit writes.
-- Synthetic hotel data must be clearly labeled; Sandbox checkout must not imply real hotel booking or arbitrary-merchant support.
-- Scope expansion into search integrations, other verticals, or multi-agent orchestration could delay the core demo.
+- Canonical approvals/proposals are in memory. Restart blocks new capture rather than reconstructing consent from client data; persisted attempted captures can still reconcile. This is not a durable multi-worker authority deployment.
+- SQLite must use a protected persistent local file/directory, not an ephemeral container layer or network filesystem. Cross-connection execution claims are serialized, but production PostgreSQL and migration/deployment work remain pending.
+- Authorization commits before remote dispatch; later revocation cannot undo an already committed request. Uncertain holds may require operator review and remain reserved indefinitely.
+- Local cancellation does not void an order at PayPal. Refunds and external merchant actions after a local terminal result need additional monitoring/operator support.
+- Synthetic hotel merchants are not actual hotel integrations. Supported demo-payee mappings must be backend controlled and clearly presented with synthetic data and buyer consent.
+- Mock provider/model responses do not establish live account readiness or semantic fidelity.
+- Earlier frontend audit reported seven moderate development-tool findings and zero production findings; no dependency/frontend changes were made in this stage. Docker VFS rebuilds previously required cache cleanup due storage limits.
 
 ## Next 3 actions
-1. On instruction, execute only Codex Prompt 10: wire canonical proposals/current policy/consent to authenticated checkout orchestration and the adapter.
-2. Add durable operation-key/terms binding, atomic budget/state/audit writes and pending-provider recovery before exposing capture; configure a supported Sandbox demo merchant mapping.
-3. Integrate buyer approval and test checkout paths with mocked HTTP first; validate live Sandbox acceptance separately with configured accounts. Update documentation and stop at the requested stage boundary.
+1. On instruction, execute only Prompt 11 frontend: connect the request/offer/verification/approval/result surfaces and server-issued PayPal order IDs. Do not bypass missing authentication with browser identities or production fake consent.
+2. Provision real authentication, durable canonical authority and a protected persistent checkout ledger/runtime merchant mapping before a public checkout demo.
+3. Configure Sandbox accounts, validate the full buyer flow, then perform the requested security/demo stages. Keep unknown-provider recovery explicit and update this tracker after each stage.
 
 ## Demo readiness
-- Intent parsing: Interface, OpenAI structured adapter, Pydantic/source/role validation, exact minor-unit conversion, fake parser, /v1/agent/parse, and 15 prompt fixtures implemented. Mock integration passes; live provider configuration and semantic quality remain unverified.
-- Offer search: Implemented/tested with eight synthetic hotel fixtures, explicit filters, stable pagination, canonical ID lookup, and API labels. No live search or frontend catalog UI.
-- Verification: Deterministic engine implemented/tested with required/preferred checks, evidence, independent preference percentage, and stable in-memory snapshots. Semantic matching, database persistence, and UI are absent. PASS does not imply financial-policy eligibility.
-- Policy: Pure deterministic eligibility implemented/tested, with strict caps/currency, available-funds arithmetic, current verification, quantity/merchant checks, reason codes, and read-only approval/history gates. No public policy endpoint, persistent active policy store, atomic reservations, or durable duplicate lock.
-- Approval: Canonical digest generation, service-owned in-memory pending/approve/reject lifecycle, owner/binding/expiry/invalidation/replay checks, and checkout revalidation implemented. Authenticated HTTP adapters, durable storage/audit, UI, and PayPal buyer flow remain absent.
-- PayPal: Internal Sandbox adapter implemented/tested for OAuth/create/status/capture, stable request IDs, provider buyer preflight, exact order/capture binding and conservative reconciliation. No live calls, public checkout routes, buyer UI, durable execution/recovery, or Sandbox account/credential acceptance verified.
-- Audit: Not implemented; no persistence or timeline.
-- Security tests: Boundary validation cases pass (strict money, unexpected fields, evidence, references, timestamps); runtime authenticated authorization/transaction tests absent; mocked provider boundary tests pass. Demo is not ready.
+- Intent parsing: Interface/OpenAI structured adapter/fake/API/15 prompts implemented and mock tested; live semantic evaluation unverified.
+- Offer search: Eight labeled synthetic offers and filtering API implemented; interactive shortlist UI pending.
+- Verification: Deterministic evidence-based required/preferred checks and stable snapshots implemented; durable snapshot storage/UI pending.
+- Policy: Deterministic financial service integrated at checkout creation and final pre-capture claim using current persisted policy/ledger availability.
+- Approval: In-memory canonical consent/binding/expiry/invalidation rechecked at capture; real authenticated endpoints/UI and durable canonical storage pending.
+- PayPal: Adapter and backend checkout/API flow implemented with mocked HTTP. Persistent holds, duplicate prevention and GET-only recovery tested. Routes fail closed until auth/service provisioning; buyer UI and live Sandbox acceptance pending.
+- Audit: Durable checkout-specific state/reservation/provider/accounting events implemented; broader domain audit and timeline UI pending.
+- Security tests: Targeted tampering/ownership/digest/expiry/concurrency/restart/uncertainty/API-field cases pass. Full security review and purchase browser E2E pending. Demo is not ready.
 
 ## Test status
-- Unit: Backend `pytest -q`: 897 tests passed (84 PayPal adapter cases, 190 domain-contract, 76 catalog/service/API, 56 verifier, 83 parser/SDK/API, 97 policy, 60 binding/approval/schema, 250 state-machine, and the existing health test), with no warnings.
-- Integration: Actual httpx2 client with mocked PayPal OAuth/Orders transport passes create/get/capture, preflight consent/binding, token expiry/concurrency, terminal deduplication and uncertainty/reconciliation checks. No live calls. State-machine success/approval/recheck/uncertainty paths and all state-event/state-pair combinations pass; input bindings/idempotency remain unchanged. No provider events are authenticated or executed in these tests. In-memory workflow plus current policy/verifier pass create/decide/checkout, expiry, changed/restored terms, version change, supersession, replay, wrong-user, restart-loss, and concurrent approval/update checks. Policy consumes real synthetic offers and current verifier results, yielding eligible/review/denied demo cases; approval, state, currency, and stale-record combinations pass. Both parsers run the 15 gold cases; real SDK mocked HTTP confirms strict closed JSON schema and real production dependency wiring. Unconfigured parsing returns 503 while health/catalog remain operational. Verifier runs against committed synthetic fixtures with expected PASS/FAIL/UNKNOWN. Existing in-process search/health/OpenAPI and HTTP 422 cases also pass. Rebuilt backend in Docker Compose and confirmed healthy status, /health HTTP 200, eight labeled offers, the three planned demo-price candidates, combined filters, and currency-required price filtering. Frontend container remains healthy; frontend code unchanged.
-- E2E: Temporary Playwright/Chromium scaffold smoke checks passed on local development and Compose production frontend at desktop/mobile sizes, with no runtime errors or horizontal overflow. No committed full purchase-flow E2E suite yet.
-- Security: PayPal tests reject wrong merchant/reference/order/money/currency, redirected/custom/live origins, missing configuration and unsafe resource IDs; HTTP/token errors are sanitized and uncertain capture cannot automatically retry. Schema tests reject coerced/negative money, missing budgets, forged extra fields, unsupported enums, mismatched snapshot references, malformed digests, semantic PASS without evidence, and invalid approval windows. Catalog tests additionally reject malformed fixtures, duplicate IDs, non-synthetic labels, coerced filters, and caller paths; returned objects cannot mutate canonical offers. Verifier cases cover missing evidence, mandatory false even with no evidence, coercion/type confusion, injection-like prose, unknown/unsupported predicates, perfect preferences unable to override failure, input mutation, and snapshot changes on altered terms/evidence. Parser cases reject missing/unlimited/fabricated budgets, source mismatches, unit/currency ambiguity, role swaps, duplicate attributes, quantity confusion, extra authority fields, partial/refused output, and raw provider errors. Policy cases prove active/requested limits cannot be raised by model text, approvals/preferences cannot override hard denial, uncertain history blocks execution, all approval bindings and expiry are checked, and mutated/coercible authority inputs fail closed. New binding/approval tests cover all identity/term changes, forged hash pairs, source verification freshness, exact deadline, stale updates, returned-object tampering, one-time decisions, owner isolation, no revival on term restoration, and current-policy revalidation. State-machine tests cover all illegal event/source combinations, direct success/approval bypasses, terminal restarts, retry/cancel during capture uncertainty, removed/unknown states, malformed events, stale expected state, and mutated model rejection. No comprehensive runtime transaction/security suite yet. Prior scaffold checks verified empty credentials and ignored local env files. npm production audit: zero findings; development audit: seven moderate tooling findings.
+- Unit: Full backend `pytest -q`: 946 passed, no pytest warnings (897 previous cases plus 49 checkout cases). Ruff passes; `pip check` reports no broken requirements.
+- Integration: Actual PayPal HTTP adapter with MockTransport connects existing catalog/verifier/policy/approval to SQLite and HTTP routes. Tests cover eligible/review consent, create/capture, concurrent duplicates and competing funds, source changes during provider GET, exact expiry/supersession, safe cancellation, terminal accounting, rollback, and restart/reconciliation. A failed settlement write after provider success rolls back local settlement and recovers by GET without recapture. No live calls.
+- E2E: In-process backend HTTP checkout flow passes with test-only authenticated dependency overrides. Earlier frontend scaffold browser smoke checks passed; complete buyer purchase browser E2E is not implemented.
+- Security: Browser financial/identity/approval/status/order fields rejected, unsigned identity headers never authenticate, owner isolation enforced, original digest/terms/payee rechecked, stale/expired consent blocks, uncertainty retains holds and never authorizes a new capture. No comprehensive production runtime security acceptance yet.
 
-Current stage: Ruff and pytest (897 passed, no warnings) pass. Compose configuration and backend-only credential propagation checked with synthetic values. Internal provider adapter and env wiring added; no dependencies, frontend, public routes or persistence changed. No live provider call, image rebuild, capture, Sandbox acceptance or full demo readiness is claimed. Previous running containers do not include this adapter until rebuilt.
-
-Prior scaffold checks passed: frontend ESLint, TypeScript check, production build; backend Ruff and `pip check`; Compose configuration validation and image builds; diff whitespace validation. Managed proxy CA override used for container dependency downloads. Services left running through Compose on localhost ports 3000 and 8000.
+Current stage changes no dependencies or frontend code. FastAPI startup/health and guarded routes are checked through TestClient. Container images were not rebuilt for this stage and previous running containers do not contain these new checkout routes until rebuilt. Local payment databases/sidecars are ignored; no real credentials or provider calls were introduced.

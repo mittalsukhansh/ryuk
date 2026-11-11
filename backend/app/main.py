@@ -1,4 +1,4 @@
-"""AgentPay API with catalog retrieval and intent proposals; no payment endpoints."""
+"""AgentPay API; checkout routes fail closed until trusted auth/services are provisioned."""
 
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -8,6 +8,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 
 from app.api.agent import router as agent_router
+from app.api.checkout import router as checkout_router
 from app.api.offers import router as offers_router
 from app.services.catalog import CatalogService
 
@@ -22,6 +23,7 @@ async def lifespan(application: FastAPI) -> AsyncIterator[None]:
 app = FastAPI(title="AgentPay API", version="0.1.0", lifespan=lifespan)
 app.include_router(offers_router)
 app.include_router(agent_router)
+app.include_router(checkout_router)
 
 
 class HealthResponse(BaseModel):
