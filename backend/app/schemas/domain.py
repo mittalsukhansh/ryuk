@@ -152,6 +152,7 @@ class VerificationResult(DomainModel):
     offer_id: NonEmptyString
     status: VerificationStatus
     required_checks: list[CheckResult]
+    preferred_checks: list[CheckResult] = Field(default_factory=list)
     preference_score: Percentage
     # Missing evidence for mandatory requirements; preferences do not block PASS.
     missing_evidence: list[NonEmptyString] = Field(default_factory=list)
@@ -163,6 +164,11 @@ class VerificationResult(DomainModel):
         requirements = [check.requirement for check in self.required_checks]
         if len(requirements) != len(set(requirements)):
             raise ValueError("required_checks must contain unique requirements")
+        preferences = [check.requirement for check in self.preferred_checks]
+        if len(preferences) != len(set(preferences)):
+            raise ValueError("preferred_checks must contain unique requirements")
+        if set(requirements) & set(preferences):
+            raise ValueError("a check cannot be both required and preferred")
         statuses = {check.status for check in self.required_checks}
         if VerificationStatus.FAIL in statuses:
             expected = VerificationStatus.FAIL

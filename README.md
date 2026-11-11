@@ -1,8 +1,8 @@
 # AgentPay
 
-Intent-aware commerce: verify that a purchase matches the user's requirements before payment. This repository implements a Next.js + TypeScript + Tailwind preview, a FastAPI API with synthetic hotel search, and validated Pydantic domain contracts. AI, verification/policy services, database models, approval services, and payments remain planned stages.
+Intent-aware commerce: verify that a purchase matches the user's requirements before payment. This repository implements a Next.js + TypeScript + Tailwind preview, a FastAPI API with synthetic hotel search, validated Pydantic domain contracts, and deterministic attribute verification. AI, financial policy, database models, approval services, and payments remain planned stages.
 
-See [STATUS.md](STATUS.md) for verified progress, [PLAN.md](PLAN.md) for scope, [DECISIONS.md](DECISIONS.md) for decisions, and [domain schemas](docs/domain-schemas.md) for contracts and validation rules. See [catalog documentation](docs/catalog.md) for the eight synthetic offers and search endpoint.
+See [STATUS.md](STATUS.md) for verified progress, [PLAN.md](PLAN.md) for scope, [DECISIONS.md](DECISIONS.md) for decisions, and [domain schemas](docs/domain-schemas.md) for contracts and validation rules. See [catalog documentation](docs/catalog.md) for the eight synthetic offers and search endpoint, and [verification documentation](docs/verification.md) for mandatory/preferred checks and snapshot semantics.
 
 ## Docker Compose
 
@@ -87,7 +87,7 @@ curl --fail --output /dev/null http://localhost:3000
 docker compose config --quiet
 ```
 
-Backend tests cover domain validation, fixture integrity, catalog filtering/isolation, and HTTP health/search contracts without external services. There are no purchase-flow, runtime security, or E2E regression suites yet; linting and type checking are not substitutes for them.
+Backend tests cover domain validation, fixture integrity, catalog filtering/isolation, deterministic verification/preferences, snapshot identity, and HTTP health/search contracts without external services. There are no purchase-flow, runtime security, or E2E regression suites yet; linting and type checking are not substitutes for them.
 
 ## Configuration and secrets
 

@@ -724,3 +724,44 @@ Fixtures are not real hotels, dated availability, booking contracts, or supporte
 
 ### Supersedes / superseded by
 None. Implements D-012 and D-013. Refines the backend packaging in D-020 while retaining the same two-service architecture and no database dependency.
+
+## D-023 — Evidence-backed typed equality and independent preference scoring
+Date: 2026-11-11
+Status: Accepted
+
+### Context
+The deterministic verification stage must distinguish known requirement failures from insufficient evidence and keep optional preferences from overriding mandatory constraints. The existing records need explainable preferred checks and stable verification references without implementing policy, approvals, or payments.
+
+### Decision
+Implement verify_offer for explicit required/preferred attribute maps using exact same-type primitive equality. Supported values are booleans, integers, finite floats, and nonblank strings. Unsupported predicates, absent/null/blank actual values, and incompatible types produce UNKNOWN; no coercion, fuzzy matching, ranges, or prose interpretation occurs. A known same-type mismatch is FAIL even if evidence is absent. A matching value without per-attribute evidence is UNKNOWN, and an evidence-backed match is PASS. An explicit false requirement can match an evidenced false value.
+
+Aggregate required status with FAIL before UNKNOWN; no required attributes yields UNKNOWN rather than vacuous PASS. Add backward-compatible preferred_checks to VerificationResult, with unique names disjoint from required checks. Compute equal-weight preference percentage from evidenced PASS checks divided by all preferences; no preferences yields zero. Preferences never alter mandatory status. Missing-evidence names refer only to required checks with absent/empty evidence. No model confidence is generated.
+
+Revalidate input records and produce ordered checks without input mutation. Derive an in-memory verification snapshot ID from the verifier version and complete validated intent/offer via deterministic sorted-key compact JSON and SHA-256; reject non-finite JSON. Changed evidence, merchant, amount, intent, or verifier version changes identity. This reference is distinct from the later approved proposal digest and is not persisted or trusted as authorization.
+
+### Alternatives considered
+- Let a match score, truthiness coercion, or listing instruction override mandatory failures.
+- Treat absent evidence as PASS or automatically infer facts from prose.
+- Give UNKNOWN preferences credit, make preferences block mandatory PASS, or assign 100 percent when no preferences exist.
+- Implicitly implement financial policy or interpret query text within attribute verification.
+- Generate random snapshot IDs for otherwise identical deterministic results.
+
+### Why
+Three-state evidence-backed comparisons satisfy the requested deterministic behavior while preserving uncertainty and the separation between purchase fit and financial authority. Explicit preferred checks explain scoring; content-derived snapshot references make evidence changes detectable for later binding.
+
+### Consequences
+The planned hotel fixtures now exercise mandatory PASS, FAIL, and UNKNOWN, with preference-only differences independently scored. Known mismatches cannot become matches when evidence is removed, and numeric/boolean coercion cannot invent compliance. Unsupported complex predicates need later handling. Literal string matching is intentionally strict. A semantic PASS does not become available merely because evidence text exists; all current checks are deterministic comparisons against structured data.
+
+### Constraints / assumptions
+The service assumes canonical backend offer sourcing; recorded excerpts do not independently establish truth. Budget, currency eligibility, quantity, merchant rules, and approval are not implicitly verified by this service and remain responsibilities of later policy/checkout stages; specific supported attributes such as nights can be explicitly required. No new routes, persistence, semantic matching, audit events, or payment execution are implemented. Verification PASS is never payment authority. No historical decision body is rewritten.
+
+### Related files
+- `backend/app/services/verifier.py`
+- `backend/app/schemas/domain.py`
+- `backend/tests/test_verifier.py`
+- `docs/verification.md`
+- `PLAN.md`
+- `ARCHITECTURE.md`
+
+### Supersedes / superseded by
+None. Implements D-003 and D-004; extends the D-021 result contract with preferred checks and a concrete verification snapshot format without implementing D-007 proposal digest generation.

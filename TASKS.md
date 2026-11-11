@@ -29,10 +29,10 @@
 - [x] search endpoint
 
 ### Verification
-- [ ] required attribute checks
-- [ ] preferred scoring
-- [ ] PASS/FAIL/UNKNOWN
-- [ ] verification snapshot
+- [x] required attribute checks
+- [x] preferred scoring
+- [x] PASS/FAIL/UNKNOWN
+- [x] verification snapshot (generated in memory with evidence and stable ID; persistence deferred)
 - [ ] evidence shown in UI
 
 ### Policy
