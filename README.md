@@ -1,6 +1,6 @@
 # Ryuk
 
-**AI can choose. You stay in control.** Ryuk is a dark casebook for intent-aware commerce: typed intent, synthetic hotel shortlist, evidence verification, deterministic policy, exact approval and backend-confirmed PayPal Sandbox checkout. The frontend is integrated with the existing services through a same-origin proxy and an opt-in password-protected single-buyer session. SQLite persists execution, budget holds and checkout audit; canonical proposals/approvals remain in memory.
+**AI can choose. You stay in control.** Ryuk is a dark casebook for intent-aware commerce: typed intent, synthetic hotel shortlist, evidence verification, deterministic policy, exact approval and backend-confirmed PayPal Sandbox checkout. The frontend is integrated with the existing services through a same-origin proxy and an opt-in password-protected single-buyer session. SQLite persists execution, budget holds and checkout audit; canonical proposals/approvals and early audit now persist in SQLite. See [durable authority and recovery](docs/durable-authority.md).
 
 **Private Sandbox prerelease: `v0.1.0-sandbox-demo`.** Start with the [startup guide](docs/startup.md), [three-minute walkthrough](docs/demo-script.md) and [release evidence/limitations](docs/release-notes.md). The user reports a completed local website payment with a passing receipt export; a measured live three-minute run remains pending. This is synthetic inventory, not hotel booking or production payments.
 
@@ -26,7 +26,7 @@ docker compose logs -f
 docker compose down
 ```
 
-SQLite checkout/hold/audit persistence uses the protected Compose volume; no separate database service is required. Canonical proposals/approvals remain process-local. The backend loads labeled `fixtures/hotels.json` and the integrated frontend uses the same-origin API proxy. Compose runs the production frontend build; use the local workflow below for hot reload.
+SQLite checkout/hold/audit persistence uses the protected Compose volume; no separate database service is required. Canonical proposals/approvals now persist with their bound consent state. The backend loads labeled `fixtures/hotels.json` and the integrated frontend uses the same-origin API proxy. Compose runs the production frontend build; use the local workflow below for hot reload.
 
 ### Builds behind a TLS-inspecting proxy
 
@@ -99,7 +99,7 @@ Use `.env.example` as the canonical template; `env.example` is the original plan
 
 Compose passes selected Groq/OpenAI and private PayPal settings only to the backend. Configure LLM_PROVIDER with its matching key/model in the ignored root `.env`; direct local Python processes need those settings exported separately. DATABASE_URL is unused; SQLite uses RYUK_CHECKOUT_DB_PATH. The authenticated UI receives only PayPal's public client ID, never the secret. Legacy NEXT_PUBLIC template values are not needed by this UI. See [parser configuration](docs/intent-parser.md) and [PayPal configuration/recovery](docs/paypal.md).
 
-[Checkout integration](docs/checkout.md) documents the durable ledger, pre-capture revalidation/reservation, recovery and identifier-only API. Private checkout is now provisioned only when explicitly enabled with a backend password and supported Sandbox settings; missing configuration stays blocked. Constant browser identities and test payment fallbacks are not enabled. Multi-user production auth and durable canonical authority remain pending.
+[Checkout integration](docs/checkout.md) documents the durable ledger, pre-capture revalidation/reservation, recovery and identifier-only API. Private checkout is now provisioned only when explicitly enabled with a backend password and supported Sandbox settings; missing configuration stays blocked. Constant browser identities and test payment fallbacks are not enabled. Durable canonical authority/recovery is implemented; multi-user production auth and full migrations/provisioning remain pending.
 
 ## Verified security and demo preparation
 

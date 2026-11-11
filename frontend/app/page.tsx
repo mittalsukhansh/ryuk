@@ -1,6 +1,7 @@
 "use client";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import PayPalCheckout from "../components/paypal";
+import RecoveryHistory from "../components/recovery-history";
 import { api, ApiError, label, money } from "../lib/api";
 import type {
   Approval,
@@ -350,6 +351,7 @@ export default function Home() {
           </div>
         </aside>
         <main>
+          {session.authenticated && <RecoveryHistory disabled={!!busy || active} onError={fail} />}
           <section className="opening" id="command">
             <div>
               <p className="eyebrow">

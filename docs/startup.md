@@ -2,7 +2,7 @@
 
 ## Existing installation
 
-Before updating, finish/reconcile active purchases. Restarting the backend invalidates sessions and in-memory canonical authority; durable checkout records and holds remain. Preserve any local edits and private configuration. Inspect first:
+Before updating, finish/reconcile active purchases. Restarting invalidates sessions; new canonical proposals/approvals, checkout records and holds persist. Pre-upgrade in-memory consent cannot be recovered; see [upgrade and legacy recovery](durable-authority.md). Preserve any local edits and private configuration. Inspect first:
 
 ```sh
 git status --short
@@ -61,7 +61,7 @@ docker compose exec -T backend python -m app.export_acceptance --latest-success 
 
 Check the exit status immediately (`echo $?` in Bash/WSL). Zero and checks_passed=true mean the exported record passes local receipt checks. Status 1 means unavailable/configuration/reference error; status 2 means incomplete evidence. Neither calls for a new purchase. Keep the receipt and a success screenshot private. [Operations](operations.md) explains backup/recovery and provider comparison.
 
-To stop, use `docker compose stop`; to resume the same deployment, use `docker compose start`. Never use `down -v`, delete the ledger or release holds merely to replenish a demo budget. A new process still invalidates process-local sessions/proposals/approvals. Inspect existing uncertain payments before restarting financial activity.
+To stop, use `docker compose stop`; to resume the same deployment, use `docker compose start`. Never use `down -v`, delete the ledger or release holds merely to replenish a demo budget. A new process still invalidates sessions; persisted approvals keep their original expiry and must pass current policy. Inspect existing uncertain payments before restarting financial activity.
 
 ## Automated checks
 

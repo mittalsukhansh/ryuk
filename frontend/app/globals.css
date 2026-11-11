@@ -1453,3 +1453,8 @@ footer {
   margin: 18px auto 0;
   font-size: 8px;
 }
+
+.recovery-history { border: 1px solid var(--line, #333); padding: 1.5rem; margin-bottom: 2rem; }
+.recovery-history ul { list-style: none; padding: 0; }
+.recovery-history li { padding-block: .75rem; overflow-wrap: anywhere; }
+.recovery-history button { margin: .5rem .75rem .5rem 0; padding: .6rem; border: 1px solid currentColor; }

@@ -10,9 +10,9 @@ from pydantic import TypeAdapter
 
 from app.schemas.catalog import CatalogSearchRequest
 from app.schemas.policy import BudgetSnapshot, FinancialPolicy
-from app.services.approvals import InMemoryApprovalService
 from app.services.checkout import CheckoutService
 from app.services.checkout_store import CheckoutAccessError, CheckoutStore
+from app.services.durable_approvals import DurableApprovalService
 from app.services.paypal import Identifier, PayPalError, PayPalSandboxAdapter, PayPalSettings
 from app.services.session import DemoSessions
 from app.services.workspace import WorkspaceService
@@ -92,7 +92,7 @@ async def provision(application: FastAPI, stack: AsyncExitStack) -> None:
                     ),
                 )
             )
-        approvals = InMemoryApprovalService()
+        approvals = DurableApprovalService(store)
         application.state.workspace = WorkspaceService(application.state.catalog, store, approvals)
         if merchant:
             for offer in application.state.catalog.search(CatalogSearchRequest()).offers:

@@ -1241,3 +1241,11 @@ Date: 2026-11-11 UTC
 Status: Accepted
 
 Tag v0.1.0-sandbox-demo as an annotated private-demo source prerelease only after exact-commit automated checks pass. Preserve the tested application; finalize operational/demo documentation and explicitly distinguish mocked tests, independently verified earlier standalone payment evidence, user-reported website receipt/container health, and unmeasured live timing. A spent demo budget uses clearly labeled prior evidence rather than resetting financial records or implying a fresh payment. The tag is not a production approval, deployed artifact attestation or promise of complete model semantics. Retain original security findings and add current mitigation/residual context without rewriting historical decisions.
+
+## D-040 — Persist authority with the checkout ledger and expose safe recovery
+Date: 2026-11-11 UTC
+Status: Accepted
+
+Runtime authority reloads a per-proposal persisted state into the existing approval state machine for each operation; schema/digest/identity checks and original consent expiry remain mandatory. Persist canonical/approval transitions and early audit in the existing protected SQLite ledger, and use the same store instance/transaction for final consent plus financial claims. Provider I/O stays outside synchronous transaction scopes. Expected pre-mutation consent failures preserve observed revocation/expiry; unexpected failures roll back. Process-local sessions still require login after restart.
+
+Add owner-scoped paginated history and audit inspection, with existing GET-only provider reconciliation and no automatic recapture or replacement order. Backfill legacy checkout references for discovery, never reconstruct pre-upgrade lost consent. Additive startup tables preserve financial state; full versioned migrations/PostgreSQL, atomic provisioning, production identity/quotas and provider monitoring remain separate stages. D-033/D-038's process-local authority limitation is superseded for newly persisted records, not for pre-upgrade losses or their remaining security residuals. See docs/durable-authority.md.

@@ -1,5 +1,14 @@
 # Ryuk Status
 
+## Latest: durable authority and recovery implementation
+
+Production-readiness stage 1: runtime canonical proposals/approvals and early audit now persist in the existing SQLite ledger; final consent and reservation/dispatch claims share a transaction. Added owner-scoped paginated saved history and inspection/GET-only provider reconciliation in the frontend. Sessions still require reauthentication after restart. Legacy checkout references are discoverable without inventing lost pre-upgrade consent. See docs/durable-authority.md and D-040. Historical process-local authority limitations below describe earlier revisions.
+
+Validation: **1,082 backend tests passed** (12 new durability/history regressions), Ruff/dependency consistency pass, frontend lint/typecheck/production build pass, and **51 mocked browser assertions passed**, including reload/history/audit recovery with zero create/capture POSTs. No live provider call, existing ledger reset or deployment was performed. The previously tagged Sandbox release remains unchanged.
+
+This does not implement production multi-user auth, PostgreSQL/versioned migrations, quotas, terminal provider monitoring/refund/reversal execution or production deployment. Existing accounts/holds/settlements remain untouched; all execution tests use fresh fixtures and mocked provider transport.
+
+
 ## Latest milestone — private Sandbox release preparation
 
 Prepared `v0.1.0-sandbox-demo`: finalized startup/update/stop instructions, three-minute run of show, release evidence and remaining production/security limitations. Application code is unchanged from the 1,070-test/47-browser-assertion baseline; final source-tag checks run before tagging. See docs/release-notes.md. Earlier pending statements below are historical and superseded where evidence is recorded here.

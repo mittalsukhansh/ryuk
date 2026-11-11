@@ -228,3 +228,12 @@ The latest release summary in STATUS.md supersedes older “not started”/pendi
 - [x] Update existing docs/demo-script.md with the six-case rehearsal and test references; align acceptance matrix
 - [x] Keep application implementation unchanged; use isolated mocks and preserve financial records/release tag
 - [x] Complete fresh standalone browser suite: 47 assertions passed; stop isolated fixture servers
+
+## Production-readiness stage 1 — durable authority/recovery
+- [x] Persist canonical proposals, current/historical approval decisions, expiry/revocation and early audit
+- [x] Reload authority under the same SQLite transaction as financial claims; no provider I/O while locked
+- [x] Add owner-scoped bounded/paginated saved history and frontend inspection/reconciliation without capture
+- [x] Retain legacy checkout discovery/audit while failing closed for lost pre-upgrade consent
+- [x] Add restart, revocation, concurrency, rollback, legacy and history regressions
+- [ ] Subsequent stages: versioned migrations/provisioning, multi-user identity, resource quotas, provider lifecycle and remaining security/operations work
+- [x] Stage 1 validation: 1,082 backend tests, Ruff/pip consistency, frontend lint/typecheck/build and 51 mocked browser assertions

@@ -18,6 +18,7 @@ from app.schemas.checkout import CheckoutRecord, OrderCreationState
 from app.schemas.policy import AttemptSnapshot, AttemptState
 from app.services.approvals import InMemoryApprovalService
 from app.services.checkout_store import CheckoutStore
+from app.services.durable_approvals import DurableApprovalService, authority_transaction
 from app.services.payment_state_machine import PaymentEvent, transition_payment_intent
 from app.services.paypal import (
     PayPalError,
@@ -51,6 +52,8 @@ class CheckoutService:
     ) -> None:
         self.store = store
         self.approvals = approvals
+        if isinstance(approvals, DurableApprovalService) and approvals.store is not store:
+            raise ValueError("Durable authority and checkout must share one store instance")
         self.paypal = paypal
         self._clock = clock or (lambda: datetime.now(timezone.utc))
 
@@ -73,7 +76,7 @@ class CheckoutService:
     def _authority_transaction(self) -> Iterator[tuple[sqlite3.Connection, ExitStack]]:
         # Release canonical authority locks only after the durable claim commits.
         with ExitStack() as guards:
-            with self.store.transaction() as connection:
+            with authority_transaction(self.store) as connection:
                 yield connection, guards
 
     async def create_checkout(self, proposal_id: str, *, actor_user_id: str) -> CheckoutRecord:

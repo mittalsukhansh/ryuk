@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 
 export const runtime = "nodejs";
 const allowed =
-  /^(session|workspace|requests|proposals\/[a-zA-Z0-9_-]+(?:\/(select|approval|audit))?|approvals\/[a-zA-Z0-9_-]+\/decision|checkouts(?:\/[a-zA-Z0-9_-]+(?:\/(capture|reconcile|cancel))?)?)$/;
+  /^(session|workspace|history|requests|proposals\/[a-zA-Z0-9_-]+(?:\/(select|approval|audit))?|approvals\/[a-zA-Z0-9_-]+\/decision|checkouts(?:\/[a-zA-Z0-9_-]+(?:\/(capture|reconcile|cancel))?)?)$/;
 
 async function proxy(
   request: NextRequest,
@@ -42,7 +42,7 @@ async function proxy(
   }
   try {
     const upstream = await fetch(
-      `${process.env.RYUK_BACKEND_URL || "http://127.0.0.1:8000"}/v1/${path}`,
+      `${process.env.RYUK_BACKEND_URL || "http://127.0.0.1:8000"}/v1/${path}${path === "history" ? request.nextUrl.search : ""}`,
       {
         method: request.method,
         body,

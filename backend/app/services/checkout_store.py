@@ -10,6 +10,7 @@ from collections.abc import Iterator
 from contextlib import closing, contextmanager
 from datetime import datetime
 from pathlib import Path
+from threading import local
 
 from pydantic import TypeAdapter
 
@@ -19,6 +20,21 @@ from app.schemas.policy import BudgetSnapshot, FinancialPolicy
 from app.services.paypal import Identifier
 
 _SCHEMA = """
+CREATE TABLE IF NOT EXISTS recovery_index (
+ sequence INTEGER PRIMARY KEY AUTOINCREMENT, proposal_id TEXT NOT NULL UNIQUE, user_id TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS recovery_owner ON recovery_index(user_id,sequence);
+CREATE TABLE IF NOT EXISTS proposal_authority (
+ proposal_id TEXT PRIMARY KEY, user_id TEXT NOT NULL, body TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS proposal_owner ON proposal_authority(user_id);
+CREATE TABLE IF NOT EXISTS approval_lookup (
+ request_id TEXT PRIMARY KEY, proposal_id TEXT NOT NULL REFERENCES proposal_authority(proposal_id)
+);
+CREATE TABLE IF NOT EXISTS proposal_audit (
+ sequence INTEGER PRIMARY KEY, proposal_id TEXT NOT NULL REFERENCES proposal_authority(proposal_id),
+ event TEXT NOT NULL, at TEXT NOT NULL, details TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS accounts (
  user_id TEXT PRIMARY KEY, currency TEXT NOT NULL,
  limit_minor INTEGER NOT NULL CHECK(limit_minor >= 0),
@@ -40,6 +56,8 @@ CREATE TABLE IF NOT EXISTS checkout_audit (
  sequence INTEGER PRIMARY KEY, payment_id TEXT NOT NULL REFERENCES checkouts(payment_id),
  event TEXT NOT NULL, at TEXT NOT NULL, details TEXT NOT NULL
 );
+INSERT OR IGNORE INTO recovery_index(proposal_id,user_id)
+ SELECT proposal_id,user_id FROM checkouts ORDER BY rowid;
 """
 
 
@@ -52,6 +70,7 @@ class CheckoutStore:
         if str(path) == ":memory:":
             raise ValueError("Checkout requires a persistent SQLite file")
         self.path = Path(path).resolve()
+        self._transaction_state = local()
         self.path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
         with closing(sqlite3.connect(self.path)) as connection:
             connection.execute("PRAGMA journal_mode=WAL")
@@ -61,18 +80,25 @@ class CheckoutStore:
     @contextmanager
     def transaction(self) -> Iterator[sqlite3.Connection]:
         """Serialize claims across connections/processes; exceptions roll back everything."""
+        active = getattr(self._transaction_state, "connection", None)
+        if active is not None:
+            # Synchronous composition only: never await inside any ledger transaction.
+            yield active
+            return
         connection = sqlite3.connect(self.path, timeout=5)
         connection.row_factory = sqlite3.Row
         connection.execute("PRAGMA foreign_keys=ON")
         connection.execute("PRAGMA synchronous=FULL")
         try:
             connection.execute("BEGIN IMMEDIATE")
+            self._transaction_state.connection = connection
             yield connection
             connection.commit()
         except BaseException:
             connection.rollback()
             raise
         finally:
+            self._transaction_state.connection = None
             connection.close()
 
     def create_account(self, budget: BudgetSnapshot) -> None:

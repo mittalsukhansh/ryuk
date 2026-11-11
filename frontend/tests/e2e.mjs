@@ -150,6 +150,26 @@ const SDK = `window.__sdkEarlyClose=0;window.__sdkPending=0;window.paypal={Butto
       fullPage: true,
     });
     await page.unroute("**/api/ryuk/checkouts/*/capture");
+    // Reload recovers stored evidence without creating or capturing another payment.
+    let recoveryMutations = 0;
+    const trackRecovery = (request) => {
+      if (/\/checkouts(?:$|\/[^/]+\/capture$)/.test(new URL(request.url()).pathname)
+          && request.method() === "POST") recoveryMutations++;
+    };
+    page.on("request", trackRecovery);
+    await page.reload({ waitUntil: "networkidle" });
+    await page.getByRole("button", { name: "Load saved activity" }).click();
+    const saved = page.locator(".recovery-history ul > li").filter({ hasText: "Capture reference:" });
+    await saved.waitFor();
+    assert.match(await saved.textContent(), /Succeeded/);
+    assertions++;
+    await saved.getByRole("button", { name: "Inspect saved record" }).click();
+    await page.getByLabel("Saved audit events").getByText(/Budget Settled/).waitFor();
+    assertions++;
+    assert.equal(await page.locator(".paypal-slot").count(), 0);
+    assert.equal(recoveryMutations, 0);
+    assertions += 2;
+    page.off("request", trackRecovery);
     // Escalation uses backend consent and then the same actual checkout coordinator.
     await reset();
     await investigate();

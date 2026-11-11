@@ -2,15 +2,15 @@
 
 import json
 from datetime import datetime, timezone
-from threading import RLock
 from uuid import uuid4
 
 from app.schemas import ApprovalRequest, PurchaseIntent, PurchaseProposal
 from app.schemas.catalog import CatalogSearchRequest
 from app.schemas.policy import AttemptSnapshot
-from app.services.approvals import InMemoryApprovalService
+from app.services.approvals import ApprovalAccessError, InMemoryApprovalService
 from app.services.catalog import CatalogService
 from app.services.checkout_store import CheckoutStore
+from app.services.durable_approvals import authority_transaction
 from app.services.verifier import verify_offer
 
 
@@ -19,17 +19,17 @@ class WorkspaceService:
         self, catalog: CatalogService, store: CheckoutStore, approvals: InMemoryApprovalService
     ) -> None:
         self.catalog, self.store, self.approvals = catalog, store, approvals
-        self._events: dict[str, list[dict]] = {}
-        self._lock = RLock()
 
     def event(self, proposal_id: str, event: str, details: dict | None = None) -> None:
-        with self._lock:
-            self._events.setdefault(proposal_id, []).append(
-                {
-                    "event": event,
-                    "at": datetime.now(timezone.utc).isoformat(),
-                    "details": details or {},
-                }
+        with authority_transaction(self.store) as connection:
+            connection.execute(
+                "INSERT INTO proposal_audit(proposal_id,event,at,details) VALUES (?,?,?,?)",
+                (
+                    proposal_id,
+                    event,
+                    datetime.now(timezone.utc).isoformat(),
+                    json.dumps(details or {}),
+                ),
             )
 
     def _inputs(self, connection, proposal: PurchaseProposal) -> dict:
@@ -43,7 +43,7 @@ class WorkspaceService:
 
     def describe(self, proposal_id: str, actor: str) -> dict:
         proposal = self.approvals.get_proposal(proposal_id, actor_user_id=actor)
-        with self.store.transaction() as connection:
+        with authority_transaction(self.store) as connection:
             inputs = self._inputs(connection, proposal)
             existing = connection.execute(
                 "SELECT payment_id FROM checkouts WHERE proposal_id=?", (proposal_id,)
@@ -73,7 +73,7 @@ class WorkspaceService:
         search = self.catalog.search(CatalogSearchRequest(currency=intent.currency, limit=8))
         candidates = []
         request_id = str(uuid4())
-        with self.store.transaction() as connection:
+        with authority_transaction(self.store) as connection:
             policy = self.store.policy(connection, actor)
         for offer in search.offers:
             proposal = self.approvals.register_proposal(
@@ -118,7 +118,7 @@ class WorkspaceService:
 
     def request_approval(self, proposal_id: str, actor: str) -> ApprovalRequest:
         proposal = self.approvals.get_proposal(proposal_id, actor_user_id=actor)
-        with self.store.transaction() as connection:
+        with authority_transaction(self.store) as connection:
             approval = self.approvals.create_request(
                 proposal_id,
                 actor_user_id=actor,
@@ -137,7 +137,7 @@ class WorkspaceService:
             result = self.approvals.reject_request(request_id, actor_user_id=actor, at=now)
         else:
             proposal = self.approvals.get_proposal(request.proposal_id, actor_user_id=actor)
-            with self.store.transaction() as connection:
+            with authority_transaction(self.store) as connection:
                 inputs = self._inputs(connection, proposal)
                 existing = connection.execute(
                     "SELECT 1 FROM checkouts WHERE proposal_id=?", (proposal.proposal_id,)
@@ -157,10 +157,27 @@ class WorkspaceService:
         return result
 
     def timeline(self, proposal_id: str, actor: str) -> list[dict]:
-        self.approvals.get_proposal(proposal_id, actor_user_id=actor)
-        with self._lock:
-            events = json.loads(json.dumps(self._events.get(proposal_id, [])))
+        try:
+            self.approvals.get_proposal(proposal_id, actor_user_id=actor)
+        except ApprovalAccessError:
+            # Pre-upgrade checkouts remain inspectable, but never regain lost consent.
+            with self.store.transaction() as connection:
+                row = connection.execute(
+                    "SELECT payment_id FROM checkouts WHERE proposal_id=? AND user_id=?",
+                    (proposal_id, actor),
+                ).fetchone()
+                if row is None:
+                    raise
+                self.store.load(connection, row["payment_id"], actor)
         with self.store.transaction() as connection:
+            events = [
+                {"event": row["event"], "at": row["at"], "details": json.loads(row["details"])}
+                for row in connection.execute(
+                    "SELECT event,at,details FROM proposal_audit "
+                    "WHERE proposal_id=? ORDER BY sequence",
+                    (proposal_id,),
+                )
+            ]
             row = connection.execute(
                 "SELECT payment_id FROM checkouts WHERE proposal_id=? AND user_id=?",
                 (proposal_id, actor),

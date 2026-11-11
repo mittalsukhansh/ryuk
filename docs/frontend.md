@@ -85,10 +85,7 @@ while an order/dispatch is active, and old SDK components are closed on unmount.
 
 The audit timeline combines real backend proposal/verification/policy/approval
 records with persisted checkout events, using backend timestamps. No UI-generated
-financial events or invented delay/timestamps are displayed. Pre-checkout canonical
-records and their early audit events remain process-local, as before; checkout
-state/keys/terms/reservations/audit remain SQLite durable. A restart still loses
-canonical authority and blocks new capture; durable attempted payments can reconcile.
+financial events or invented delay/timestamps are displayed. Canonical proposals/approvals, early audit and checkout state/keys/terms/reservations now persist in SQLite. Sign in again after restart and use Saved activity to inspect or reconcile existing purchases without recapture. Pre-upgrade missing canonical records remain unavailable for new capture; see [durable recovery](durable-authority.md).
 
 ### Step 12 security change: intent review is always required
 

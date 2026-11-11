@@ -16,8 +16,8 @@ from app.api.agent import get_intent_parser
 from app.main import app, lifespan
 from app.schemas.catalog import CatalogSearchRequest
 from app.schemas.policy import BudgetSnapshot
-from app.services.approvals import InMemoryApprovalService
 from app.services.checkout_store import CheckoutStore
+from app.services.durable_approvals import DurableApprovalService
 from app.services.intent_parser import FakeIntentParser
 from app.services.paypal import PayPalSandboxAdapter, PayPalSettings
 from app.services.session import DemoSessions
@@ -124,7 +124,7 @@ def test_new_case() -> dict:
     store.put_policy(policy)
     for offer in app.state.catalog.search(CatalogSearchRequest()).offers:
         store.map_merchant(offer.merchant_id, "DEMOSELLER")
-    approvals = InMemoryApprovalService()
+    approvals = DurableApprovalService(store)
     app.state.workspace = WorkspaceService(app.state.catalog, store, approvals)
     app.state.checkout_service.approvals = approvals
     app.state.checkout_service.store = store

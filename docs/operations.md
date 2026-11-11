@@ -1,7 +1,7 @@
 # Private demo operations
 
 ## Boundaries
-Run one private backend worker on a protected local SQLite volume. This is not a public multi-user deployment. Sessions, proposals/approvals and early audit remain process-local. Never infer lost authority from browser data after restart. Durable pending captures must use provider-state reconciliation, not renewed consent or an automatic capture retry. Configure HTTPS with secure cookies outside loopback.
+Run one private backend worker on a protected local SQLite volume. This is not a public multi-user deployment. Sessions remain process-local; proposals/approvals and early audit persist in SQLite. See [durable authority and legacy recovery](durable-authority.md). Never infer lost authority from browser data after restart. Durable pending captures must use provider-state reconciliation, not renewed consent or an automatic capture retry. Configure HTTPS with secure cookies outside loopback.
 
 ## Back up without changing the ledger
 

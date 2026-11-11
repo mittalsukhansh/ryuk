@@ -1,13 +1,15 @@
 """Authenticated frontend seams; existing services retain all financial authority."""
 
+import json
 import os
+from datetime import datetime, timezone
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from pydantic import Field, SecretStr
 
 from app.api.agent import get_intent_parser, parse_intent, require_model_actor
-from app.api.checkout import Actor, _errors
+from app.api.checkout import Actor, _errors, _view
 from app.schemas import ApprovalRequest
 from app.schemas.domain import DomainModel
 from app.schemas.intent_parser import ParseIntentRequest
@@ -160,3 +162,59 @@ def decide(request_id: str, body: Decision, actor: Actor, service: Workspace) ->
 def audit(proposal_id: str, actor: Actor, service: Workspace) -> dict:
     with _errors():
         return {"events": service.timeline(proposal_id, actor)}
+
+
+@router.get("/history")
+def history(
+    actor: Actor,
+    service: Workspace,
+    before: Annotated[int | None, Query(ge=1)] = None,
+) -> dict:
+    """Owner-scoped, bounded durable history; reading never calls the provider."""
+    with _errors(), service.store.transaction() as connection:
+        rows = connection.execute(
+            "SELECT sequence,proposal_id FROM recovery_index WHERE user_id=? "
+            "AND (? IS NULL OR sequence < ?) ORDER BY sequence DESC LIMIT 51",
+            (actor, before, before),
+        ).fetchall()
+        items = []
+        for row in rows[:50]:
+            pid = row["proposal_id"]
+            authority = connection.execute(
+                "SELECT body FROM proposal_authority WHERE proposal_id=? AND user_id=?",
+                (pid, actor),
+            ).fetchone()
+            payment = connection.execute(
+                "SELECT payment_id FROM checkouts WHERE proposal_id=? AND user_id=?", (pid, actor)
+            ).fetchone()
+            record = (
+                service.store.load(connection, payment["payment_id"], actor) if payment else None
+            )
+            approval = None
+            if authority:
+                proposal = service.approvals.get_proposal(pid, actor_user_id=actor)
+                current = json.loads(authority["body"])["current"]
+                if current:
+                    approval = service.approvals.get_request(
+                        current, actor_user_id=actor, at=datetime.now(timezone.utc)
+                    )
+                created = proposal.created_at
+                amount, currency = proposal.offer.amount_minor, proposal.offer.currency
+            elif record:
+                # Legacy ledger: retain discoverability without reconstructing lost consent.
+                created = record.payment.created_at
+                amount, currency = record.payment.amount_minor, record.payment.currency
+            else:
+                continue
+            items.append(
+                {
+                    "proposal_id": pid,
+                    "created_at": created.isoformat(),
+                    "amount_minor": amount,
+                    "currency": currency,
+                    "canonical_available": bool(authority),
+                    "approval_status": approval.status if approval else None,
+                    "checkout": _view(record).model_dump(mode="json") if record else None,
+                }
+            )
+        return {"items": items, "next_before": rows[49]["sequence"] if len(rows) > 50 else None}
