@@ -24,6 +24,7 @@ GOLD = json.loads(
 
 @pytest.fixture
 def client(tmp_path, monkeypatch):
+    monkeypatch.setenv("LLM_PROVIDER", "openai")
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     monkeypatch.delenv("OPENAI_MODEL", raising=False)
     monkeypatch.setenv("RYUK_DEMO_ENABLED", "true")

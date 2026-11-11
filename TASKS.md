@@ -169,3 +169,11 @@ This current evidence supersedes earlier unchecked Step 12 instructions/counts. 
 - [x] Add conflict-marker regression for source/runbooks
 - [x] 1,056 backend tests, Ruff, frontend lint/type/build and 44 mocked browser assertions
 - [ ] Buyer-approved live Sandbox acceptance remains unverified
+
+## Groq transport-schema compatibility — 2026-11-12
+- [x] Reproduce real HTTP 400 integer/number anyOf overlap safely
+- [x] Use equivalent non-overlapping Groq schema; retain strict backend/source checks
+- [x] Add immutable/shared-schema regression and safe provider-status messages
+- [x] Live gpt-oss-120b gold extraction accepted and validated (no payments)
+
+Groq repair: 1,063 backend tests/Ruff/diff checks pass. User installation must pull and rebuild/recreate backend; no private key changes are required for the schema fix.

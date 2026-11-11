@@ -19,6 +19,7 @@ from app.services.intent_parser import (
     IntentClarificationRequired,
     IntentParserUnavailable,
     InvalidParserOutput,
+    groq_extraction_schema,
 )
 
 
@@ -56,7 +57,7 @@ async def parse_mock(query: str, response: dict) -> Any:
         assert body["response_format"]["json_schema"] == {
             "name": "purchase_intent_extraction",
             "strict": True,
-            "schema": LLMIntentExtraction.model_json_schema(),
+            "schema": groq_extraction_schema(),
         }
         assert "tools" not in body
         assert body["messages"][1] == {"role": "user", "content": query}
@@ -191,3 +192,47 @@ def test_groq_production_wiring(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_invalid_query_rejected_before_http(query: str) -> None:
     with pytest.raises(IntentClarificationRequired):
         asyncio.run(parse_mock(query, completion(GOLD["extraction"])))
+
+
+def test_groq_union_is_equivalent_and_does_not_mutate_shared_schema():
+    original = LLMIntentExtraction.model_json_schema()
+
+    def types(schema):
+        return {
+            branch["type"]
+            for branch in schema["$defs"]["ExtractedAttribute"]["properties"]["value"]["anyOf"]
+        }
+
+    assert types(original) == {"boolean", "integer", "number", "string"}
+    assert types(groq_extraction_schema()) == {"boolean", "number", "string"}
+    assert types(LLMIntentExtraction.model_json_schema()) == types(original)
+
+
+@pytest.mark.parametrize(
+    "status,category",
+    [
+        (400, "REQUEST"),
+        (401, "AUTH"),
+        (403, "ACCESS"),
+        (404, "MODEL"),
+        (429, "LIMIT"),
+        (500, "UNAVAILABLE"),
+    ],
+)
+def test_provider_failure_categories_are_safe_and_actionable(monkeypatch, status, category):
+    from app.api.agent import get_intent_parser
+    from app.services.intent_parser import IntentProviderRejected
+
+    class Parser:
+        async def parse(self, query):
+            raise IntentProviderRejected(status)
+
+    app.dependency_overrides[get_intent_parser] = lambda: Parser()
+    try:
+        with TestClient(app) as client:
+            response = client.post("/v1/agent/parse", json={"query": GOLD["query"]})
+        assert response.status_code == 503
+        assert response.json()["detail"]["message"] == IntentProviderRejected.MESSAGES[category]
+        assert "private-provider-detail" not in response.text
+    finally:
+        app.dependency_overrides.pop(get_intent_parser, None)

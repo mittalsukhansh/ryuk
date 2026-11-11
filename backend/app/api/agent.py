@@ -15,6 +15,7 @@ from app.services.intent_parser import (
     IntentClarificationRequired,
     IntentParser,
     IntentParserUnavailable,
+    IntentProviderRejected,
     InvalidParserOutput,
     OpenAIIntentParser,
 )
@@ -99,11 +100,15 @@ async def parse_intent(
                 "message": "The model returned an invalid extraction.",
             },
         ) from None
-    except IntentParserUnavailable:
+    except IntentParserUnavailable as error:
         raise HTTPException(
             status_code=503,
             detail={
                 "code": "PARSER_UNAVAILABLE",
-                "message": "The intent model is unavailable. Try again later.",
+                "message": (
+                    IntentProviderRejected.MESSAGES[error.category]
+                    if isinstance(error, IntentProviderRejected)
+                    else "The intent model is unavailable. Try again later."
+                ),
             },
         ) from None

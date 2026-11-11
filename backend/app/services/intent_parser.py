@@ -9,7 +9,7 @@ from copy import deepcopy
 from decimal import Decimal, localcontext
 from typing import Protocol
 
-from openai import APIError, AsyncOpenAI
+from openai import APIError, APIStatusError, AsyncOpenAI
 from pydantic import ValidationError
 
 from app.schemas import PurchaseIntent
@@ -82,6 +82,44 @@ class InvalidParserOutput(IntentParserError):
 
 class IntentParserUnavailable(IntentParserError):
     """Provider configuration, transport, or availability prevents parsing."""
+
+
+class IntentProviderRejected(IntentParserUnavailable):
+    """Only code-owned categories are exposed; never provider payloads or exceptions."""
+
+    MESSAGES = {
+        "AUTH": "The model provider rejected authentication. Check the backend API key.",
+        "ACCESS": "The model provider denied access. Check account and model permissions.",
+        "MODEL": "The configured model was not found or is unavailable to this account.",
+        "LIMIT": "The model provider rate or quota limit was reached. Try again later.",
+        "REQUEST": (
+            "The model provider rejected the request or structured schema. "
+            "Update the backend and check model support."
+        ),
+        "UNAVAILABLE": "The intent model is unavailable. Try again later.",
+    }
+
+    def __init__(self, status: int) -> None:
+        self.category = {
+            400: "REQUEST",
+            401: "AUTH",
+            403: "ACCESS",
+            404: "MODEL",
+            429: "LIMIT",
+        }.get(status, "UNAVAILABLE")
+        super().__init__(self.MESSAGES[self.category])
+
+
+def groq_extraction_schema() -> dict:
+    """Remove a redundant overlapping union branch; retain the same JSON value set.
+
+    JSON Schema `number` includes integers. Groq rejects anyOf containing both
+    number and integer; Pydantic's strict typed/source/domain checks still run.
+    """
+    schema = LLMIntentExtraction.model_json_schema()
+    value = schema["$defs"]["ExtractedAttribute"]["properties"]["value"]
+    value["anyOf"] = [branch for branch in value["anyOf"] if branch.get("type") != "integer"]
+    return schema
 
 
 class IntentParser(Protocol):
@@ -254,6 +292,8 @@ class OpenAIIntentParser:
                 store=False,
                 max_output_tokens=MAX_OUTPUT_TOKENS,
             )
+        except APIStatusError as error:
+            raise IntentProviderRejected(error.status_code) from None
         except APIError:
             raise IntentParserUnavailable(
                 "The intent model is unavailable. Try again later."
@@ -289,12 +329,14 @@ class GroqIntentParser:
                     "json_schema": {
                         "name": "purchase_intent_extraction",
                         "strict": True,
-                        "schema": LLMIntentExtraction.model_json_schema(),
+                        "schema": groq_extraction_schema(),
                     },
                 },
                 max_completion_tokens=MAX_OUTPUT_TOKENS,
                 stream=False,
             )
+        except APIStatusError as error:
+            raise IntentProviderRejected(error.status_code) from None
         except APIError:
             raise IntentParserUnavailable(
                 "The intent model is unavailable. Try again later."

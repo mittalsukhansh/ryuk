@@ -1207,3 +1207,11 @@ Status: Accepted
 WIP commit cde0d08 contained unresolved markers in seven files and duplicate review flags, enum members and validation handlers. Retain both security implementations' protections and regression suites, using one intent_review_required field/reason and one safe validation handler. Preserve full original/parsed intent digest binding, source-clause role checks, authenticated/rate-limited HTTP parser wrapper and separate internal orchestration. Preserve the readable review UI and combined browser assertions; keep the earlier hardening report separately.
 
 Do not translate/revive incompatible in-memory consent or modify existing financial records. Durable uncertain captures retain original terms for query-only reconciliation. Add a source/runbook marker regression. Validation: 1,056 backend tests, frontend lint/type/build and 44 mocked browser assertions pass. No live provider call or deployment; buyer-approved acceptance remains pending.
+
+## D-035 — Equivalent Groq transport schema and safe provider diagnostics
+Date: 2026-11-12
+Status: Accepted
+
+Real Groq calls rejected ExtractedAttribute.value.anyOf because integer and number overlap. For Groq only, remove the redundant integer alternative; JSON Schema number includes integers, so the accepted JSON value set is unchanged. Preserve the shared application schema, strict Pydantic validation, source/role/money checks and digest-bound application review. Never downgrade to unstructured JSON or retry/fallback automatically.
+
+Classify SDK HTTP errors by status into static code-owned authentication/access/model/rate/request/unavailable messages. Do not reflect provider body or exception text. Live gpt-oss-120b validation succeeded on the committed synthetic gold request; semantic completeness and buyer-approved payment remain separate acceptance gates. No payment operation was performed.

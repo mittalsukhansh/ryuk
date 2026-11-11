@@ -1,5 +1,11 @@
 # Ryuk Status
 
+## Groq compatibility repair — 2026-11-12
+Reproduced a real provider HTTP 400: Groq rejects the overlapping integer/number branches in the extracted attribute anyOf schema. Compile only the Groq transport schema by removing the redundant integer branch (number already includes integers), retaining the shared strict Pydantic/source/domain validation and mandatory original/parsed intent review. No JSON-mode downgrade, coercion or provider fallback.
+
+Live gpt-oss-120b extraction on the committed synthetic gold request now passes strict backend validation with the expected finite budget. A different synthetic phrasing requested clarification rather than bypassing validation; this is not proof of semantic completeness or live payment acceptance. No payment call was made. Provider HTTP failures now produce code-owned authentication/access/model/rate/request messages without provider bodies or secret reflection. Current regression results are recorded below.
+
+
 ## Current verification — merge repair, 2026-11-12
 Repaired latest GitHub commit cde0d08 in an isolated worktree. Original local edits, private configuration and financial records were preserved.
 
@@ -122,3 +128,5 @@ Step 12 — Current-source security review completed with four confirmed High fi
 - Security: Confirmed High reproductions, bound review, authenticated direct parser, input-safe errors, cookie hardening and existing financial tampering/race/recovery tests pass. No production deployment, power-loss durability or live provider acceptance claimed.
 
 Step 12 changes application review policy for model-derived proposals and advances the canonical digest format; active financial caps, payment graph, atomic claims/accounting and GET-only uncertainty recovery are unchanged. Provider credentials remain backend-only. Only isolated mock backend and local standalone production frontend were booted for validation. No secret values read, live calls/captures, existing financial resets/deletes, image rebuild, deployment or Step 13 work.
+
+Groq repair validation: 1,063 backend tests pass (including schema-equivalence and sanitized provider-status regressions), Ruff and diff checks pass. Workspace tests explicitly isolate provider selection from inherited live Groq configuration. Live gold extraction passed through strict validation on gpt-oss-120b; no payment operation performed. Frontend unchanged by this backend-only repair.
