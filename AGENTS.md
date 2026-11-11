@@ -150,3 +150,14 @@ For ambiguity involving:
 choose the safer behavior and return REQUIRE_APPROVAL or stop with an explicit error.
 
 Never invent provider behavior.
+
+
+## Project documentation maintenance
+
+After every meaningful implementation task:
+
+1. Update STATUS.md to reflect actual repository state.
+2. Append a new DECISIONS.md entry if the task introduced or changed a meaningful architecture, product, security, scope, or integration decision.
+3. Never mark work complete unless the implementation exists and relevant tests pass.
+4. Never rewrite historical decision entries. If a decision changes, add a new decision and mark the old one Superseded.
+5. Keep TASKS.md and STATUS.md consistent.
