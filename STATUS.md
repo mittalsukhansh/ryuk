@@ -152,3 +152,13 @@ Evidence exporter validation: 1,069 backend tests passed; Ruff and diff checks p
 Approval-required, budget-denied, mandatory-requirement-denied, tampering-blocked and duplicate-prevented checks pass in a focused 32-test run. New API regression proves an under-budget USD980 no-gym offer cannot create an approval/order, with zero provider calls or funds settled/reserved. Existing approval/buyer gates, canonical/browser tampering and duplicate/concurrency tests were rerun. Evidence and commands: docs/required-scenarios.md. No financial implementation change, live payment, private configuration change or existing ledger reset.
 
 Required-scenario final validation: 1,070 full backend tests passed; focused acceptance run 32 passed; Ruff and diff checks pass. Frontend/financial implementation unchanged in this verification task.
+
+## Final revision revalidation — 2026-11-11 UTC
+
+Validated clean source revision `31367ae338faf494d6bbbcc5a0d6265c3585c6ad`, matching origin/main when checked. This is source/build validation in the managed workspace, not evidence that the user's deployed installation runs this revision.
+
+- Backend: 1,070 tests passed; Ruff and pip dependency consistency passed.
+- Frontend: lint, TypeScript and fresh production build passed.
+- Browser: 47 assertions passed against the newly built standalone server and isolated FastAPI/SQLite fixtures, with mocked SDK/model/provider, desktop/mobile.
+- Git whitespace checks passed. No application implementation changed; no live provider/payment calls or existing financial ledger mutations occurred.
+- Deployment identity, running artifact/configuration and deployed smoke checks remain unverified. No Docker image rebuild or deployment was performed in this rerun. User-local receipt export and timed live acceptance remain separate pending evidence.

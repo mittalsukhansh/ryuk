@@ -202,3 +202,10 @@ Groq repair: 1,063 backend tests/Ruff/diff checks pass. User installation must p
 - [x] Focused 32-test run and documented reproducible matrix (docs/required-scenarios.md)
 
 These are isolated automated scenarios; no new live payment was made and no existing ledger was reset. Full live UI timing/demo freeze remains distinct.
+
+## Final revision checks — 2026-11-11 UTC
+- [x] Re-run backend suite (1,070), Ruff and dependency consistency at source revision 31367ae
+- [x] Re-run frontend lint/typecheck/production build and 47 mocked browser assertions against freshly built standalone output
+- [ ] Confirm user's deployed source/artifact revision and run deployed smoke checks; local build results do not establish deployment acceptance
+
+See STATUS.md for the validation scope. This rerun made no live payment or existing ledger changes.
