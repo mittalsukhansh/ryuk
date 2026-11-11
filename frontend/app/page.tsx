@@ -773,8 +773,7 @@ export default function Home() {
                   )}
                 </div>
               </section>
-              {selected.policy.decision === "ALLOW_ELIGIBLE_FOR_CHECKOUT" &&
-                (!checkout || checkout.state === "AWAITING_PAYPAL_BUYER") && (
+              {selected.policy.decision === "ALLOW_ELIGIBLE_FOR_CHECKOUT" && (
                   <section className="checkout-panel">
                     <div>
                       <p className="eyebrow">BUYER AUTHORIZATION</p>
@@ -791,6 +790,7 @@ export default function Home() {
                           proposalId={selected.proposal.proposal_id}
                           clientId={workspace.paypal.client_id}
                           currency={offer.currency}
+                          inactive={!!checkout && checkout.state !== "AWAITING_PAYPAL_BUYER"}
                           onRecord={recordCheckout}
                           onActivity={setBusy}
                           onError={(message) => void paypalError(message)}

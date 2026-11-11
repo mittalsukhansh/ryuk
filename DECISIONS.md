@@ -1221,3 +1221,11 @@ Date: 2026-11-12
 Status: Accepted
 
 The UI's valid built-in example produced currency-prefixed amount_text and quotes omitting the budget/threshold role cue. Keep strict backend validation. Explicitly prompt numeric-only tokens; restrict Groq transport money grammar and exact source-derived role/currency evidence candidates when available. These constraints narrow model outputs, do not infer missing money or raise policy limits, and never grant payment authority. Ambiguous/unsupported input still fails validation. Add UI-text/grammar/source-span regressions and verify the exact screenshot text live. No payment or semantic-completeness claim.
+
+## D-037 — Preserve the PayPal SDK lifecycle until approval/cancel callbacks resolve
+Date: 2026-11-12
+Status: Accepted
+
+A backend terminal/pending response updated React checkout state, unmounting the PayPal component and calling Buttons.close before onApprove returned. This can strand the popup/merchant overlay despite HTTP 200 responses. Keep the SDK component and nodes alive for that selected purchase; hide its action host once backend state no longer awaits buyer approval. SDK cleanup runs when leaving the purchase, not merely when a capture response arrives. Hold cancellation UI busy through its asynchronous callback.
+
+No timers, forced window closure, capture retries, financial policy or provider-state shortcuts. Add a mock that detects close during callbacks; it reproduces the old bug and verifies success/pending/cancel paths after the fix. Frontend-only rollout preserves backend in-memory authority. A user's actual current payment still requires record/provider verification independently of transport HTTP status. No live payment made by these tests.

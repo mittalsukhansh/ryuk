@@ -7,7 +7,7 @@ import { tmpdir } from "node:os";
 const base = process.env.RYUK_E2E_URL || "http://localhost:3100";
 const backend = process.env.RYUK_E2E_BACKEND || "http://127.0.0.1:8100";
 const shots = process.env.RYUK_SCREENSHOT_DIR || join(tmpdir(), "ryuk-browser");
-const SDK = `window.paypal={Buttons(options){let host;return{async render(element){host=element;const b=document.createElement('button');b.textContent='PayPal Sandbox · test buyer';b.style.cssText='width:100%;padding:14px;background:#eee;color:#111;border:0';b.onclick=async()=>{try{const id=await options.createOrder();const action=await window.approveFixtureOrder(id);if(action==='cancel')await options.onCancel();else await options.onApprove();}catch(e){options.onError(e)}};host.appendChild(b)},async close(){if(host)host.replaceChildren()}}}};`;
+const SDK = `window.__sdkEarlyClose=0;window.__sdkPending=0;window.paypal={Buttons(options){let host,inCallback=false;return{async render(element){host=element;const b=document.createElement('button');b.textContent='PayPal Sandbox · test buyer';b.style.cssText='width:100%;padding:14px;background:#eee;color:#111;border:0';b.onclick=async()=>{inCallback=true;window.__sdkPending++;try{const id=await options.createOrder();const action=await window.approveFixtureOrder(id);if(action==='cancel')await options.onCancel();else await options.onApprove();}catch(e){options.onError(e)}finally{inCallback=false;window.__sdkPending--}};host.appendChild(b)},async close(){if(inCallback)window.__sdkEarlyClose++;if(host)host.replaceChildren()}}}};`;
 (async () => {
   const browser = await chromium.launch({
     ...(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}),
@@ -142,6 +142,9 @@ const SDK = `window.paypal={Buttons(options){let host;return{async render(elemen
       /BUDGET_SETTLED/,
     );
     assertions++;
+    await page.waitForFunction(() => window.__sdkPending === 0);
+    assert.equal(await page.evaluate(() => window.__sdkEarlyClose), 0, "SDK must stay mounted until onApprove resolves");
+    assertions++;
     await page.screenshot({
       path: `${shots}/ryuk-result-desktop.png`,
       fullPage: true,
@@ -177,6 +180,9 @@ const SDK = `window.paypal={Buttons(options){let host;return{async render(elemen
       await page.getByRole("heading", { name: "Payment confirmed." }).count(),
       0,
     );
+    assertions++;
+    await page.waitForFunction(() => window.__sdkPending === 0);
+    assert.equal(await page.evaluate(() => window.__sdkEarlyClose), 0, "SDK must stay mounted until pending capture resolves");
     assertions++;
     // Real proxy boundaries: no arbitrary routes, cross-origin actions, or credential reflection.
     const blocked = await context.request.post(`${base}/api/ryuk/__test__/new-case`);
@@ -229,6 +235,9 @@ const SDK = `window.paypal={Buttons(options){let host;return{async render(elemen
     await page.getByRole("button", { name: "PayPal Sandbox · test buyer" }).click();
     await page.getByRole("heading", { name: "Payment not completed." }).waitFor();
     assert.equal(await page.getByRole("heading", { name: "Payment confirmed." }).count(), 0);
+    assertions++;
+    await page.waitForFunction(() => window.__sdkPending === 0);
+    assert.equal(await page.evaluate(() => window.__sdkEarlyClose), 0, "SDK must stay mounted until buyer cancellation resolves");
     assertions++;
     // Phone fallback and keyboard/dialog usability, no horizontal document overflow.
     await page.setViewportSize({ width: 390, height: 844 });

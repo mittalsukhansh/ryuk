@@ -179,3 +179,10 @@ This current evidence supersedes earlier unchecked Step 12 instructions/counts. 
 Groq repair: 1,063 backend tests/Ruff/diff checks pass. User installation must pull and rebuild/recreate backend; no private key changes are required for the schema fix.
 
 - [x] Reproduce and repair the unchanged UI example: numeric-only monetary grammar and role-bearing exact source evidence; live extraction validated, no payments.
+
+## PayPal callback lifecycle — 2026-11-12
+- [x] Reproduce premature Buttons.close during onApprove with failing browser regression
+- [x] Retain SDK instance/nodes through terminal/pending callbacks; prevent further visible button action
+- [x] Guard cancellation activity until its callback resolves
+- [x] Frontend lint/type/build and 47 mocked production-browser assertions
+- [ ] Verify user's current live payment state; never infer capture success from HTTP 200

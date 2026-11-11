@@ -53,6 +53,7 @@ export default function PayPalCheckout({
   proposalId,
   clientId,
   currency,
+  inactive = false,
   onRecord,
   onError,
   onActivity,
@@ -60,6 +61,7 @@ export default function PayPalCheckout({
   proposalId: string;
   clientId: string;
   currency: string;
+  inactive?: boolean;
   onRecord: (checkout: Checkout) => Promise<void>;
   onError: (message: string) => void;
   onActivity: (message: string) => void;
@@ -127,14 +129,19 @@ export default function PayPalCheckout({
             }
           },
           onCancel: async () => {
-            if (checkout)
-              await callbacks.current.onRecord(
-                await api<Checkout>(
-                  `checkouts/${checkout.checkout_id}/cancel`,
-                  "POST",
-                  {},
-                ),
-              );
+            callbacks.current.onActivity("Recording buyer cancellation");
+            try {
+              if (checkout)
+                await callbacks.current.onRecord(
+                  await api<Checkout>(
+                    `checkouts/${checkout.checkout_id}/cancel`,
+                    "POST",
+                    {},
+                  ),
+                );
+            } finally {
+              callbacks.current.onActivity("");
+            }
           },
           onError: () =>
             callbacks.current.onError(
@@ -157,8 +164,11 @@ export default function PayPalCheckout({
   }, [proposalId, clientId, currency]);
   return (
     <div className="paypal-slot">
-      <div ref={host} />
-      {!ready && <p className="subtle">Connecting to PayPal Sandbox…</p>}
+      {/* Keep SDK nodes alive until its callback resolves. Closing/unmounting here
+          on a terminal/pending backend response can strand the PayPal popup. */}
+      <div ref={host} style={{ display: inactive ? "none" : undefined }} />
+      {!inactive && !ready && <p className="subtle">Connecting to PayPal Sandbox…</p>}
+      {inactive && <p className="subtle">Continue with the backend payment record below.</p>}
     </div>
   );
 }
