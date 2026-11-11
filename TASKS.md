@@ -63,14 +63,17 @@
 
 ### PayPal
 - [ ] Sandbox accounts/app
-- [ ] server-side OAuth
-- [ ] create order
+- [x] server-side OAuth (Sandbox-only adapter; mocked HTTP)
+- [x] create order (internal adapter; mocked HTTP)
 - [ ] buyer approval
-- [ ] capture
-- [ ] idempotency
-- [ ] final-state verification
+- [x] capture (internal adapter with provider approval preflight; mocked HTTP)
+- [x] stable operation-specific PayPal-Request-Id (adapter; mocked HTTP)
+- [ ] durable operation-key/terms storage and atomic execution lock
+- [x] get status and exact order/capture binding/state mapping (mocked HTTP)
+- [ ] live Sandbox final-state acceptance
 - [ ] decline/cancel handling
-- [ ] ambiguous timeout handling
+- [x] ambiguous timeout classification, no automatic capture retry, status reconciliation (adapter tests)
+- [ ] durable pending-provider recovery and unknown-create recovery procedure
 
 ### Audit
 - [ ] audit table

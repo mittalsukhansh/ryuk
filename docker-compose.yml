@@ -8,6 +8,10 @@ services:
       APP_ENV: ${APP_ENV:-development}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_MODEL: ${OPENAI_MODEL:-}
+      PAYPAL_ENV: ${PAYPAL_ENV:-sandbox}
+      PAYPAL_BASE_URL: ${PAYPAL_BASE_URL:-https://api-m.sandbox.paypal.com}
+      PAYPAL_CLIENT_ID: ${PAYPAL_CLIENT_ID:-}
+      PAYPAL_CLIENT_SECRET: ${PAYPAL_CLIENT_SECRET:-}
     ports:
       - "127.0.0.1:8000:8000"
     healthcheck:

@@ -932,3 +932,41 @@ Only trusted backend components may emit transition events after establishing th
 
 ### Supersedes / superseded by
 Supersedes D-021's VERIFYING vocabulary choice only; other D-021 contracts remain in effect. Implements D-016 centralized transitions and D-010 capture-uncertainty progression without implementing provider reconciliation itself.
+
+## D-028 — Backend-only Sandbox adapter with verified observations and conservative recovery
+Date: 2026-11-11
+Status: Accepted
+
+### Context
+Stage 9 requires OAuth, Orders v2 create/status/capture, idempotency and state mapping. Provider responses are untrusted until exact bindings are checked; HTTP success or COMPLETED order alone cannot prove capture success. An ambiguous capture must not trigger another financial action.
+
+### Decision
+Implement an internal async httpx2 Sandbox adapter with server environment credentials, SecretStr handling, cached OAuth, fixed HTTPS Sandbox origin, redirects disabled, safe errors and no public capture/LLM interface. Accept one CAPTURE purchase unit in USD/EUR with strict integer minor units and an explicit backend-resolved real Sandbox payee/reference. Verify order and capture amount/currency, payee, reference and expected order ID. Require authenticated provider APPROVED preflight before capture. Use deterministic operation-specific UUID PayPal-Request-Id headers from caller-owned persistent keys. Treat mutation transport/HTTP/malformed/binding errors conservatively as uncertain, with no automatic retry. Expose GET reconciliation, retain open attempted captures as PENDING_PROVIDER, and require exact full final COMPLETED capture evidence for success. A process-local uncertainty guard supplements, but does not replace, durable coordinator state. Keep checkout integration in the next requested stage.
+
+### Alternatives considered
+- Expose credentials/capture authority to browser or LLM, permit live/custom API origins, or follow redirects.
+- Trust browser callback, order COMPLETED alone, partial captures, or mismatched payee/amount.
+- Retry POST automatically, use a new key per retry, or treat any HTTP error as terminal financial failure.
+- Implement all currencies, provider refunds, persistence, authenticated checkout routes, or buyer UI in this adapter stage.
+
+### Why
+A narrow backend boundary preserves financial authority and makes exact provider semantics testable through real HTTP serialization with a mocked transport. Conservative uncertainty avoids duplicate payment and false success. USD/EUR cover current demo fixtures without unsupported currency exponent assumptions. Official PayPal documentation and API schema inform endpoint/status behavior.
+
+### Consequences
+OAuth/create/status/capture and state observations are implemented and mock-tested without live payments or new dependencies. Some definite-looking HTTP refusals remain uncertain until reconciliation/operator review. The adapter cannot guarantee durable idempotency, authorization, supported merchant mapping or cross-process concurrency by itself. Unknown-create recovery may lack an order ID and requires a future explicit recovery procedure; provider request retention is finite. Live Sandbox setup, buyer checkout, durable recovery/audit and transactional coordination remain incomplete.
+
+### Constraints / assumptions
+Only trusted authenticated backend coordination may invoke execution after current policy, proposal/approval, canonical merchant, funds and history checks. Caller persists immutable operation-key/terms/provider IDs and enforces unique atomic execution, including PENDING_PROVIDER across process restart. Synthetic offers are not live merchant integrations. No live payment or provider credential readiness is claimed. Adapter observations must be translated into legal state-machine events; they do not mutate authoritative PaymentIntent records.
+
+### Related files
+- `backend/app/services/paypal.py`
+- `backend/tests/test_paypal.py`
+- `docs/paypal.md`
+- `.env.example`
+- `docker-compose.yml`
+- `backend/app/services/payment_state_machine.py`
+- `STATUS.md`
+- `TASKS.md`
+
+### Supersedes / superseded by
+None. Implements the adapter portion of D-005/D-009/D-010 and preserves D-027 reconciliation-only transitions. Durable checkout coordination remains pending.
