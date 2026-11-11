@@ -1255,3 +1255,9 @@ Date: 2026-11-11 UTC
 Status: Accepted
 
 Complete the CODEX_PROMPTS.md Step 13 scope with fresh tests, all six scenarios and current startup/walkthrough instructions. Publish v0.1.1-sandbox-demo as a tested source freeze after packaging checks; preserve v0.1.0-sandbox-demo. Durability was implemented separately before this freeze. Do not treat mock browser runtime as measured live-buyer acceptance or mark the remaining production backlog complete. Financial records and private receipts remain untouched.
+
+## D-042 — Authenticate ingress-derived login rate-limit keys
+Date: 2026-11-11 UTC
+Status: Accepted
+
+Next route handlers do not expose a trustworthy socket peer. Use a loopback-published Nginx ingress that overwrites identity headers, with no directly published frontend port. Next forwards its canonical IP assertion only in trusted-ingress mode, authenticated by a backend-only shared secret. Backend verifies the token and normalizes IPs; unverified requests use their direct peer, and Uvicorn proxy-header trust is disabled. Missing Compose channel config fails login closed. Keep financial actor authentication separate. Reclaim inactive limiter buckets without evicting live ones; shared/distributed limiter work remains separate.

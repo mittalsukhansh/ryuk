@@ -13,6 +13,7 @@ from app.api.checkout import Actor, _errors, _view
 from app.schemas import ApprovalRequest
 from app.schemas.domain import DomainModel
 from app.schemas.intent_parser import ParseIntentRequest
+from app.services.client_key import login_client_key
 from app.services.intent_parser import IntentParser
 from app.services.session import COOKIE_NAME, SESSION_SECONDS, DemoSessions
 from app.services.workspace import WorkspaceService
@@ -68,7 +69,7 @@ def login(body: Login, request: Request, response: Response) -> dict:
     auth = sessions(request)
     check_origin(request, auth)
     token = auth.login(
-        body.password.get_secret_value(), request.client.host if request.client else "local"
+        body.password.get_secret_value(), login_client_key(request, auth.proxy_secret)
     )
     if token is None:
         raise HTTPException(status_code=401, detail="Sign-in failed or temporarily limited")

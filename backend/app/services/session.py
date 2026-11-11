@@ -14,13 +14,20 @@ SESSION_SECONDS = 1200
 
 class DemoSessions:
     def __init__(
-        self, password: str, *, origin: str, secure: bool = True, actor: str = "ryuk-demo-buyer"
+        self,
+        password: str,
+        *,
+        origin: str,
+        secure: bool = True,
+        actor: str = "ryuk-demo-buyer",
+        proxy_secret: str | None = None,
     ) -> None:
         if not secure and urlsplit(origin).scheme == "https":
             raise ValueError("HTTPS deployments require secure cookies")
         if len(password) < 16:
             raise ValueError("Demo password must have at least 16 characters")
         self.origin, self.secure, self.actor = origin, secure, actor
+        self.proxy_secret = proxy_secret
         self._salt = secrets.token_bytes(32)
         self._password = self._hash(password)
         self._sessions: dict[bytes, float] = {}
@@ -34,6 +41,14 @@ class DemoSessions:
     def login(self, password: str, client: str) -> str | None:
         with self._lock:
             now = monotonic()
+            self._attempts = defaultdict(
+                deque,
+                {
+                    key: attempts
+                    for key, attempts in self._attempts.items()
+                    if attempts and attempts[-1] >= now - 60
+                },
+            )
             if client not in self._attempts and len(self._attempts) >= 1024:
                 return None
             attempts = self._attempts[client]

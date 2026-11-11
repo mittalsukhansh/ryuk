@@ -58,7 +58,7 @@ cd backend
 python -m venv .venv
 . .venv/bin/activate
 python -m pip install -r requirements-dev.txt
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload --no-proxy-headers
 ```
 
 Frontend, in another terminal:
@@ -106,3 +106,5 @@ Compose passes selected Groq/OpenAI and private PayPal settings only to the back
 See [security review](docs/security-review.md), [operator backup/recovery](docs/operations.md) and [demo acceptance](docs/demo-script.md). Every model-derived purchase requires application review of the original and parsed request before PayPal buyer approval, including below-threshold offers. Digest v2 binds that review; it does not establish semantic completeness. Groq is available with backend-only LLM_PROVIDER=groq/GROQ_API_KEY/GROQ_MODEL; default OpenAI remains supported. Configure the selected provider privately; both use strict output and the same source/domain checks.
 
 Current automated baseline: **1,082 backend tests**, frontend lint/typecheck/production build and **51 mocked browser assertions**. User reports local revision 0b24df8 with healthy rebuilt containers and checks_passed=true on the website payment receipt. That receipt remains private; timed live acceptance and production gaps remain open. See the release notes for evidence provenance and residual security limits.
+
+Login throttling uses the authenticated ingress client address, not the shared Next proxy IP. Configure the backend-only RYUK_PROXY_SHARED_SECRET and read [login proxy setup and limits](docs/login-rate-limits.md) before rebuilding all three Compose services.

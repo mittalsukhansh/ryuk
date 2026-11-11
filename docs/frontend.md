@@ -220,3 +220,6 @@ All model-derived candidates now require review even below threshold. Compare th
 
 ## PayPal popup spinning with HTTP 200
 HTTP 200 is transport success, not necessarily payment SUCCEEDED. Read the existing checkout response/backend record before attempting another payment. A fixed SDK lifecycle bug previously closed/unmounted the button while onApprove was still resolving; the component now stays mounted through the callback. Pull the fix and rebuild/recreate **frontend only** (`docker compose up -d --build --force-recreate --no-deps frontend`). Avoid restarting the backend or clearing its ledger to troubleshoot a popup. Never repeat capture for CAPTURE_PENDING/PENDING_PROVIDER; use the existing check/reconcile action. The user's live browser/provider outcome remains an acceptance check, not established by mocked tests.
+
+## Proxy-aware login configuration
+Compose now includes a trusted ingress and requires a private RYUK_PROXY_SHARED_SECRET (32–256 random ASCII characters) for browser login. Add it locally to .env before upgrading; recreate backend, frontend and ingress together. Frontend port 3000 is not directly published. See [login rate-limit trust boundary](login-rate-limits.md).

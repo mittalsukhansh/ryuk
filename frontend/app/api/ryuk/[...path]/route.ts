@@ -1,3 +1,4 @@
+import { isIP } from "node:net";
 import { NextRequest } from "next/server";
 
 export const runtime = "nodejs";
@@ -22,6 +23,18 @@ async function proxy(
       { detail: "Request origin is not allowed" },
       { status: 403 },
     );
+  }
+  const proxyHeaders: Record<string, string> = {};
+  const secret = process.env.RYUK_PROXY_SHARED_SECRET || "";
+  if (process.env.RYUK_TRUST_INGRESS === "true") {
+    const address = request.headers.get("x-ryuk-client-ip") || "";
+    if (path === "session" && request.method === "POST" &&
+        (secret.length < 32 || secret.length > 256 || !isIP(address)))
+      return Response.json({ detail: "Trusted login proxy is not configured" }, { status: 503 });
+    if (secret.length >= 32 && secret.length <= 256 && isIP(address)) {
+      proxyHeaders["X-Ryuk-Client-IP"] = address;
+      proxyHeaders["X-Ryuk-Proxy-Token"] = secret;
+    }
   }
   let body: string | undefined;
   if (!["GET", "HEAD"].includes(request.method) && request.body) {
@@ -50,6 +63,7 @@ async function proxy(
         cache: "no-store",
         signal: AbortSignal.timeout(35_000),
         headers: {
+          ...proxyHeaders,
           "Content-Type": "application/json",
           Cookie: request.headers.get("cookie") || "",
           Origin: request.headers.get("origin") || "",

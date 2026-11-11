@@ -315,3 +315,7 @@ The finding descriptions above retain their original evidence and historical sta
 ## Durable authority follow-up
 
 Runtime proposals/approvals and early audit now persist with the ledger; owner-scoped history permits rediscovery and audit inspection after reauthentication. This addresses the volatile-authority/discovery portion of M-03 for newly persisted records. Legacy checkouts remain discoverable without reconstructing lost consent. Uncertain/orphaned provider operations still need operator reconciliation; no terminal monitoring or refund/reversal flow is introduced. Migrations/atomic provisioning, public identity/availability and remaining residuals stay open. See [transaction and upgrade boundaries](durable-authority.md).
+
+## Login-rate-limit follow-up
+
+Addressed the shared proxy-IP login bucket: Compose ingress overwrites client headers, an authenticated private frontend/backend channel supplies normalized client IP, and the backend image disables Uvicorn forwarded-header trust. Direct requests ignore unverified assertions. Inactive limiter buckets are reclaimed. NAT/outer-proxy topology, private-network trust, process-local limits and distributed resource exhaustion remain limitations; see login-rate-limits.md.

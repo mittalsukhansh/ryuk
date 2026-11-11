@@ -249,3 +249,11 @@ The latest release summary in STATUS.md supersedes older “not started”/pendi
 Step 13 in CODEX_PROMPTS.md is tests, scenarios and demo documentation with no new features. Remaining production-readiness stages are separate and not marked complete.
 - [x] Final packaging: both images rebuilt, isolated credential-disabled Compose services healthy, backend/frontend smoke checks and fail-closed session response passed
 - [x] Record mock suite duration 36.67 seconds without claiming live-buyer timing
+
+## Proxy-aware login throttling
+- [x] Isolate client buckets using authenticated, normalized ingress-derived IPs
+- [x] Overwrite browser identity headers at ingress; do not publish frontend directly
+- [x] Disable Uvicorn forwarded-header trust and keep direct-peer fallback distinct
+- [x] Reclaim inactive bounded-client entries and add spoof/isolation regressions
+- [x] Document new private proxy setting and trust/NAT/distributed limitations
+- [x] Validate 1,090 backend tests, 51 browser assertions, lint/type/build/Ruff and real Docker ingress client isolation/spoof resistance

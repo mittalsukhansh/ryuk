@@ -1,5 +1,10 @@
 # Ryuk Status
 
+## Current: proxy-aware login throttling
+
+Implemented authenticated ingress-derived IP keys for login; browser forwarding headers cannot choose their bucket. Compose publishes Nginx instead of the frontend, Next/backend share a private proxy token, and Uvicorn ignores proxy headers for direct peer identity. Inactive login buckets are reclaimed before the bounded client-cap check. Requires RYUK_PROXY_SHARED_SECRET in the private .env and recreation of backend/frontend/ingress; see docs/login-rate-limits.md and D-042. Validation: **1,090 backend tests** and **51 mocked browser assertions** passed; frontend lint/typecheck/build and Ruff passed. Isolated Docker ingress testing confirmed forged headers cannot rotate the first socket client’s exhausted allowance while an independent second socket can sign in. Backend/frontend/ingress health checks pass; the ingress loopback probe ignores outbound proxy settings. No installation deployment, live provider call or financial record changes were performed. Public multi-user/distributed availability controls remain separate.
+
+
 ## Current: Step 13 demo-readiness freeze
 
 Step 13 from CODEX_PROMPTS.md is complete in scope: all tests, six required scenarios and finalized demo instructions; no runtime features added in this freeze. Source baseline 8497325 includes the separately completed durable-authority stage. Prepare v0.1.1-sandbox-demo after final checks; retain v0.1.0-sandbox-demo unchanged. Final results: **1,082 backend tests**, all six scenarios, **51 mocked browser assertions** (36.67 seconds for the automated suite), Ruff/pip consistency and frontend lint/typecheck/production build pass. Both Docker images built in the isolated credential-disabled ryuk-step13-final project, both containers healthy, backend health OK, frontend HTTP 200, and session configuration/authentication false as expected. Compose config and Git whitespace checks pass. Rehearsal containers were stopped with volumes retained. Detailed results below are authoritative over older pending/not-started entries.

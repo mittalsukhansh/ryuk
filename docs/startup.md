@@ -14,7 +14,7 @@ If there are edits, save/review them before switching; do not overwrite or blind
 
 ```sh
 git switch --detach v0.1.1-sandbox-demo
-docker compose --env-file .env up -d --build --wait backend frontend
+docker compose --env-file .env up -d --build --wait backend frontend ingress
 git describe --tags --exact-match
 docker compose ps
 curl --fail http://localhost:8000/health
@@ -80,3 +80,6 @@ npm run build
 ```
 
 For the isolated production browser rehearsal, see [operations](operations.md). Never point tests/e2e.mjs at your live demo deployment: its reset actions are intended only for the guarded fresh-ledger fixture. The source release carries test results, not a claim that all production security gaps are closed.
+
+## Proxy-aware login configuration
+Compose now includes a trusted ingress and requires a private RYUK_PROXY_SHARED_SECRET (32–256 random ASCII characters) for browser login. Add it locally to .env before upgrading; recreate backend, frontend and ingress together. Frontend port 3000 is not directly published. See [login rate-limit trust boundary](login-rate-limits.md).

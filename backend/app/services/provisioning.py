@@ -60,7 +60,13 @@ async def provision(application: FastAPI, stack: AsyncExitStack) -> None:
         if merchant:
             TypeAdapter(Identifier).validate_python(merchant)
         stage = "RYUK_DEMO_PASSWORD: password hashing failed; check runtime memory/OpenSSL support"
-        auth = DemoSessions(password, origin=origin, secure=secure == "true")
+        proxy_secret = os.environ.get("RYUK_PROXY_SHARED_SECRET", "")
+        if proxy_secret and not 32 <= len(proxy_secret) <= 256:
+            stage = "RYUK_PROXY_SHARED_SECRET: use 32 to 256 characters"
+            raise ValueError
+        auth = DemoSessions(
+            password, origin=origin, secure=secure == "true", proxy_secret=proxy_secret or None
+        )
         stage = "RYUK_CHECKOUT_DB_PATH: set a nonempty writable SQLite file path"
         path = os.environ["RYUK_CHECKOUT_DB_PATH"].strip()
         if not path:
