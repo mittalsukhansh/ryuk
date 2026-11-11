@@ -36,6 +36,14 @@ function loadSdk(clientId: string, currency: string): Promise<PayPal> {
       components: "buttons",
     });
     script.src = `https://www.paypal.com/sdk/js?${query}`;
+    const nonce = document.querySelector<HTMLMetaElement>('meta[name="csp-nonce"]')?.content;
+    if (!nonce) {
+      sdk = undefined;
+      reject(new Error("Checkout security policy is unavailable. Reload the page."));
+      return;
+    }
+    script.nonce = nonce;
+    script.setAttribute("data-csp-nonce", nonce);
     script.async = true;
     script.onload = () =>
       window.paypal

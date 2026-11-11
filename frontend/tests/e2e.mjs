@@ -113,6 +113,12 @@ const SDK = `window.__sdkEarlyClose=0;window.__sdkPending=0;window.paypal={Butto
       path: `${shots}/ryuk-evidence-desktop.png`,
       fullPage: true,
     });
+    const sdkNonce = await page.locator('script[src^="https://www.paypal.com/sdk/js"]').evaluate((script) => ({
+      nonce: script.nonce, supplied: script.getAttribute("data-csp-nonce"),
+      documentNonce: document.querySelector('meta[name="csp-nonce"]').content,
+    }));
+    assert(sdkNonce.nonce && sdkNonce.nonce === sdkNonce.supplied && sdkNonce.nonce === sdkNonce.documentNonce);
+    assertions++;
     let release, reached;
     const gate = new Promise((resolve) => (release = resolve));
     const seen = new Promise((resolve) => (reached = resolve));
@@ -271,7 +277,46 @@ const SDK = `window.__sdkEarlyClose=0;window.__sdkPending=0;window.paypal={Butto
     }));
     assert(sizes.scroll <= sizes.client, JSON.stringify(sizes));
     assertions++;
-    const headers = await (await context.request.get(base)).headers();
+    const cspResponse = await context.request.get(base, {
+      headers: { "x-nonce": "attacker-chosen", "Content-Security-Policy": "script-src * 'unsafe-inline'" },
+    });
+    const headers = cspResponse.headers();
+    const policy = headers["content-security-policy"];
+    const scriptPolicy = policy.split(";").find((part) => part.trim().startsWith("script-src "));
+    assert(scriptPolicy && !scriptPolicy.includes("'unsafe-inline'") && !scriptPolicy.includes("'unsafe-eval'"));
+    assertions++;
+    const nonce = scriptPolicy.match(/'nonce-([^']+)'/)[1];
+    assert.notEqual(nonce, "attacker-chosen"); assertions++;
+    const secondPolicy = (await context.request.get(base)).headers()["content-security-policy"];
+    assert.notEqual(secondPolicy.match(/'nonce-([^']+)'/)[1], nonce); assertions++;
+    assert.match(headers["cache-control"], /no-store/); assertions++;
+    const html = await cspResponse.text();
+    assert(html.includes(`nonce="${nonce}"`)); assertions++;
+    // Use the actual response policy on parser-inserted hostile markup.
+    const probe = await context.newPage();
+    let evilRequests = 0;
+    await probe.addInitScript(() => {
+      window.cspViolations = [];
+      document.addEventListener("securitypolicyviolation", (event) => {
+        window.cspViolations.push(event.effectiveDirective);
+      });
+    });
+    await probe.route("https://evil.test/**", (route) => {
+      evilRequests++;
+      return route.fulfill({ contentType: "application/javascript", body: "window.injectedExternal=true" });
+    });
+    await probe.route(`${base}/csp-probe`, (route) => route.fulfill({
+      headers: { "Content-Type": "text/html", "Content-Security-Policy": policy },
+      body: `<script>window.injectedInline = true</script><script src="https://evil.test/injected.js"></script><button id="injected" onclick="window.injectedHandler=true">Click</button>`,
+    }));
+    await probe.goto(`${base}/csp-probe`);
+    await probe.locator("#injected").click();
+    assert.equal(await probe.evaluate(() => window.injectedInline), undefined); assertions++;
+    assert.equal(await probe.evaluate(() => window.injectedHandler), undefined); assertions++;
+    assert.equal(evilRequests, 0); assertions++;
+    assert.equal(await probe.evaluate(() => window.injectedExternal), undefined); assertions++;
+    assert(await probe.evaluate(() => window.cspViolations.includes("script-src-elem") && window.cspViolations.includes("script-src-attr"))); assertions++;
+    await probe.close();
     assert.equal(headers["x-frame-options"], "DENY"); assertions++;
     assert.match(headers["content-security-policy"], /frame-ancestors 'none'/); assertions++;
     assert.equal(headers["x-content-type-options"], "nosniff"); assertions++;

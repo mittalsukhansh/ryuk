@@ -1,5 +1,10 @@
 # Ryuk Status
 
+## Current: nonce-based document script CSP
+
+Added per-response cryptographic nonces in the Next proxy, dynamic SSR nonce propagation and private/no-store HTML. Production script-src uses nonce/strict-dynamic with provider compatibility fallbacks, no unsafe-inline/eval, and script-src-attr none. PayPal receives both nonce and data-csp-nonce; missing nonce fails loading closed. Explicit resource/frame/connect restrictions retain the existing frame/base/object protections. See docs/content-security-policy.md and D-044. Validation: frontend lint/typecheck/production build pass and **62 mocked browser assertions pass**, including actual CSP violation events for blocked scripts/handlers, unique/caller-independent nonces and SDK attributes. Backend unchanged; its last full 1,102-test result is historical, not a new rerun in this frontend-only change. Backend financial rules and deployment credentials are unchanged; no live payment or deployment performed. Mocked SDK tests do not certify all real PayPal SDK branches; real Sandbox validation remains an external gate.
+
+
 ## Current: explicit decline evidence and operator hold recovery
 
 Retain validated INSTRUMENT_DECLINED capture rejection evidence with its original dispatch key; GET and verify the exact bound order before resolving the hold. Completed/pending capture evidence takes precedence. Added local read-only hold discovery and audited explicitly applied GET-only operator reconciliation; no force-release/capture-retry path. Legacy unknown outcomes without saved evidence remain held pending provider truth. See docs/operator-recovery.md and D-043. Validation: **1,102 backend tests passed** (12 new recovery regressions), Ruff and dependency consistency passed, Git whitespace checks passed. Frontend is unchanged; no browser/image rebuild claim for this backend-only change. No live provider call, installation deployment or existing financial reset performed.

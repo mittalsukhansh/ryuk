@@ -319,3 +319,7 @@ Runtime proposals/approvals and early audit now persist with the ledger; owner-s
 ## Login-rate-limit follow-up
 
 Addressed the shared proxy-IP login bucket: Compose ingress overwrites client headers, an authenticated private frontend/backend channel supplies normalized client IP, and the backend image disables Uvicorn forwarded-header trust. Direct requests ignore unverified assertions. Inactive limiter buckets are reclaimed. NAT/outer-proxy topology, private-network trust, process-local limits and distributed resource exhaustion remain limitations; see login-rate-limits.md.
+
+## Script-CSP follow-up
+
+The previously pending document script policy is now implemented with per-response nonces, dynamic/no-store SSR, production nonce/strict-dynamic script-src and blocked inline event attributes. PayPal loader propagates both nonce attributes. Existing frame/base/object controls remain. Browser tests exercise injection rejection and mocked SDK compatibility; third-party trust/delegation and unmeasured live SDK branches remain limits. See content-security-policy.md.

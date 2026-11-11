@@ -265,3 +265,11 @@ Step 13 in CODEX_PROMPTS.md is tests, scenarios and demo documentation with no n
 - [x] Keep unknown/historical unproven outcomes held; no force-release, new order or capture retry
 - [x] Add decline, restart/repeat, unknown-error, pending/success-priority and read-only regressions
 - [x] Full backend validation: 1,102 tests, Ruff/dependency consistency and diff checks passed
+
+## Document script CSP hardening
+- [x] Per-response nonce, dynamic SSR, caller-header overwrite and no-store document handling
+- [x] Enforce production script-src without unsafe-inline/eval and block inline handler attributes
+- [x] Pass nonce/data-csp-nonce to PayPal loader and retain scoped provider resources
+- [x] Add browser nonce/cache/loader/injection-blocking regressions
+- [ ] Real Sandbox SDK/approval recheck after frontend deployment (mock compatibility is not live certification)
+- [x] Frontend validation: lint/typecheck/production build and 62 mocked browser assertions; diff checks pass

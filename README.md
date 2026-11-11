@@ -108,3 +108,5 @@ See [security review](docs/security-review.md), [operator backup/recovery](docs/
 Current automated baseline: **1,082 backend tests**, frontend lint/typecheck/production build and **51 mocked browser assertions**. User reports local revision 0b24df8 with healthy rebuilt containers and checks_passed=true on the website payment receipt. That receipt remains private; timed live acceptance and production gaps remain open. See the release notes for evidence provenance and residual security limits.
 
 Login throttling uses the authenticated ingress client address, not the shared Next proxy IP. Configure the backend-only RYUK_PROXY_SHARED_SECRET and read [login proxy setup and limits](docs/login-rate-limits.md) before rebuilding all three Compose services.
+
+Document scripts now use a nonce-based CSP with PayPal nonce propagation; HTML is dynamically rendered and must not be shared-cached. See [policy and live-SDK validation limits](docs/content-security-policy.md).

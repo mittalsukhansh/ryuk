@@ -1269,3 +1269,11 @@ Status: Accepted
 Recognize only the authenticated capture endpoint's HTTP422 UNPROCESSABLE_ENTITY/single INSTRUMENT_DECLINED issue as explicit rejected-dispatch evidence. Persist the sanitized code and stable dispatch reference. Query the exact bound order before release, prioritizing actual completed/pending captures and retaining unknown outcomes. Existing atomic settlement/release and no-recapture rules remain authoritative. All other non-2xx/malformed/unknown outcomes remain uncertain.
 
 Provide a local operator CLI with read-only bounded hold inspection and explicitly applied GET-only reconciliation, auditing operator label/reason and outcome. Never force release by age, user assertion or unrecorded historical error; no mutation retry/new purchase/refund. Legacy missing evidence and later external provider activity remain unresolved operational boundaries. See docs/operator-recovery.md.
+
+## D-044 — Enforce nonce-based document scripts with PayPal nonce propagation
+Date: 2026-11-11 UTC
+Status: Accepted
+
+Generate a cryptographic nonce for each document in Next proxy and overwrite untrusted nonce/CSP headers. Pass the policy into SSR and response; use async layout headers and no-store instead of static/shared nonce HTML. Production script-src uses nonce/strict-dynamic with self/PayPal/PayPalObjects compatibility fallbacks, no unsafe-inline/eval and no inline event attributes. The trusted SDK receives nonce and data-csp-nonce. Scoped resource sources and existing frame/base/object controls remain; inline styles are retained independently for dynamic UI/SDK use.
+
+Browser regressions demonstrate blocked parser-inserted scripts/handlers and existing mocked checkout flows. Delegated trusted scripts and live SDK compatibility remain explicit boundaries; do not claim a mock proves live provider acceptance or that CSP neutralizes compromised authorized scripts. See docs/content-security-policy.md.
