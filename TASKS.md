@@ -139,3 +139,21 @@
 - [ ] multi-rail adapter
 - [ ] UPI Circle/P3P conceptual adapter
 - [ ] team approvals
+
+## Verified security / non-live readiness — 2026-11-11
+- [x] Review latest origin/main implementation and preserve older local work separately
+- [x] Authenticate model endpoint and enforce bounded model requests
+- [x] Digest-bound mandatory review of original versus parsed intent for model purchases
+- [x] Prevent validation/clarification credential reflection and unsafe HTTPS cookies
+- [x] Streaming proxy body limits, bounded auth allocations and frame/security headers
+- [x] Isolate test reset fixture to explicit fresh temporary ledgers
+- [x] Retain backend-only Groq parsing with shared strict validation and mocked tests
+- [x] Consistent private backup command and fresh-fixture recovery rehearsal
+- [x] Update security report, operations runbook, demo script and D-033
+- [x] 1,034 backend tests, frontend lint/type/build, 23 mocked browser assertions
+- [x] Build both Docker images and verify isolated credential-disabled Compose health
+- [ ] Real buyer-approved Sandbox acceptance and timed live demo freeze
+- [ ] Production durable canonical authority/multi-user auth and operator orphan recovery
+- [ ] Development dependency advisory resolution and full SDK-compatible script CSP
+
+This current evidence supersedes earlier unchecked Step 12 instructions/counts. Step 13 preparation is done; live acceptance remains unverified. See STATUS.md for the authoritative current state.

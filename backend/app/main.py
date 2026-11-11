@@ -5,6 +5,8 @@ from contextlib import AsyncExitStack, asynccontextmanager
 from typing import Literal
 
 from fastapi import FastAPI, Request, Response
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from app.api.agent import router as agent_router
@@ -55,3 +57,9 @@ async def private_api_responses(
         response.headers["Cache-Control"] = "no-store"
         response.headers["Vary"] = "Cookie"
     return response
+
+
+@app.exception_handler(RequestValidationError)
+async def safe_validation_error(request: Request, error: RequestValidationError) -> JSONResponse:
+    """Never reflect secret-bearing input, arbitrary field names or validator context."""
+    return JSONResponse(status_code=422, content={"detail": "Request validation failed"})

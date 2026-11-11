@@ -12,6 +12,7 @@ from fastapi.testclient import TestClient
 from openai import AsyncOpenAI
 
 from app.api.agent import get_intent_parser
+from app.api.checkout import get_checkout_actor
 from app.main import app
 from app.schemas import PurchaseIntent
 from app.services.intent_parser import (
@@ -21,6 +22,15 @@ from app.services.intent_parser import (
     InvalidParserOutput,
     OpenAIIntentParser,
 )
+
+
+@pytest.fixture(autouse=True)
+def authenticated_parser_tests(monkeypatch):
+    monkeypatch.setenv("LLM_PROVIDER", "openai")
+    app.dependency_overrides[get_checkout_actor] = lambda: "parser-test"
+    yield
+    app.dependency_overrides.pop(get_checkout_actor, None)
+
 
 CASES = json.loads(
     (Path(__file__).resolve().parents[2] / "fixtures" / "intent_prompts.json").read_text()

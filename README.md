@@ -102,3 +102,9 @@ Compose passes `APP_ENV`, OpenAI settings and private `PAYPAL_*` settings only t
 PayPal Sandbox adapter: see [configuration, internal API, state mapping and recovery limits](docs/paypal.md). OAuth credentials stay backend-only; live Sandbox acceptance remains pending.
 
 [Checkout integration](docs/checkout.md) documents the durable ledger, pre-capture revalidation/reservation, recovery and identifier-only API. Private checkout is now provisioned only when explicitly enabled with a backend password and supported Sandbox settings; missing configuration stays blocked. Constant browser identities and test payment fallbacks are not enabled. Multi-user production auth and durable canonical authority remain pending.
+
+## Verified security and demo preparation
+
+See [security review](docs/security-review.md), [operator backup/recovery](docs/operations.md) and [demo acceptance](docs/demo-script.md). Every model-derived purchase requires application review of the original and parsed request before PayPal buyer approval, including below-threshold offers. Digest v2 binds that review; it does not establish semantic completeness. Groq is available with backend-only LLM_PROVIDER=groq/GROQ_API_KEY/GROQ_MODEL; default OpenAI remains supported. Configure the selected provider privately; both use strict output and the same source/domain checks.
+
+Current checks: 1,034 backend tests, frontend lint/typecheck/build, 23 mocked browser assertions, clean production npm audit and isolated healthy Docker images. Live buyer-approved Sandbox capture remains pending. Development tooling and production architecture limits are documented; do not describe mocked checkout as live acceptance.

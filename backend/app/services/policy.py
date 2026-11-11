@@ -108,6 +108,9 @@ def evaluate_policy(
     elif attempts.state == AttemptState.UNKNOWN:
         hard.append(PolicyReasonCode.PAYMENT_STATE_UNKNOWN)
 
+    if proposal.requires_intent_review:
+        review.append(PolicyReasonCode.INTENT_REVIEW_REQUIRED)
+
     approved = False
     if approval is not None:
         binding = {

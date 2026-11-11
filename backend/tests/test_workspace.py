@@ -118,7 +118,7 @@ def test_shortlist_verification_policy_all_come_from_backend(client):
     candidates = investigate(client)
     assert len(candidates) >= 3
     assert [x["policy"]["decision"] for x in candidates[:3]] == [
-        "ALLOW_ELIGIBLE_FOR_CHECKOUT",
+        "REQUIRE_APPROVAL",
         "REQUIRE_APPROVAL",
         "DENY",
     ]

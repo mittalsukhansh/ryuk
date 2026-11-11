@@ -4,18 +4,21 @@ import os
 from collections.abc import AsyncIterator
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from openai import AsyncOpenAI
 
+from app.api.checkout import Actor
 from app.schemas import PurchaseIntent
 from app.schemas.intent_parser import ParseIntentRequest
 from app.services.intent_parser import (
+    GroqIntentParser,
     IntentClarificationRequired,
     IntentParser,
     IntentParserUnavailable,
     InvalidParserOutput,
     OpenAIIntentParser,
 )
+from app.services.session import DemoSessions
 
 PROVIDER_TIMEOUT_SECONDS = 20.0
 router = APIRouter(prefix="/v1/agent", tags=["intent"])
@@ -23,25 +26,47 @@ router = APIRouter(prefix="/v1/agent", tags=["intent"])
 
 async def get_intent_parser() -> AsyncIterator[IntentParser]:
     """Create the real parser lazily so health/catalog startup needs no LLM credentials."""
-    api_key = os.environ.get("OPENAI_API_KEY", "").strip()
-    model = os.environ.get("OPENAI_MODEL", "").strip()
+    provider = os.environ.get("LLM_PROVIDER", "openai").strip().lower()
+    if provider not in {"openai", "groq"}:
+        raise HTTPException(
+            status_code=503,
+            detail={"code": "PARSER_UNAVAILABLE", "message": "Unsupported LLM provider."},
+        )
+    prefix = "GROQ" if provider == "groq" else "OPENAI"
+    api_key = os.environ.get(f"{prefix}_API_KEY", "").strip()
+    model = os.environ.get(f"{prefix}_MODEL", "").strip()
     if not api_key or not model:
         raise HTTPException(
             status_code=503,
             detail={
                 "code": "PARSER_UNAVAILABLE",
-                "message": "Configure backend OPENAI_API_KEY and OPENAI_MODEL to enable parsing.",
+                "message": (
+                    f"Configure backend {prefix}_API_KEY and {prefix}_MODEL to enable parsing."
+                ),
             },
         )
+    # Fixed destinations prevent configuration from redirecting provider credentials.
+    base_url = (
+        "https://api.groq.com/openai/v1" if provider == "groq" else "https://api.openai.com/v1"
+    )
     async with AsyncOpenAI(
         api_key=api_key,
+        base_url=base_url,
         timeout=PROVIDER_TIMEOUT_SECONDS,
         max_retries=0,
     ) as client:
-        yield OpenAIIntentParser(client, model)
+        parser_type = GroqIntentParser if provider == "groq" else OpenAIIntentParser
+        yield parser_type(client, model)
 
 
-@router.post("/parse", response_model=PurchaseIntent)
+def require_model_actor(request: Request, actor: Actor) -> str:
+    auth = getattr(request.app.state, "demo_sessions", None)
+    if isinstance(auth, DemoSessions) and not auth.allow_model_request():
+        raise HTTPException(429, detail="Model request limit reached; try again later")
+    return actor
+
+
+@router.post("/parse", response_model=PurchaseIntent, dependencies=[Depends(require_model_actor)])
 async def parse_intent(
     body: ParseIntentRequest,
     parser: Annotated[IntentParser, Depends(get_intent_parser)],
@@ -49,12 +74,12 @@ async def parse_intent(
     """Return a typed proposal; parsed values never change active financial policy."""
     try:
         return await parser.parse(body.query)
-    except IntentClarificationRequired as error:
+    except IntentClarificationRequired:
         raise HTTPException(
             status_code=422,
             detail={
                 "code": "INTENT_CLARIFICATION_REQUIRED",
-                "message": str(error),
+                "message": "Clarify the finite total budget, explicit currency and requirements.",
             },
         ) from None
     except InvalidParserOutput:

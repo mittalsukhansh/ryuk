@@ -17,13 +17,19 @@ from app.services.paypal import PayPalSandboxAdapter, PayPalSettings
 from app.services.session import DemoSessions
 from app.services.workspace import WorkspaceService
 
+if os.environ.get("RYUK_E2E_TEST_ONLY") != "1":
+    raise RuntimeError("Explicit RYUK_E2E_TEST_ONLY=1 is required for test fixtures")
+from tempfile import TemporaryDirectory
+
+_test_directory = TemporaryDirectory(prefix="ryuk-isolated-e2e-")
+
 PASSWORD = "synthetic-browser-password"
 os.environ.update(
     RYUK_DEMO_ENABLED="true",
     RYUK_DEMO_PASSWORD=PASSWORD,
     RYUK_APP_ORIGIN="http://localhost:3100",
     RYUK_SECURE_COOKIES="false",
-    RYUK_CHECKOUT_DB_PATH=os.environ.get("RYUK_E2E_DB", "/tmp/ryuk-e2e.sqlite3"),
+    RYUK_CHECKOUT_DB_PATH=_test_directory.name + "/ledger.sqlite3",
     PAYPAL_CLIENT_ID="synthetic-browser-client",
     PAYPAL_CLIENT_SECRET="synthetic-browser-secret",
     PAYPAL_MERCHANT_ID="DEMOSELLER",

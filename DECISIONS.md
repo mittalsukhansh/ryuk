@@ -1130,3 +1130,21 @@ Diagnostic messages interpolate only code-owned descriptions, never environment 
 
 ### Supersedes / superseded by
 None. Refines D-031 startup validation/diagnostics; authentication and payment-authority decisions are unchanged.
+
+## D-033 — Verified security boundary hardening and non-live release preparation
+Date: 2026-11-11
+Status: Accepted
+
+### Context
+The remote baseline 674bdf0 did not contain the externally reported review changes. Review the actual latest repository instead of asserting the reported findings/counts were present. Preserve older local work in its existing checkout; use an isolated worktree from origin/main.
+
+### Decision
+Authenticate both model request entry points and limit model consumption independently of financial recovery. Require every model-derived workspace proposal to receive explicit original-versus-parsed intent review. Digest v2 binds the full original/parsed intent plus review marker and canonical terms; trusted internal proposals retain explicit behavior. This contains automatic review bypass without claiming semantic completeness. Return fixed validation/clarification errors, enforce secure cookies on HTTPS, bound auth allocations/proxy streaming bodies and add compatible frame/security headers.
+
+Restore backend-only Groq structured parsing onto the newer architecture without weakening schema/source checks or adding a fake fallback. Guard the test reset server and force its ledger to a fresh temporary directory. Provide exclusive private SQLite backups without source resets/overwrites. Keep public/multi-worker identity, durable canonical authority, external uncertainty operations and strict script-CSP work explicit rather than declaring production ready.
+
+### Verification
+1,034 backend tests; frontend lint/typecheck/production build; 23 real UI/proxy/API/ledger browser assertions with mocked model/SDK/provider; production npm audit zero findings (eight moderate development-tool findings remain). Both Docker images built and a separate credential-disabled Compose project reached healthy state on isolated ports/volume. No actual provider/model/payment call or existing ledger reset/deletion in this stage. Live buyer-approved Sandbox acceptance remains pending.
+
+### Consequences
+All model-derived candidates below threshold now also require application review before buyer checkout. Old canonical proposal digests cannot be silently reinterpreted as v2 consent. In-memory authority must be re-established through fresh explicit review; durable unknown captures still reconcile against their original stored terms. The prior externally quoted 1,004/36 numbers are not used as evidence for this commit.

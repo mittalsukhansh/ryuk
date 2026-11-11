@@ -6,6 +6,9 @@ services:
       dockerfile: backend/Dockerfile
     environment:
       APP_ENV: ${APP_ENV:-development}
+      LLM_PROVIDER: ${LLM_PROVIDER:-openai}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GROQ_MODEL: ${GROQ_MODEL:-}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_MODEL: ${OPENAI_MODEL:-}
       PAYPAL_ENV: ${PAYPAL_ENV:-sandbox}

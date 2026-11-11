@@ -45,7 +45,7 @@ async def provision(application: FastAPI, stack: AsyncExitStack) -> None:
             raise ValueError
         stage = "RYUK_SECURE_COOKIES: use true or false (false only for local HTTP)"
         secure = os.environ.get("RYUK_SECURE_COOKIES", "true")
-        if secure not in {"true", "false"}:
+        if secure not in {"true", "false"} or (parsed.scheme == "https" and secure != "true"):
             raise ValueError
         stage = "RYUK_BUDGET_LIMIT_MINOR: use an integer from 0 to 9223372036854775807"
         limit = int(os.environ.get("RYUK_BUDGET_LIMIT_MINOR", "150000"))
@@ -63,9 +63,7 @@ async def provision(application: FastAPI, stack: AsyncExitStack) -> None:
         path = os.environ["RYUK_CHECKOUT_DB_PATH"].strip()
         if not path:
             raise ValueError
-        stage = (
-            "RYUK_CHECKOUT_DB_PATH: check directory/volume permissions and the SQLite file"
-        )
+        stage = "RYUK_CHECKOUT_DB_PATH: check directory/volume permissions and the SQLite file"
         store = CheckoutStore(path)
         try:
             store.get_budget(auth.actor)

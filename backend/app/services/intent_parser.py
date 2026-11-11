@@ -254,6 +254,59 @@ class OpenAIIntentParser:
         return _finalize(query, response.output_parsed)
 
 
+class GroqIntentParser:
+    """Groq OpenAI-compatible chat structured output; same domain/source validation."""
+
+    def __init__(self, client: AsyncOpenAI, model: str) -> None:
+        if not model.strip():
+            raise IntentParserUnavailable("Configure a structured-output-capable GROQ_MODEL.")
+        self._client = client
+        self._model = model
+
+    async def parse(self, query: str) -> PurchaseIntent:
+        """Fail closed on unsupported schema/models, refusal, truncation or invalid JSON."""
+        _validate_query(query)
+        try:
+            response = await self._client.chat.completions.create(
+                model=self._model,
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": query},
+                ],
+                response_format={
+                    "type": "json_schema",
+                    "json_schema": {
+                        "name": "purchase_intent_extraction",
+                        "strict": True,
+                        "schema": LLMIntentExtraction.model_json_schema(),
+                    },
+                },
+                max_completion_tokens=MAX_OUTPUT_TOKENS,
+                stream=False,
+            )
+        except APIError:
+            raise IntentParserUnavailable(
+                "The intent model is unavailable. Try again later."
+            ) from None
+        except (ValidationError, ValueError):
+            raise InvalidParserOutput("The parser returned invalid structured output.") from None
+        if len(response.choices) != 1:
+            raise InvalidParserOutput("The parser did not return one complete structured intent.")
+        choice = response.choices[0]
+        if (
+            choice.finish_reason != "stop"
+            or choice.message.refusal
+            or choice.message.tool_calls
+            or not choice.message.content
+        ):
+            raise InvalidParserOutput("The parser did not return a complete structured intent.")
+        try:
+            extraction = LLMIntentExtraction.model_validate_json(choice.message.content)
+        except (ValidationError, ValueError):
+            raise InvalidParserOutput("The parser returned invalid structured output.") from None
+        return _finalize(query, extraction)
+
+
 class FakeIntentParser:
     """Exact prompt lookup for deterministic tests; never an implicit production fallback."""
 

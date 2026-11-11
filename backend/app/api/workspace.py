@@ -6,7 +6,7 @@ from typing import Annotated, Literal
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import Field, SecretStr
 
-from app.api.agent import get_intent_parser, parse_intent
+from app.api.agent import get_intent_parser, parse_intent, require_model_actor
 from app.api.checkout import Actor, _errors
 from app.schemas import ApprovalRequest
 from app.schemas.domain import DomainModel
@@ -112,7 +112,7 @@ def get_workspace(request: Request, actor: Actor, service: Workspace) -> dict:
         }
 
 
-@router.post("/requests")
+@router.post("/requests", dependencies=[Depends(require_model_actor)])
 async def investigate(
     body: ParseIntentRequest,
     actor: Actor,

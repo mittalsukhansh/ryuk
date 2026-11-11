@@ -23,11 +23,23 @@ async function proxy(
       { status: 403 },
     );
   }
-  const body = ["GET", "HEAD"].includes(request.method)
-    ? undefined
-    : await request.text();
-  if (body && Buffer.byteLength(body) > 65_536)
-    return Response.json({ detail: "Request too large" }, { status: 413 });
+  let body: string | undefined;
+  if (!["GET", "HEAD"].includes(request.method) && request.body) {
+    const reader = request.body.getReader();
+    const chunks: Uint8Array[] = [];
+    let size = 0;
+    while (true) {
+      const item = await reader.read();
+      if (item.done) break;
+      size += item.value.byteLength;
+      if (size > 65_536) {
+        await reader.cancel();
+        return Response.json({ detail: "Request too large" }, { status: 413 });
+      }
+      chunks.push(item.value);
+    }
+    body = Buffer.concat(chunks).toString("utf8");
+  }
   try {
     const upstream = await fetch(
       `${process.env.RYUK_BACKEND_URL || "http://127.0.0.1:8000"}/v1/${path}`,

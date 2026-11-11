@@ -202,3 +202,6 @@ units; merchant ID is the actual Sandbox seller ID, not an email or secret.
 A database error identifies the private SQLite directory/volume for inspection.
 The new diagnostics do not prove the cause on a user's device until that device
 runs the updated image. Share only the sanitized final error, never `.env`.
+
+## Security-review update
+All model-derived candidates now require review even below threshold. Compare the original request and full parsed intent in the exact-terms dialog, then approve/reject the digest-bound proposal. This is separate from PayPal buyer approval and does not prove semantic completeness. HTTPS deployments must enable secure cookies. The test-only server now requires RYUK_E2E_TEST_ONLY=1 and always uses fresh temporary storage; see operations.md for commands. Production/model credentials must never be supplied to the fixture server. Current evidence and remaining acceptance gates are in STATUS.md.

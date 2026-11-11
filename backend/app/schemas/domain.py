@@ -14,13 +14,12 @@ from pydantic import (
     ConfigDict,
     Field,
     JsonValue,
+    StrictBool,
     StringConstraints,
     model_validator,
 )
 
-NonEmptyString = Annotated[
-    str, StringConstraints(strict=True, min_length=1, pattern=r"\S")
-]
+NonEmptyString = Annotated[str, StringConstraints(strict=True, min_length=1, pattern=r"\S")]
 # Zero is an explicit zero budget/price, never an unlimited or missing budget.
 MinorUnits = Annotated[int, Field(strict=True, ge=0)]
 PositiveInteger = Annotated[int, Field(strict=True, gt=0)]
@@ -69,6 +68,7 @@ class PolicyReasonCode(StrEnum):
     APPROVAL_REJECTED = "APPROVAL_REJECTED"
     APPROVAL_INVALID = "APPROVAL_INVALID"
     APPROVAL_GRANTED = "APPROVAL_GRANTED"
+    INTENT_REVIEW_REQUIRED = "INTENT_REVIEW_REQUIRED"
 
 
 class ApprovalStatus(StrEnum):
@@ -209,6 +209,7 @@ class PolicyDecision(DomainModel):
 
 
 class PurchaseProposal(DomainModel):
+    requires_intent_review: StrictBool = False
     proposal_id: NonEmptyString
     user_id: NonEmptyString
     intent: PurchaseIntent
@@ -227,7 +228,9 @@ class PurchaseProposal(DomainModel):
         if self.policy_decision:
             decision = self.policy_decision
             if (decision.amount_minor, decision.currency, decision.policy_version) != (
-                self.offer.amount_minor, self.offer.currency, self.policy_version
+                self.offer.amount_minor,
+                self.offer.currency,
+                self.policy_version,
             ):
                 raise ValueError("policy decision must match offer terms and policy version")
         return self
@@ -285,8 +288,10 @@ class PaymentIntent(ProposalBinding):
     def validate_approval_reference(self) -> Self:
         """An approved application state needs a reference, not a fabricated flag."""
         referenced_states = {
-            ApprovalState.APPROVED, ApprovalState.REJECTED,
-            ApprovalState.EXPIRED, ApprovalState.INVALIDATED,
+            ApprovalState.APPROVED,
+            ApprovalState.REJECTED,
+            ApprovalState.EXPIRED,
+            ApprovalState.INVALIDATED,
         }
         if self.approval_state in referenced_states and self.approval_request_id is None:
             raise ValueError(

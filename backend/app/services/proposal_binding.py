@@ -8,7 +8,7 @@ from datetime import timezone
 from app.schemas import PurchaseProposal
 from app.services.verifier import verify_offer
 
-DIGEST_FORMAT = "agentpay-proposal-v1"
+DIGEST_FORMAT = "agentpay-proposal-v2"
 
 
 class InvalidProposalBinding(ValueError):
@@ -24,6 +24,8 @@ def canonical_proposal_digest(proposal: PurchaseProposal) -> str:
         raise InvalidProposalBinding("A current canonical verification snapshot is required.")
     payload = {
         "format": DIGEST_FORMAT,
+        "original_and_parsed_intent": proposal.intent.model_dump(mode="json"),
+        "requires_intent_review": proposal.requires_intent_review,
         "proposal_id": proposal.proposal_id,
         "created_at": proposal.created_at.astimezone(timezone.utc).isoformat(
             timespec="microseconds"

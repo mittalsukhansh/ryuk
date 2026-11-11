@@ -48,6 +48,13 @@ const SDK = `window.paypal={Buttons(options){let host;return{async render(elemen
       await page.locator(".candidate").first().waitFor();
       assert.equal(await page.locator(".candidate").count(), 3);
     }
+    async function approveSelected() {
+      await page.getByRole("button", { name: /REVIEW EXACT TERMS/ }).click();
+      await page.locator(".approval-modal[open]").waitFor();
+      assert.match(await page.locator(".approval-modal").textContent(), /Original request/);
+      assertions++;
+      await page.getByRole("button", { name: /APPROVE EXACT TERMS/ }).click();
+    }
     await reset();
     mkdirSync(shots, { recursive: true });
     await page.screenshot({
@@ -60,7 +67,7 @@ const SDK = `window.paypal={Buttons(options){let host;return{async render(elemen
       /Mountain View/,
     );
     assertions++;
-    assert.equal(await page.locator(".candidate-top .pass").count(), 1);
+    assert.equal(await page.locator(".candidate-top .pass").count(), 0);
     assertions++;
     // Backend DENY never mounts a PayPal button.
     await page.locator(".candidate").nth(2).getByRole("button").click();
@@ -84,6 +91,7 @@ const SDK = `window.paypal={Buttons(options){let host;return{async render(elemen
     await investigate();
     await page.locator(".candidate").first().getByRole("button").click();
     await page.getByRole("heading", { name: "Trust the trace." }).waitFor();
+    await approveSelected();
     await page.screenshot({
       path: `${shots}/ryuk-evidence-desktop.png`,
       fullPage: true,
@@ -139,6 +147,7 @@ const SDK = `window.paypal={Buttons(options){let host;return{async render(elemen
     await reset();
     await investigate();
     await page.locator(".candidate").first().getByRole("button").click();
+    await approveSelected();
     mode = "timeout_after_capture";
     await page
       .getByRole("button", { name: "PayPal Sandbox · test buyer" })
@@ -166,6 +175,25 @@ const SDK = `window.paypal={Buttons(options){let host;return{async render(elemen
     }));
     assert(sizes.scroll <= sizes.client, JSON.stringify(sizes));
     assertions++;
+    const headers = await (await context.request.get(base)).headers();
+    assert.equal(headers["x-frame-options"], "DENY"); assertions++;
+    assert.match(headers["content-security-policy"], /frame-ancestors 'none'/); assertions++;
+    assert.equal(headers["x-content-type-options"], "nosniff"); assertions++;
+    assert.equal(await page.evaluate(() => document.cookie.includes("ryuk_session")), false); assertions++;
+    const badOrigin = await context.request.post(`${base}/api/ryuk/requests`, {
+      headers: { Origin: "https://evil.test" }, data: { query: "untrusted" },
+    });
+    assert.equal(badOrigin.status(), 403); assertions++;
+    const large = await context.request.post(`${base}/api/ryuk/requests`, {
+      headers: { Origin: base }, data: "x".repeat(70000),
+    });
+    assert.equal(large.status(), 413); assertions++;
+    assert.equal((await context.request.get(`${base}/api/ryuk/not-allowlisted`)).status(), 404); assertions++;
+    const anonymous = await browser.newContext();
+    assert.equal((await anonymous.request.post(`${backend}/v1/agent/parse`, {
+      headers: { Origin: base }, data: { query: "private model request" },
+    })).status(), 401); assertions++;
+    await anonymous.close();
     assert.equal(failures.length, 0, failures.join("\n"));
     assertions++;
     console.log(

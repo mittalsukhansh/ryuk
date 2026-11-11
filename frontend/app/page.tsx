@@ -1030,8 +1030,14 @@ export default function Home() {
               This approval applies only to these exact terms. It does not
               replace PayPal buyer authorization.
             </p>
+            <h3>Original request</h3>
+            <p style={{ whiteSpace: "pre-wrap" }}>{selected.proposal.intent.query}</p>
+            <h3>Parsed requirements — compare before approving</h3>
+            <pre style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{JSON.stringify(selected.proposal.intent, null, 2)}</pre>
+            <p>Reject if any requirement was omitted or weakened. Review does not prove semantic completeness.</p>
             <dl>
               {[
+                ["Proposal digest", selected.proposal.proposal_digest],
                 ["Merchant", approval.merchant_id],
                 [
                   "Amount / currency",
