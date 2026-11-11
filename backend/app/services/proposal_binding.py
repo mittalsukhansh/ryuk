@@ -25,7 +25,6 @@ def canonical_proposal_digest(proposal: PurchaseProposal) -> str:
     payload = {
         "format": DIGEST_FORMAT,
         "original_and_parsed_intent": proposal.intent.model_dump(mode="json"),
-        "requires_intent_review": proposal.requires_intent_review,
         "proposal_id": proposal.proposal_id,
         "created_at": proposal.created_at.astimezone(timezone.utc).isoformat(
             timespec="microseconds"

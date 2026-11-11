@@ -1199,3 +1199,11 @@ Supersedes D-024's unauthenticated parser HTTP boundary/quote-only role checks a
 D-026's v1 digest format only; their other decisions remain in force. Adds mandatory
 intent review to D-031 workspace orchestration and enforces its stated HTTPS-cookie
 constraint. No prior historical decision body is rewritten. Step 13 is not started.
+
+## D-034 — Resolve committed security merge conflicts without bypassing review
+Date: 2026-11-12
+Status: Accepted
+
+WIP commit cde0d08 contained unresolved markers in seven files and duplicate review flags, enum members and validation handlers. Retain both security implementations' protections and regression suites, using one intent_review_required field/reason and one safe validation handler. Preserve full original/parsed intent digest binding, source-clause role checks, authenticated/rate-limited HTTP parser wrapper and separate internal orchestration. Preserve the readable review UI and combined browser assertions; keep the earlier hardening report separately.
+
+Do not translate/revive incompatible in-memory consent or modify existing financial records. Durable uncertain captures retain original terms for query-only reconciliation. Add a source/runbook marker regression. Validation: 1,056 backend tests, frontend lint/type/build and 44 mocked browser assertions pass. No live provider call or deployment; buyer-approved acceptance remains pending.

@@ -1030,13 +1030,6 @@ export default function Home() {
               This approval applies only to these exact terms. It does not
               replace PayPal buyer authorization.
             </p>
-<<<<<<< HEAD
-            <h3>Original request</h3>
-            <p style={{ whiteSpace: "pre-wrap" }}>{selected.proposal.intent.query}</p>
-            <h3>Parsed requirements — compare before approving</h3>
-            <pre style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{JSON.stringify(selected.proposal.intent, null, 2)}</pre>
-            <p>Reject if any requirement was omitted or weakened. Review does not prove semantic completeness.</p>
-=======
             <div className="intent-review">
               <p className="micro">ORIGINAL INSTRUCTION</p>
               <p className="original-instruction">{selected.proposal.intent.query}</p>
@@ -1067,7 +1060,6 @@ export default function Home() {
                 and preference. Otherwise reject and clarify your instruction.
               </p>
             </div>
->>>>>>> 83d921d (local changes before merging)
             <dl>
               {[
                 ["Proposal digest", selected.proposal.proposal_digest],

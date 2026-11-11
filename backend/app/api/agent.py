@@ -59,7 +59,6 @@ async def get_intent_parser() -> AsyncIterator[IntentParser]:
         yield parser_type(client, model)
 
 
-<<<<<<< HEAD
 def require_model_actor(request: Request, actor: Actor) -> str:
     auth = getattr(request.app.state, "demo_sessions", None)
     if isinstance(auth, DemoSessions) and not auth.allow_model_request():
@@ -68,8 +67,6 @@ def require_model_actor(request: Request, actor: Actor) -> str:
 
 
 @router.post("/parse", response_model=PurchaseIntent, dependencies=[Depends(require_model_actor)])
-=======
-@router.post("/parse", response_model=PurchaseIntent)
 async def authenticated_parse_intent(
     body: ParseIntentRequest,
     actor: Actor,
@@ -79,7 +76,6 @@ async def authenticated_parse_intent(
     return await parse_intent(body, parser)
 
 
->>>>>>> 83d921d (local changes before merging)
 async def parse_intent(
     body: ParseIntentRequest,
     parser: Annotated[IntentParser, Depends(get_intent_parser)],

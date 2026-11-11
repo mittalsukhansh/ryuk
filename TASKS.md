@@ -161,3 +161,11 @@
 - [ ] Development dependency advisory resolution and full SDK-compatible script CSP
 
 This current evidence supersedes earlier unchecked Step 12 instructions/counts. Step 13 preparation is done; live acceptance remains unverified. See STATUS.md for the authoritative current state.
+
+## Merge repair — 2026-11-12
+- [x] Resolve committed conflicts from cde0d08, preserving original workspace edits
+- [x] Unify review flag/reason, validation handler and authenticated parser wrapper
+- [x] Preserve both security test sets, improved review UI and source-role checks
+- [x] Add conflict-marker regression for source/runbooks
+- [x] 1,056 backend tests, Ruff, frontend lint/type/build and 44 mocked browser assertions
+- [ ] Buyer-approved live Sandbox acceptance remains unverified

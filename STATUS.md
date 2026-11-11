@@ -1,5 +1,19 @@
 # Ryuk Status
 
+## Current verification — merge repair, 2026-11-12
+Repaired latest GitHub commit cde0d08 in an isolated worktree. Original local edits, private configuration and financial records were preserved.
+
+- Removed committed merge markers from seven files; consolidated duplicated review flags, policy enum members and validation handlers.
+- Canonical review field: intent_review_required. Preserved original/parsed intent digest binding, source-clause role checks, HTTP authentication/origin/rate limits, and both security test sets.
+- Preserved the readable original/parsed review UI and combined browser coverage. Earlier hardening report retained separately in docs/security-hardening.md.
+- **1,056 backend tests pass**, Ruff passes; frontend lint/typecheck/production build pass; **44 mocked production-browser assertions pass** using the installed Chromium (CHROMIUM_PATH=/usr/bin/chromium).
+- New source/runbook regression rejects committed conflict markers.
+- No live model/provider/payment calls, financial reset/deletion or deployment. Docker not rebuilt for this repair. Live buyer-approved Sandbox acceptance remains pending.
+
+## Earlier milestone notes
+The following sections retain historical evidence/counts; the verification above is current.
+
+
 Last verified: 2026-11-11, latest GitHub baseline 674bdf0 plus this security/demo-preparation change. Changes were prepared in an isolated worktree; older workspace edits were preserved.
 
 ## Current milestone

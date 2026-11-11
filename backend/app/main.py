@@ -65,9 +65,3 @@ async def private_api_responses(
         response.headers["Cache-Control"] = "no-store"
         response.headers["Vary"] = "Cookie"
     return response
-
-
-@app.exception_handler(RequestValidationError)
-async def safe_validation_error(request: Request, error: RequestValidationError) -> JSONResponse:
-    """Never reflect secret-bearing input, arbitrary field names or validator context."""
-    return JSONResponse(status_code=422, content={"detail": "Request validation failed"})

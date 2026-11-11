@@ -14,7 +14,6 @@ from pydantic import (
     ConfigDict,
     Field,
     JsonValue,
-    StrictBool,
     StringConstraints,
     model_validator,
 )
@@ -69,7 +68,6 @@ class PolicyReasonCode(StrEnum):
     APPROVAL_REJECTED = "APPROVAL_REJECTED"
     APPROVAL_INVALID = "APPROVAL_INVALID"
     APPROVAL_GRANTED = "APPROVAL_GRANTED"
-    INTENT_REVIEW_REQUIRED = "INTENT_REVIEW_REQUIRED"
 
 
 class ApprovalStatus(StrEnum):
@@ -210,7 +208,6 @@ class PolicyDecision(DomainModel):
 
 
 class PurchaseProposal(DomainModel):
-    requires_intent_review: StrictBool = False
     proposal_id: NonEmptyString
     user_id: NonEmptyString
     intent: PurchaseIntent

@@ -83,12 +83,7 @@ def test_missing_required_setting_identified(settings, monkeypatch, key):
 )
 def test_valid_origins_start_without_provider_credentials(settings, monkeypatch, origin):
     monkeypatch.setenv("RYUK_APP_ORIGIN", origin)
-<<<<<<< HEAD
     monkeypatch.setenv("RYUK_SECURE_COOKIES", "true" if origin.startswith("https") else "false")
-=======
-    if origin.startswith("https:"):
-        monkeypatch.setenv("RYUK_SECURE_COOKIES", "true")
->>>>>>> 83d921d (local changes before merging)
     assert boot().state.demo_sessions.origin == origin
 
 

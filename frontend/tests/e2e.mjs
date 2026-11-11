@@ -63,18 +63,11 @@ const SDK = `window.paypal={Buttons(options){let host;return{async render(elemen
     }
     async function approveSelected() {
       await page.getByRole("button", { name: /REVIEW EXACT TERMS/ }).click();
-<<<<<<< HEAD
-      await page.locator(".approval-modal[open]").waitFor();
-      assert.match(await page.locator(".approval-modal").textContent(), /Original request/);
-      assertions++;
-      await page.getByRole("button", { name: /APPROVE EXACT TERMS/ }).click();
-=======
       assert.match(await page.locator(".intent-review").textContent(), /ORIGINAL INSTRUCTION/);
       assert.match(await page.locator(".intent-review").textContent(), /Free Cancellation: true/);
       assertions += 2;
       await page.getByRole("button", { name: /APPROVE EXACT TERMS/ }).click();
       await page.locator(".approval-modal[open]").waitFor({ state: "hidden" });
->>>>>>> 83d921d (local changes before merging)
     }
     await reset();
     mkdirSync(shots, { recursive: true });
@@ -88,11 +81,8 @@ const SDK = `window.paypal={Buttons(options){let host;return{async render(elemen
       /Mountain View/,
     );
     assertions++;
-<<<<<<< HEAD
     assert.equal(await page.locator(".candidate-top .pass").count(), 0);
-=======
     assert.equal(await page.locator(".candidate-top .review").count(), 2);
->>>>>>> 83d921d (local changes before merging)
     assertions++;
     // Backend DENY never mounts a PayPal button.
     await page.locator(".candidate").nth(2).getByRole("button").click();
@@ -116,11 +106,8 @@ const SDK = `window.paypal={Buttons(options){let host;return{async render(elemen
     await investigate();
     await page.locator(".candidate").first().getByRole("button").click();
     await page.getByRole("heading", { name: "Trust the trace." }).waitFor();
-<<<<<<< HEAD
-=======
     assert.equal(await page.locator(".paypal-slot").count(), 0);
     assertions++;
->>>>>>> 83d921d (local changes before merging)
     await approveSelected();
     await page.screenshot({
       path: `${shots}/ryuk-evidence-desktop.png`,
@@ -255,7 +242,6 @@ const SDK = `window.paypal={Buttons(options){let host;return{async render(elemen
     }));
     assert(sizes.scroll <= sizes.client, JSON.stringify(sizes));
     assertions++;
-<<<<<<< HEAD
     const headers = await (await context.request.get(base)).headers();
     assert.equal(headers["x-frame-options"], "DENY"); assertions++;
     assert.match(headers["content-security-policy"], /frame-ancestors 'none'/); assertions++;
@@ -275,7 +261,6 @@ const SDK = `window.paypal={Buttons(options){let host;return{async render(elemen
       headers: { Origin: base }, data: { query: "private model request" },
     })).status(), 401); assertions++;
     await anonymous.close();
-=======
     await reset();
     await investigate();
     await page.locator(".candidate").first().getByRole("button").click();
@@ -291,7 +276,6 @@ const SDK = `window.paypal={Buttons(options){let host;return{async render(elemen
     await page.getByText("CHECKOUT LOCKED", { exact: true }).waitFor();
     assert.equal(await page.locator(".paypal-slot").count(), 0);
     assertions++;
->>>>>>> 83d921d (local changes before merging)
     assert.equal(failures.length, 0, failures.join("\n"));
     assertions++;
     console.log(

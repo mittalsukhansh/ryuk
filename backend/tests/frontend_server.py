@@ -25,10 +25,6 @@ from app.services.workspace import WorkspaceService
 
 if os.environ.get("RYUK_E2E_TEST_ONLY") != "1":
     raise RuntimeError("Explicit RYUK_E2E_TEST_ONLY=1 is required for test fixtures")
-from tempfile import TemporaryDirectory
-
-_test_directory = TemporaryDirectory(prefix="ryuk-isolated-e2e-")
-
 PASSWORD = "synthetic-browser-password"
 
 
@@ -43,13 +39,9 @@ os.environ.update(
     RYUK_DEMO_PASSWORD=PASSWORD,
     RYUK_APP_ORIGIN="http://localhost:3100",
     RYUK_SECURE_COOKIES="false",
-<<<<<<< HEAD
-    RYUK_CHECKOUT_DB_PATH=_test_directory.name + "/ledger.sqlite3",
-=======
     RYUK_CHECKOUT_DB_PATH=new_ledger_path(),
     PAYPAL_ENV="sandbox",
     PAYPAL_BASE_URL="https://api-m.sandbox.paypal.com",
->>>>>>> 83d921d (local changes before merging)
     PAYPAL_CLIENT_ID="synthetic-browser-client",
     PAYPAL_CLIENT_SECRET="synthetic-browser-secret",
     PAYPAL_MERCHANT_ID="DEMOSELLER",
@@ -125,8 +117,9 @@ def test_new_case() -> dict:
         policy = previous.policy(connection, actor)
     store = CheckoutStore(new_ledger_path())
     store.create_account(
-        BudgetSnapshot(user_id=actor, currency="USD", limit_minor=150000,
-                       settled_minor=0, reserved_minor=0)
+        BudgetSnapshot(
+            user_id=actor, currency="USD", limit_minor=150000, settled_minor=0, reserved_minor=0
+        )
     )
     store.put_policy(policy)
     for offer in app.state.catalog.search(CatalogSearchRequest()).offers:

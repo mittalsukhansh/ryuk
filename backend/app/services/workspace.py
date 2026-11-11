@@ -78,7 +78,6 @@ class WorkspaceService:
         for offer in search.offers:
             proposal = self.approvals.register_proposal(
                 PurchaseProposal(
-                    requires_intent_review=True,
                     proposal_id=str(uuid4()),
                     user_id=actor,
                     intent=intent,
