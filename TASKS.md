@@ -1,5 +1,7 @@
 # AgentPay Task Board
 
+- [x] Temporary-clone approval layout and non-floating Sandbox notice; frontend checks and desktop/mobile fixture verification pass. No commit/push/deployment.
+
 ## P0 — Must ship
 
 ### Foundation

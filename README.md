@@ -2,7 +2,9 @@
 
 Turn a purchase request into an evidence-backed proposal, review its exact terms, and authorize a PayPal Sandbox checkout.
 
-> **Screenshot placeholder:** add a real, redacted capture of Ryuk's casebook here, showing the Sandbox banner, requirement evidence and policy verdict. Label fixture/mock screenshots accurately; keep credentials, buyer identity and private transaction references out of the image.
+![Ryuk isolated test fixture showing the Sandbox banner, synthetic requirement evidence and an approval-required policy verdict](docs/images/isolated-fixture.png)
+
+*Isolated test-fixture screenshot: fake intent parser and synthetic inventory. No live model, PayPal checkout, purchase, booking or payment evidence.*
 
 ## Quick start — current checkout
 
@@ -133,3 +135,7 @@ Latest local automated checks: **1,114 backend tests**, **25 frontend helper tes
 Login throttling uses the authenticated ingress client address, not the shared Next proxy IP. Configure the backend-only RYUK_PROXY_SHARED_SECRET and read [login proxy setup and limits](docs/login-rate-limits.md) before rebuilding all three Compose services.
 
 Document scripts now use a nonce-based CSP with PayPal nonce propagation; HTML is dynamically rendered and must not be shared-cached. See [policy and live-SDK validation limits](docs/content-security-policy.md).
+
+## License
+
+Ryuk is available under the [MIT License](LICENSE). Third-party dependencies retain their respective licenses.

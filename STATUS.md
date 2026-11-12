@@ -1,5 +1,7 @@
 # Ryuk Status
 
+Approval-dialog presentation polish in the temporary submission clone: stacked original/parsed review, compact responsive requirement cards and wrapped exact-term details. Sandbox notices are in normal flow, not floating over content. Frontend lint/typecheck/build and isolated desktop/mobile dialog overflow, notice scrolling and close-control checks pass. No approval/payment logic changed, no approval decision/checkout performed; uncommitted and not deployed.
+
 ## Current: user-approved presentation/provenance publication — 2026-11-12
 
 User reviewed the prepared batch and explicitly requested publication. The 24-file review package matched the worktree before this documentation status update. Runtime changes retain the recorded 1,114 backend / 25 frontend / 98 browser passing evidence; no code changed after review. Publish through the verified mittalsukhansh connection, preserving the existing release tags and financial records. No deployment or subsequent production stage is included. The local/unpublished notes below describe the pre-approval review stage.
