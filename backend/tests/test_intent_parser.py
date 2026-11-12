@@ -38,6 +38,21 @@ CASES = json.loads(
 GOLD = CASES[0]
 
 
+def expected_with_sources(query: str, extraction: dict, expected: dict) -> dict:
+    sources = [
+        {
+            "role": role,
+            "name": a["name"],
+            "quote": a["quote"],
+            "start": query.index(a["quote"]),
+            "end": query.index(a["quote"]) + len(a["quote"]),
+        }
+        for role in ("required", "preferred")
+        for a in extraction[f"{role}_attributes"]
+    ]
+    return expected | ({"requirement_sources": sources} if sources else {})
+
+
 @pytest.fixture
 def parser_api():
     """Explicit trusted actor only in API contract tests, not production authentication."""
@@ -108,7 +123,12 @@ def test_fifteen_gold_prompts_match_expected_contract(case: dict, implementation
             asyncio.run(operation)
     else:
         intent = asyncio.run(operation)
-        assert intent == PurchaseIntent.model_validate(case["expected"])
+        expected = PurchaseIntent.model_validate(case["expected"]).model_dump()
+        actual = intent.model_dump()
+        sources = actual.pop("requirement_sources", [])
+        assert actual == expected
+        assert len(sources) == len(intent.required_attributes) + len(intent.preferred_attributes)
+        assert all(intent.query[s["start"] : s["end"]] == s["quote"] for s in sources)
         assert type(intent.budget_max_minor) is int
         assert intent.query == case["query"]
 
@@ -343,7 +363,9 @@ def test_parse_api_with_injected_fake_preserves_roles(parser_api) -> None:
         with TestClient(app) as client:
             response = client.post("/v1/agent/parse", json={"query": GOLD["query"]})
             assert response.status_code == 200
-            assert response.json() == GOLD["expected"]
+            assert response.json() == expected_with_sources(
+                GOLD["query"], GOLD["extraction"], GOLD["expected"]
+            )
             case = next(case for case in CASES if case["id"] == "missing-budget")
             response = client.post("/v1/agent/parse", json={"query": case["query"]})
             assert response.status_code == 422
@@ -356,7 +378,8 @@ def test_parse_api_with_injected_fake_preserves_roles(parser_api) -> None:
 
 
 def test_unconfigured_parser_is_unavailable_but_other_routes_work(
-    monkeypatch: pytest.MonkeyPatch, parser_api,
+    monkeypatch: pytest.MonkeyPatch,
+    parser_api,
 ) -> None:
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     monkeypatch.delenv("OPENAI_MODEL", raising=False)
@@ -376,7 +399,9 @@ def test_unconfigured_parser_is_unavailable_but_other_routes_work(
     ],
 )
 def test_api_sanitizes_model_and_provider_errors(
-    error: Exception, expected_code: int, parser_api,
+    error: Exception,
+    expected_code: int,
+    parser_api,
 ) -> None:
     class BrokenParser:
         async def parse(self, query: str) -> PurchaseIntent:
@@ -416,9 +441,12 @@ def test_attribute_quote_punctuation_does_not_include_the_next_role_clause(imple
     gym["quote"] += "."
     operation = (
         FakeIntentParser({case["query"]: payload}).parse(case["query"])
-        if implementation == "fake" else sdk_parse(case["query"], payload)
+        if implementation == "fake"
+        else sdk_parse(case["query"], payload)
     )
-    assert asyncio.run(operation) == PurchaseIntent.model_validate(case["expected"])
+    assert asyncio.run(operation).model_dump() == expected_with_sources(
+        case["query"], payload, case["expected"]
+    )
 
 
 def test_hotel_quantity_cannot_be_confused_with_nights() -> None:
@@ -439,7 +467,8 @@ def test_hotel_room_count_and_quantity_must_agree() -> None:
 
 
 def test_production_dependency_calls_sdk_with_backend_only_configuration(
-    monkeypatch: pytest.MonkeyPatch, parser_api,
+    monkeypatch: pytest.MonkeyPatch,
+    parser_api,
 ) -> None:
     monkeypatch.setenv("OPENAI_API_KEY", "test-only-placeholder")
     monkeypatch.setenv("OPENAI_MODEL", "test-structured-model")
@@ -461,7 +490,9 @@ def test_production_dependency_calls_sdk_with_backend_only_configuration(
     with TestClient(app) as client:
         response = client.post("/v1/agent/parse", json={"query": GOLD["query"]})
         assert response.status_code == 200
-        assert response.json() == GOLD["expected"]
+        assert response.json() == expected_with_sources(
+            GOLD["query"], GOLD["extraction"], GOLD["expected"]
+        )
         assert "test-only-placeholder" not in response.text
     assert len(captured) == 1 and captured[0]["model"] == "test-structured-model"
 

@@ -1,5 +1,45 @@
 # Ryuk Status
 
+## Current: user-approved presentation/provenance publication — 2026-11-12
+
+User reviewed the prepared batch and explicitly requested publication. The 24-file review package matched the worktree before this documentation status update. Runtime changes retain the recorded 1,114 backend / 25 frontend / 98 browser passing evidence; no code changed after review. Publish through the verified mittalsukhansh connection, preserving the existing release tags and financial records. No deployment or subsequent production stage is included. The local/unpublished notes below describe the pre-approval review stage.
+
+
+## Current: local review package — 2026-11-12
+
+Reran the combined presentation/source-provenance/README/architecture work against baseline 1c49165. **1,114 backend tests passed (zero failures/errors/skips), 25 frontend tests passed (zero skips), and 98 isolated Chromium browser assertions passed**. Frontend lint/typecheck/production build, Ruff, dependency consistency, documentation links and whitespace checks pass. Financial-control/auth/PayPal/SQL/CSP implementation files remain unchanged. Only fresh temporary fixture ledgers and mocked model/SDK/provider responses were used; fixture processes stopped after testing.
+
+Prepared an external review bundle with complete tracked/new-file patch, manifest, summary and fixture screenshots. Verified the patch against the base with a separate temporary Git index; the real index/working tree remain uncommitted. No tag, push or deployment. Live provider acceptance, measured live timing, full screen-reader testing and external Mermaid rendering are not claimed. Remaining production work is separate. Earlier local changes are preserved.
+
+
+## Current: architecture diagram documentation — 2026-11-12
+
+Added docs/architecture-demo.md with the implemented model-derived request/LLM/validator/verifier/policy/exact-approval/PayPal-Sandbox/ledger flow, a marked backend trust boundary and the invariant “The LLM proposes; only the deterministic backend authorizes spending.” Includes separate buyer authorization, pre-capture reload/atomic claims, durable records and GET-only uncertainty recovery, with source links and honest synthetic/private-demo limits. Linked from README. No runtime code or architectural behavior changed; DECISIONS.md needs no new entry. Existing local work preserved; packaging/migrations remain separate.
+
+Documentation links, diagram source structure and Git whitespace checked. No fresh runtime test run for this documentation-only task; prior 1,114 backend / 25 helper / 98 browser results remain the latest runtime evidence. Mermaid rendering in external Markdown clients is not independently certified. No tag, push, deployment, live provider calls or ledger access.
+
+
+## Current: README presentation polish — 2026-11-12
+
+Updated only the README opening with a one-line pitch, explicit real-screenshot placeholder (no fabricated screenshot/broken image link), three-command current-checkout quick start matching docs/startup.md, and honest Sandbox/synthetic/single-buyer scope. Existing implementation and safety/evidence statements are preserved below it. Configuration remains a private manual step before startup; no commands were deployed/executed against a demo installation. Existing local presentation and provenance changes are preserved. Architecture diagram, packaging and production migrations have not started. Documentation/link/whitespace checks pass; no runtime changes or additional runtime test run in this documentation-only turn.
+
+
+## Current: authorized requirement source links — 2026-11-12
+
+Parser-validated requirement quotes now survive into PurchaseIntent/API responses as optional requirement_sources associations (role/name/exact quote/Unicode span). Domain validation checks association completeness/uniqueness and exact spans. Existing records without sources serialize as before, preserving old snapshot/digest inputs; new source metadata is included by the existing full-intent bindings. UI shows original request beside parsed mandatory/preferred requirements with highlighted source quotes and keyboard links. No policy/approval/checkout/PayPal/auth/ledger logic or SQL schema change. See docs/intent-provenance.md and D-045.
+
+Validation: **1,114 backend tests passed** (12 new provenance regressions), **25 frontend helper tests passed**, and **98 isolated Chromium assertions passed**, including source links/focus, legacy fallback and existing CSP/financial-flow mocks. Frontend lint/typecheck/production build, Ruff, dependency consistency and diff checks pass. Screenshots reviewed; fixture processes stopped. This is the explicitly authorized continuation of presentation task 5. Earlier local tasks 1–4 remain preserved. README, architecture diagram, packaging and production migrations have not started; older task-5 blocked notes below are historical. No live model/payment calls, existing ledger/volume mutation, tag, push or deployment.
+
+
+## Current: presentation polish only — 2026-11-12
+
+Clean baseline 1c49165 in the release worktree; older checkout preserved. Added persistent Sandbox scope notes, display-only explanations for all 16 backend reason codes plus unknown fallback, settled/held/available bars from the existing workspace values, clearer empty/error states and a 15-second presentation-only waiting notice. No backend/API/schema, financial/session/PayPal controls, ledger, provider loader or CSP configuration changed. No dependencies added. See docs/presentation-polish.md.
+
+Stopped at task 5: original request source quotes are validated internally but not exposed as requirement provenance in PurchaseIntent/the current response. No quotes were inferred or fabricated. Task 5 needs an explicitly authorized backend/API change; tasks 6/7 were deferred per the user's ordered stop rule. Existing intent review and README safety claims remain unchanged. DECISIONS.md is unchanged because no meaningful architecture/authority decision changed.
+
+Validation: **1,102 backend tests passed**, no skips (count unchanged); **22 frontend presentation tests passed**, no skips; frontend lint/typecheck/production build passed; **81 isolated Chromium browser assertions passed**, including CSP nonce/injection regressions, desktop/mobile, zero/exhausted bars, empty shortlist and slow/error guidance with no automatic retry. Screenshots inspected. Protected backend/API/PayPal/auth/CSP files have no diff; Git whitespace checks pass. Fixture processes stopped afterward. No credential values inspected, live provider calls, existing financial record/volume changes, tag, commit, push or deployment. Live SDK/buyer flow, assistive-technology testing and a measured three-minute run are not certified by these isolated checks.
+
+
 ## Current: nonce-based document script CSP
 
 Added per-response cryptographic nonces in the Next proxy, dynamic SSR nonce propagation and private/no-store HTML. Production script-src uses nonce/strict-dynamic with provider compatibility fallbacks, no unsafe-inline/eval, and script-src-attr none. PayPal receives both nonce and data-csp-nonce; missing nonce fails loading closed. Explicit resource/frame/connect restrictions retain the existing frame/base/object protections. See docs/content-security-policy.md and D-044. Validation: frontend lint/typecheck/production build pass and **62 mocked browser assertions pass**, including actual CSP violation events for blocked scripts/handlers, unique/caller-independent nonces and SDK attributes. Backend unchanged; its last full 1,102-test result is historical, not a new rerun in this frontend-only change. Backend financial rules and deployment credentials are unchanged; no live payment or deployment performed. Mocked SDK tests do not certify all real PayPal SDK branches; real Sandbox validation remains an external gate.

@@ -22,6 +22,13 @@ export interface Intent {
   required_attributes: Record<string, unknown>;
   preferred_attributes: Record<string, unknown>;
   quantity: number;
+  requirement_sources?: {
+    role: "required" | "preferred";
+    name: string;
+    quote: string;
+    start: number;
+    end: number;
+  }[];
 }
 export interface Check {
   requirement: string;

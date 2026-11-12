@@ -1,7 +1,9 @@
 "use client";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import PayPalCheckout from "../components/paypal";
+import IntentSources from "../components/intent-sources";
 import RecoveryHistory from "../components/recovery-history";
+import { ActivityNotice, BudgetBar, PolicyReasons, SandboxNotice } from "../components/presentation";
 import { api, ApiError, label, money } from "../lib/api";
 import type {
   Approval,
@@ -462,6 +464,7 @@ export default function Home() {
                   </dd>
                 </div>
               </dl>
+              {workspace && <BudgetBar budget={workspace.budget} />}
               <p className="micro">
                 {workspace
                   ? `POLICY / ${workspace.policy.version}`
@@ -480,15 +483,14 @@ export default function Home() {
             <p>The model proposes. The backend decides.</p>
           </div>
           {busy && (
-            <div className="activity" role="status">
-              <span className="small-dot" />
-              {busy}…
-            </div>
+            <ActivityNotice message={busy} />
           )}
           {error && (
             <div className="message error" role="alert">
               <strong>ACTION NEEDS ATTENTION</strong>
               <p>{error}</p>
+              {/^[A-Z_]+(?: · [A-Z_]+)*$/.test(error) && <PolicyReasons codes={error.split(" · ")} />}
+              <p className="subtle">The action is not confirmed. For a checkout timeout, do not press Pay again; use Saved activity or the existing backend status control.</p>
               <button className="text-button" onClick={() => setError("")}>
                 Dismiss ×
               </button>
@@ -524,21 +526,10 @@ export default function Home() {
                   </b>
                 </span>
               </div>
-              <p>
-                <span className="micro">REQUIRED</span>
-                {Object.entries(investigation.intent.required_attributes)
-                  .map(([k, v]) => `${label(k)}: ${String(v)}`)
-                  .join(" · ")}
-              </p>
-              <p>
-                <span className="micro">PREFERRED</span>
-                {Object.entries(investigation.intent.preferred_attributes)
-                  .map(([k, v]) => `${label(k)}: ${String(v)}`)
-                  .join(" · ") || "None specified"}
-              </p>
+              <IntentSources intent={investigation.intent} />
             </section>
           )}
-          <section id="candidates" className="section-block">
+          <section id="candidates" className="section-block" aria-busy={!!busy}>
             <div className="section-heading">
               <div>
                 <p className="eyebrow">02 / CANDIDATE RECORDS</p>
@@ -550,7 +541,7 @@ export default function Home() {
                   : "AWAITING YOUR INSTRUCTION"}
               </span>
             </div>
-            {investigation ? (
+            {investigation && investigation.candidates.length > 0 ? (
               <>
                 <div className="candidates">
                   {investigation.candidates
@@ -669,9 +660,9 @@ export default function Home() {
                   ⌖
                 </span>
                 <div>
-                  <h3>No conclusions without evidence.</h3>
+                  <h3>{investigation ? "No candidate records returned." : "No conclusions without evidence."}</h3>
                   <p>
-                    Your instruction will open a shortlist of candidate records.
+                    {investigation ? "The backend returned no offers for this request. Review your instruction before starting a different search." : "Your instruction will open a shortlist of candidate records."}
                     <br />
                     Every requirement is checked before checkout.
                   </p>
@@ -737,11 +728,8 @@ export default function Home() {
                   <p className="eyebrow">04 / RYUK POLICY VERDICT</p>
                   <h2>{verdictText[selected.policy.decision]}</h2>
                   <code>{selected.policy.decision}</code>
-                  <ul>
-                    {selected.policy.reason_codes.map((reason) => (
-                      <li key={reason}>{reason}</li>
-                    ))}
-                  </ul>
+                  <p className="subtle">{selected.policy.decision === "REQUIRE_APPROVAL" ? "Review the exact request and offer before recording your decision. Nothing is approved automatically." : selected.policy.decision === "DENY" ? "This offer cannot proceed under the current backend rules." : "Eligible under current backend rules. This is not a capture confirmation."}</p>
+                  <PolicyReasons codes={selected.policy.reason_codes} />
                   <p className="subtle">
                     Deterministic rules. Evaluated by the backend.
                   </p>
@@ -811,6 +799,7 @@ export default function Home() {
                       <span className="micro">
                         SUCCESS REQUIRES BACKEND CONFIRMATION
                       </span>
+                      <p className="subtle">If the PayPal button does not load, no outcome is confirmed. Inspect any error before trying a different action. After pressing Pay, use the status control instead of pressing Pay again.</p>
                     </div>
                   </section>
                 )}
@@ -818,17 +807,18 @@ export default function Home() {
                 <section
                   className={`payment-result ${checkout.state === "SUCCEEDED" ? "confirmed" : ""}`}
                   aria-live="polite"
+                  aria-busy={!!busy}
                 >
                   <p className="eyebrow">BACKEND PAYMENT RECORD</p>
                   <h2>
                     {checkout.state === "SUCCEEDED"
-                      ? "Payment confirmed."
+                      ? "Sandbox payment confirmed."
                       : ["PENDING_PROVIDER", "CAPTURE_PENDING"].includes(
                             checkout.state,
                           )
                         ? "Confirmation pending."
                         : checkout.state === "FAILED"
-                          ? "Payment not completed."
+                          ? "Sandbox payment not completed."
                           : checkout.order_creation !== "READY"
                             ? "Order needs review."
                             : "Awaiting your PayPal approval."}
@@ -875,13 +865,14 @@ export default function Home() {
                       </div>
                     ))}
                   </dl>
+                  <p className="subtle">Sandbox record only. No real money moved and no hotel was booked.</p>
                   {!terminal(checkout) && (
                     <>
                       <p className="subtle">
                         {["PENDING_PROVIDER", "CAPTURE_PENDING"].includes(
                           checkout.state,
                         )
-                          ? "Your budget remains reserved. Checking status will not retry capture."
+                          ? "Do not press Pay again; use CHECK BACKEND STATUS. Your sandbox budget remains held. Checking status will not retry capture."
                           : "A PayPal callback alone is not confirmation of payment."}
                       </p>
                       <button
@@ -977,8 +968,10 @@ export default function Home() {
         >
           ×
         </button>
+        <SandboxNotice />
         <p className="eyebrow">PRIVATE CASEBOOK</p>
         <h2>Access is deliberate.</h2>
+        {busy && <ActivityNotice message={busy} />}
         <p>
           Sign in to the password-protected demo workspace. Financial rules stay
           on the server.
@@ -1012,6 +1005,8 @@ export default function Home() {
       <dialog
         ref={approvalDialog}
         className="modal approval-modal"
+        aria-label="Review exact application terms"
+        aria-busy={!!busy}
         onCancel={(event) => {
           if (busy) event.preventDefault();
         }}
@@ -1024,30 +1019,19 @@ export default function Home() {
         >
           ×
         </button>
+        <SandboxNotice />
         <p className="eyebrow">EXPLICIT APPLICATION CONSENT</p>
         <h2>Read before you authorize.</h2>
+        {busy && <ActivityNotice message={busy} />}
         {selected && approval && (
           <>
             <p>
               This approval applies only to these exact terms. It does not
               replace PayPal buyer authorization.
             </p>
+            <PolicyReasons codes={selected.policy.reason_codes} />
             <div className="intent-review">
-              <p className="micro">ORIGINAL INSTRUCTION</p>
-              <p className="original-instruction">{selected.proposal.intent.query}</p>
-              <p className="micro">
-                PARSED REQUIREMENTS — CHECK FOR OMISSIONS OR CHANGED MEANING
-              </p>
-              <p>
-                Required: {Object.entries(selected.proposal.intent.required_attributes)
-                  .map(([k, v]) => `${label(k)}: ${String(v)}`)
-                  .join(" · ") || "None"}
-              </p>
-              <p>
-                Preferred: {Object.entries(selected.proposal.intent.preferred_attributes)
-                  .map(([k, v]) => `${label(k)}: ${String(v)}`)
-                  .join(" · ") || "None"}
-              </p>
+              <IntentSources intent={selected.proposal.intent} />
               <p>
                 Quantity: {selected.proposal.intent.quantity}. Budget: {money(
                   selected.proposal.intent.budget_max_minor,

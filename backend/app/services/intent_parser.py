@@ -295,6 +295,20 @@ def _finalize(query: str, raw: LLMIntentExtraction | dict[str, object]) -> Purch
             preferred_attributes=preferred,
             quantity=quantity,
             notes=extraction.notes,
+            requirement_sources=[
+                {
+                    "role": role,
+                    "name": attribute.name,
+                    "quote": attribute.quote,
+                    "start": query.index(attribute.quote),
+                    "end": query.index(attribute.quote) + len(attribute.quote),
+                }
+                for role, attributes in (
+                    ("required", extraction.required_attributes),
+                    ("preferred", extraction.preferred_attributes),
+                )
+                for attribute in attributes
+            ],
         )
     except ValidationError:
         raise InvalidParserOutput("The extracted intent failed domain validation.") from None

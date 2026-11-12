@@ -1277,3 +1277,11 @@ Status: Accepted
 Generate a cryptographic nonce for each document in Next proxy and overwrite untrusted nonce/CSP headers. Pass the policy into SSR and response; use async layout headers and no-store instead of static/shared nonce HTML. Production script-src uses nonce/strict-dynamic with self/PayPal/PayPalObjects compatibility fallbacks, no unsafe-inline/eval and no inline event attributes. The trusted SDK receives nonce and data-csp-nonce. Scoped resource sources and existing frame/base/object controls remain; inline styles are retained independently for dynamic UI/SDK use.
 
 Browser regressions demonstrate blocked parser-inserted scripts/handlers and existing mocked checkout flows. Delegated trusted scripts and live SDK compatibility remain explicit boundaries; do not claim a mock proves live provider acceptance or that CSP neutralizes compromised authorized scripts. See docs/content-security-policy.md.
+
+## D-045 — Retain validated requirement sources without reinterpreting intent
+Date: 2026-11-12
+Status: Accepted
+
+Persist source associations already validated by the parser as optional PurchaseIntent requirement_sources entries with role/name/quote and Unicode code-point spans. Preserve provider extraction schema and all financial policy/consent checks. Validate complete, unique associations and exact unique source text whenever provenance is present. Do not fabricate provenance for legacy records.
+
+Omit empty provenance from serialization so old persisted snapshot/digest inputs remain byte-compatible; the existing complete-intent snapshot/digest includes new provenance, binding the representation reviewed by the buyer. No SQL migration or financial record rewrite. Display original request and mandatory/preferred lists with escaped highlighted text and keyboard source links; merge overlaps only for rendering. Quotes demonstrate cited text, not semantic completeness. This supersedes the earlier presentation task-5 blocker only under the user's explicit backend/API authorization; README/diagram/packaging/migrations remain outside this turn.

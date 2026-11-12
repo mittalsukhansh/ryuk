@@ -66,10 +66,20 @@ const SDK = `window.__sdkEarlyClose=0;window.__sdkPending=0;window.paypal={Butto
       assert.match(await page.locator(".intent-review").textContent(), /ORIGINAL INSTRUCTION/);
       assert.match(await page.locator(".intent-review").textContent(), /Free Cancellation: true/);
       assertions += 2;
+      const review = page.locator(".intent-review .intent-sources");
+      const source = review.getByRole("blockquote", { name: "Source quote for required Gym" });
+      assert.match(await source.textContent(), /Gym, mountain view and free cancellation are required/); assertions++;
+      assert(await review.locator(".original-instruction mark").count() > 0); assertions++;
+      await source.getByRole("link").focus();
+      await page.keyboard.press("Enter");
+      assert(await review.locator(".original-instruction").evaluate((el) => document.activeElement === el)); assertions++;
       await page.getByRole("button", { name: /APPROVE EXACT TERMS/ }).click();
       await page.locator(".approval-modal[open]").waitFor({ state: "hidden" });
     }
     await reset();
+    assert(await page.locator("body > .sandbox-notice").isVisible()); assertions++;
+    assert.match(await page.locator("body > .sandbox-notice").textContent(), /PayPal Sandbox - synthetic inventory - no real money/); assertions++;
+    assert.equal(await page.getByRole("progressbar").count(), 3); assertions++;
     mkdirSync(shots, { recursive: true });
     await page.screenshot({
       path: `${shots}/ryuk-command-desktop.png`,
@@ -89,6 +99,8 @@ const SDK = `window.__sdkEarlyClose=0;window.__sdkPending=0;window.paypal={Butto
     await page.getByText("CHECKOUT LOCKED", { exact: true }).waitFor();
     assert.equal(await page.locator(".paypal-slot").count(), 0);
     assertions++;
+    assert.match(await page.locator(".policy-reasons").textContent(), /BUDGET_EXCEEDED/); assertions++;
+    assert.match(await page.locator(".policy-reasons").textContent(), /exceeds a budget limit/); assertions++;
     await page.locator(".candidate").nth(1).getByRole("button").click();
     await page.getByRole("button", { name: /REVIEW EXACT TERMS/ }).click();
     await page.locator(".approval-modal[open]").waitFor();
@@ -133,12 +145,12 @@ const SDK = `window.__sdkEarlyClose=0;window.__sdkPending=0;window.paypal={Butto
       .click();
     await seen;
     assert.equal(
-      await page.getByRole("heading", { name: "Payment confirmed." }).count(),
+      await page.getByRole("heading", { name: "Sandbox payment confirmed." }).count(),
       0,
     );
     assertions++;
     release();
-    await page.getByRole("heading", { name: "Payment confirmed." }).waitFor();
+    await page.getByRole("heading", { name: "Sandbox payment confirmed." }).waitFor();
     await page.locator(".payment-result").getByText("$320.00", { exact: true }).waitFor();
     assert.match(await page.locator(".payment-result").textContent(), /320.00/);
     assertions++;
@@ -184,7 +196,7 @@ const SDK = `window.__sdkEarlyClose=0;window.__sdkPending=0;window.paypal={Butto
     await page
       .getByRole("button", { name: "PayPal Sandbox · test buyer" })
       .click();
-    await page.getByRole("heading", { name: "Payment confirmed." }).waitFor();
+    await page.getByRole("heading", { name: "Sandbox payment confirmed." }).waitFor();
     assert.match(
       await page.locator(".audit-log").textContent(),
       /APPROVAL_GRANTED/,
@@ -203,7 +215,7 @@ const SDK = `window.__sdkEarlyClose=0;window.__sdkPending=0;window.paypal={Butto
       .getByRole("heading", { name: "Confirmation pending." })
       .waitFor();
     assert.equal(
-      await page.getByRole("heading", { name: "Payment confirmed." }).count(),
+      await page.getByRole("heading", { name: "Sandbox payment confirmed." }).count(),
       0,
     );
     assertions++;
@@ -239,7 +251,7 @@ const SDK = `window.__sdkEarlyClose=0;window.__sdkPending=0;window.paypal={Butto
     assert.equal(wrongMethod.status(), 405);
     assertions++;
     await page.getByRole("button", { name: /CHECK BACKEND STATUS/ }).click();
-    await page.getByRole("heading", { name: "Payment confirmed." }).waitFor();
+    await page.getByRole("heading", { name: "Sandbox payment confirmed." }).waitFor();
     assertions++;
     // A spoofed SDK callback without provider buyer approval must not capture or display paid.
     await reset();
@@ -249,7 +261,7 @@ const SDK = `window.__sdkEarlyClose=0;window.__sdkPending=0;window.paypal={Butto
     mode = "spoof_callback";
     await page.getByRole("button", { name: "PayPal Sandbox · test buyer" }).click();
     await page.locator(".message.error").waitFor();
-    assert.equal(await page.getByRole("heading", { name: "Payment confirmed." }).count(), 0);
+    assert.equal(await page.getByRole("heading", { name: "Sandbox payment confirmed." }).count(), 0);
     assert.match(await page.locator(".payment-result").textContent(), /AWAITING_PAYPAL_BUYER/);
     assertions += 2;
     // Buyer cancellation is local failure, not provider-paid success or a retry.
@@ -259,8 +271,8 @@ const SDK = `window.__sdkEarlyClose=0;window.__sdkPending=0;window.paypal={Butto
     await approveSelected();
     mode = "cancel";
     await page.getByRole("button", { name: "PayPal Sandbox · test buyer" }).click();
-    await page.getByRole("heading", { name: "Payment not completed." }).waitFor();
-    assert.equal(await page.getByRole("heading", { name: "Payment confirmed." }).count(), 0);
+    await page.getByRole("heading", { name: "Sandbox payment not completed." }).waitFor();
+    assert.equal(await page.getByRole("heading", { name: "Sandbox payment confirmed." }).count(), 0);
     assertions++;
     await page.waitForFunction(() => window.__sdkPending === 0);
     assert.equal(await page.evaluate(() => window.__sdkEarlyClose), 0, "SDK must stay mounted until buyer cancellation resolves");
@@ -345,11 +357,64 @@ const SDK = `window.__sdkEarlyClose=0;window.__sdkPending=0;window.paypal={Butto
     );
     assert(reviewFits);
     assertions++;
+    assert(await page.locator(".approval-modal .sandbox-notice").isVisible()); assertions++;
     await page.screenshot({ path: `${shots}/ryuk-intent-review-mobile.png`, fullPage: true });
     await page.getByRole("button", { name: "REJECT", exact: true }).click();
     await page.getByText("CHECKOUT LOCKED", { exact: true }).waitFor();
     assert.equal(await page.locator(".paypal-slot").count(), 0);
     assertions++;
+    // Override only the isolated fixture's GET response, never the ledger.
+    for (const budget of [
+      { limit_minor: 0, settled_minor: 0, reserved_minor: 0, available_minor: 0 },
+      { limit_minor: 150000, settled_minor: 120000, reserved_minor: 30000, available_minor: 0 },
+    ]) {
+      await page.route("**/api/ryuk/workspace", async (route) => {
+        const response = await route.fetch();
+        const json = await response.json();
+        json.budget = { ...json.budget, ...budget };
+        await route.fulfill({ response, json });
+      });
+      await page.reload({ waitUntil: "networkidle" });
+      await page.getByRole("region", { name: "Sandbox budget breakdown" }).waitFor();
+      assert.equal(await page.getByRole("progressbar").count(), 3); assertions++;
+      assert.equal(await page.getByRole("progressbar", { name: "Available sandbox budget" }).getAttribute("value"), "0"); assertions++;
+      assert.match(await page.locator(".budget-bars").textContent(), /No budget is available/); assertions++;
+      assert.equal(await page.locator(".budget-bars progress").first().getAttribute("value"), String(budget.settled_minor)); assertions++;
+      await page.unroute("**/api/ryuk/workspace");
+    }
+    // Presentation timeout does not abort/retry the request or imply a payment result.
+    await page.clock.install();
+    let slowRoute, reachedSlow;
+    let slowRequests = 0;
+    const sawSlow = new Promise((resolve) => { reachedSlow = resolve; });
+    await page.route("**/api/ryuk/requests", (route) => {
+      slowRequests++; slowRoute = route; reachedSlow();
+    });
+    await page.getByRole("button", { name: /OPEN INVESTIGATION/ }).click();
+    await sawSlow;
+    await page.clock.fastForward(16000);
+    await page.locator(".activity:visible").getByText(/taking longer than expected/).waitFor();
+    assert.equal(slowRequests, 1); assertions++;
+    assert(await page.getByRole("button", { name: /EXAMINING/ }).isDisabled()); assertions++;
+    await slowRoute.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ detail: "Fixture request timed out" }) });
+    await page.locator(".message.error[role=alert]").getByText("Fixture request timed out", { exact: true }).waitFor();
+    assert.match(await page.locator(".message.error[role=alert]").textContent(), /do not press Pay again/); assertions++;
+    await page.unroute("**/api/ryuk/requests");
+    await page.clock.resume();
+    await page.route("**/api/ryuk/requests", async (route) => {
+      const response = await route.fetch();
+      const json = await response.json();
+      const legacyIntent = { ...json.intent };
+      delete legacyIntent.requirement_sources;
+      await route.fulfill({ response, json: { ...json, intent: legacyIntent, candidates: [] } });
+    });
+    await page.getByRole("button", { name: /OPEN INVESTIGATION/ }).click();
+    await page.getByRole("heading", { name: "No candidate records returned." }).waitFor();
+    assert.equal(await page.locator(".parsed-intent mark").count(), 0); assertions++;
+    assert(await page.locator(".parsed-intent").getByText("Source quote not retained for this record.", { exact: true }).count() > 0); assertions++;
+    assert.equal(await page.locator(".candidate").count(), 0); assertions++;
+    assert(await page.locator("body > .sandbox-notice").isVisible()); assertions++;
+    await page.unroute("**/api/ryuk/requests");
     assert.equal(failures.length, 0, failures.join("\n"));
     assertions++;
     console.log(

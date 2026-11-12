@@ -9,7 +9,7 @@ import httpx2
 import pytest
 from fastapi.testclient import TestClient
 from openai import AsyncOpenAI
-from test_intent_parser import CASES, GOLD
+from test_intent_parser import CASES, GOLD, expected_with_sources
 
 from app.api.checkout import get_checkout_actor
 from app.main import app
@@ -75,10 +75,9 @@ async def parse_mock(query: str, response: dict) -> Any:
 @pytest.mark.parametrize("case", CASES, ids=lambda c: c["id"])
 def test_gold_cases(case: dict) -> None:
     if case["expected"] is not None:
-        assert (
-            asyncio.run(parse_mock(case["query"], completion(case["extraction"]))).model_dump()
-            == case["expected"]
-        )
+        assert asyncio.run(
+            parse_mock(case["query"], completion(case["extraction"]))
+        ).model_dump() == expected_with_sources(case["query"], case["extraction"], case["expected"])
     else:
         with pytest.raises(IntentClarificationRequired):
             asyncio.run(parse_mock(case["query"], completion(case["extraction"])))
@@ -183,7 +182,9 @@ def test_groq_production_wiring(monkeypatch: pytest.MonkeyPatch) -> None:
     with TestClient(app) as client:
         response = client.post("/v1/agent/parse", json={"query": GOLD["query"]})
         assert response.status_code == 200
-        assert response.json() == GOLD["expected"]
+        assert response.json() == expected_with_sources(
+            GOLD["query"], GOLD["extraction"], GOLD["expected"]
+        )
         assert "test-only" not in response.text
     assert len(calls) == 1
 

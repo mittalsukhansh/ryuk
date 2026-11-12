@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import type { Metadata } from "next";
 import "./globals.css";
+import { SandboxNotice } from "../components/presentation";
 
 export const metadata: Metadata = {
   title: "Ryuk — Intent before payment",
@@ -15,7 +16,7 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <head><meta name="csp-nonce" content={nonce} /></head>
-      <body>{children}</body>
+      <body><SandboxNotice />{children}</body>
     </html>
   );
 }

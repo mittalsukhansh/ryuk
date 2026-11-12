@@ -11,7 +11,8 @@
     "start": "next start --hostname 0.0.0.0",
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
-    "test:e2e": "node tests/e2e.mjs"
+    "test:e2e": "node tests/e2e.mjs",
+    "test:presentation": "node --experimental-strip-types --test tests/presentation.test.mjs"
   },
   "dependencies": {
     "next": "16.4.6",

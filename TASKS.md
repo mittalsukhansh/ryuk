@@ -273,3 +273,62 @@ Step 13 in CODEX_PROMPTS.md is tests, scenarios and demo documentation with no n
 - [x] Add browser nonce/cache/loader/injection-blocking regressions
 - [ ] Real Sandbox SDK/approval recheck after frontend deployment (mock compatibility is not live certification)
 - [x] Frontend validation: lint/typecheck/production build and 62 mocked browser assertions; diff checks pass
+
+## Presentation polish pass — 2026-11-12
+- [x] Verify clean release baseline and read required instructions/current contracts
+- [x] Task 1: persistent Sandbox/synthetic/no-real-money notes on pages and dialogs
+- [x] Task 2: explain all 16 backend reason codes beside unchanged codes; generic fallback
+- [x] Task 3: existing settled/held/available values with zero/exhausted budget presentation
+- [x] Task 4: clearer waiting/slow/empty/error and pending-capture guidance without request/decision changes
+- [ ] Task 5: source-quote associations absent from response; stopped without backend/API changes
+- [ ] Task 6: deferred after task 5 stop boundary; README unchanged
+- [ ] Task 7: deferred after task 5 stop boundary; no new architecture diagram
+
+Constraints and validation details: docs/presentation-polish.md. All work remains local; no dependency additions or financial/ledger/provider/auth modifications.
+- [x] Validation: 1,102 backend tests (no skips), 22 presentation tests (no skips), lint/typecheck/build and 81 isolated Chromium assertions; fixture servers stopped
+
+## Authorized source-quote links — task 5 continuation
+- [x] Retain already-validated requirement quotes with role/name and Unicode code-point spans
+- [x] Validate exact source spans and complete/unique associations at the domain boundary
+- [x] Preserve legacy quote-less serialization; bind new provenance with existing intent snapshots/digests
+- [x] Show original/parsed requirements side by side with source highlights and keyboard links
+- [x] Preserve previous uncommitted presentation work and expose honest legacy missing-source text
+- [ ] Later requested tasks: README, architecture diagram, packaging; do not start in this turn
+- [ ] Separate future production migrations/auth/operations work
+- [x] Source-link validation: 1,114 backend tests, 25 helper tests, 98 browser assertions, lint/typecheck/build, Ruff/pip/diff checks; isolated fixtures only
+
+## README polish — requested next task
+- [x] One-line pitch and honest real-screenshot placeholder without invented imagery
+- [x] Three-command quick start aligned with startup.md and current Compose services
+- [x] Preserve private configuration/existing ledgers and all prior safety claims
+- [x] Note local work versus published release scope; check links/whitespace
+- [ ] Next task: architecture diagram (not started here)
+- [ ] Later packaging and separately authorized production migrations/operations work
+
+README/STATUS/TASKS only changed in this turn; runtime validation remains the prior 1,114 backend / 25 helper / 98 browser passing result, not a new run. No commit, tag, push, deployment or live provider calls.
+
+## Architecture diagram — requested next task
+- [x] Document the implemented model-derived flow as Mermaid with source references
+- [x] Mark untrusted LLM output, deterministic backend trust boundary and spending invariant
+- [x] Show separate exact application consent/PayPal buyer authorization and durable recovery limits
+- [x] Link diagram from README and verify local links/source structure/whitespace
+- [ ] Next requested stage: final checks/packaging (not started here)
+- [ ] Separate production migrations and remaining hardening stages
+
+Documentation only; runtime files and earlier local changes preserved. No commit, tag, push, deployment or live financial activity.
+
+## Combined checks and review package — 2026-11-12
+- [x] Rerun full backend suite: 1,114 pass, zero failures/errors/skips
+- [x] Rerun 25 frontend tests, lint/typecheck/production build and 98 isolated browser assertions
+- [x] Verify protected financial/auth/provider/SQL/CSP files remain unchanged and docs links resolve
+- [x] Package tracked/new-file patch, manifest, summary and fixture screenshots outside the repository
+- [x] Check patch applicability using a temporary index; leave the real worktree/index uncommitted
+- [ ] User review before any commit/push; no tag or deployment authorized in this turn
+
+The bundle contains no credentials, ledger files or real payment evidence. Provider/SDK/model behavior is mocked; live timing/acceptance is not claimed. No subsequent production stage started.
+
+## User-approved publication — 2026-11-12
+- [x] Explicit approval to publish the reviewed presentation/source-provenance/docs batch
+- [x] Verify all 24 reviewed files match before documentation publication-status edits
+- [x] Preserve release tags, existing financial records and unrelated work
+- [ ] Separate production migrations/auth/operations stages remain unstarted

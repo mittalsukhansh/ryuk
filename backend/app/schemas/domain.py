@@ -6,7 +6,7 @@ Services must reload canonical records and enforce current policy before acting.
 """
 
 from enum import StrEnum
-from typing import Annotated, Self
+from typing import Annotated, Any, Literal, Self
 
 from pydantic import (
     AwareDatetime,
@@ -14,7 +14,9 @@ from pydantic import (
     ConfigDict,
     Field,
     JsonValue,
+    SerializerFunctionWrapHandler,
     StringConstraints,
+    model_serializer,
     model_validator,
 )
 
@@ -103,6 +105,16 @@ class PaymentState(StrEnum):
     PENDING_PROVIDER = "PENDING_PROVIDER"
 
 
+class RequirementSource(DomainModel):
+    """Exact validated source association; offsets count Unicode code points, not UTF-16."""
+
+    role: Literal["required", "preferred"]
+    name: NonEmptyString
+    quote: NonEmptyString
+    start: Annotated[int, Field(strict=True, ge=0)]
+    end: Annotated[int, Field(strict=True, gt=0)]
+
+
 class PurchaseIntent(DomainModel):
     category: NonEmptyString
     query: NonEmptyString
@@ -113,6 +125,15 @@ class PurchaseIntent(DomainModel):
     preferred_attributes: dict[NonEmptyString, JsonValue] = Field(default_factory=dict)
     quantity: PositiveInteger = 1
     notes: str | None = None
+    requirement_sources: list[RequirementSource] = Field(default_factory=list)
+
+    @model_serializer(mode="wrap")
+    def serialize_legacy_compatible(self, handler: SerializerFunctionWrapHandler) -> dict[str, Any]:
+        data = handler(self)
+        # Preserve old snapshot/digest bytes for persisted quote-less intents.
+        if not self.requirement_sources:
+            data.pop("requirement_sources", None)
+        return data
 
     @model_validator(mode="after")
     def validate_threshold(self) -> Self:
@@ -121,6 +142,30 @@ class PurchaseIntent(DomainModel):
             raise ValueError("approval_threshold_minor must not exceed budget_max_minor")
         if self.required_attributes.keys() & self.preferred_attributes.keys():
             raise ValueError("an attribute cannot be both required and preferred")
+        if self.requirement_sources:
+            expected = {
+                (role, name)
+                for role, values in (
+                    ("required", self.required_attributes),
+                    ("preferred", self.preferred_attributes),
+                )
+                for name in values
+            }
+            actual = set()
+            for source in self.requirement_sources:
+                key = (source.role, source.name)
+                if key in actual or key not in expected:
+                    raise ValueError("Source association must match one distinct requirement")
+                if (
+                    source.end <= source.start
+                    or source.end > len(self.query)
+                    or self.query.count(source.quote) != 1
+                    or self.query[source.start : source.end] != source.quote
+                ):
+                    raise ValueError("Source quote must identify its exact unique request span")
+                actual.add(key)
+            if actual != expected:
+                raise ValueError("Source associations must cover every parsed requirement")
         return self
 
 

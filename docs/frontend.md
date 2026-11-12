@@ -223,3 +223,6 @@ HTTP 200 is transport success, not necessarily payment SUCCEEDED. Read the exist
 
 ## Proxy-aware login configuration
 Compose now includes a trusted ingress and requires a private RYUK_PROXY_SHARED_SECRET (32–256 random ASCII characters) for browser login. Add it locally to .env before upgrading; recreate backend, frontend and ingress together. Frontend port 3000 is not directly published. See [login rate-limit trust boundary](login-rate-limits.md).
+
+## Requirement source links
+New parser responses retain validated requirement_sources associations. Original text is shown beside mandatory/preferred lists, with exact source quotes and keyboard links. Older quote-less records explicitly indicate missing source text; no quote is inferred. Provenance is bound with the full intent snapshot/digest and does not prove semantic completeness or grant spend authority. See [contract and compatibility](intent-provenance.md).

@@ -1458,3 +1458,34 @@ footer {
 .recovery-history ul { list-style: none; padding: 0; }
 .recovery-history li { padding-block: .75rem; overflow-wrap: anywhere; }
 .recovery-history button { margin: .5rem .75rem .5rem 0; padding: .6rem; border: 1px solid currentColor; }
+
+/* Presentation-only additions; all budget/decision values come from the backend. */
+.sandbox-notice { position: sticky; top: 0; z-index: 30; background: #171712; color: #eee3bf; border-bottom: 1px solid #716544; padding: .65rem 1rem; text-align: center; font-size: .8rem; line-height: 1.5; }
+.modal .sandbox-notice { position: sticky; margin: 1.4rem 0 1rem; }
+.budget-bars { margin: 1.25rem 0; border-top: 1px solid var(--line); padding-top: 1rem; font-size: .8rem; }
+.budget-bars > div { margin-block: .7rem; }
+.budget-bar-label { display: flex; justify-content: space-between; gap: .5rem; }
+.budget-bars progress { display: block; width: 100%; height: .5rem; margin-top: .4rem; accent-color: #c4aa78; }
+.budget-bars p { line-height: 1.6; }
+.policy-reasons li { margin-block: .75rem; }
+.policy-reasons code { overflow-wrap: anywhere; color: #eee3bf; }
+.policy-reasons p { color: #d5d1c7; line-height: 1.6; margin-top: .25rem; }
+.activity { display: block; }
+.activity p + p { margin-top: .5rem; color: #d5d1c7; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+html { scroll-padding-top: 80px; }
+.budget-panel .budget-bars { grid-column: 1 / -1; }
+.budget-bars progress { appearance: none; border: 0; background: #2b2b2b; }
+.budget-bars progress::-webkit-progress-bar { background: #2b2b2b; }
+.budget-bars progress::-webkit-progress-value { background: #c4aa78; }
+.budget-bars progress::-moz-progress-bar { background: #c4aa78; }
+
+.intent-sources { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1.25rem; margin-block: 1rem; line-height: 1.7; }
+.intent-sources ul { padding-left: 1rem; }
+.intent-sources li { margin-block: .75rem; overflow-wrap: anywhere; }
+.intent-sources blockquote { margin: .35rem 0; padding-left: .6rem; border-left: 2px solid #c4aa78; }
+.intent-sources mark { background: #39331f; color: #fff0bb; padding: .05rem .1rem; }
+.intent-sources .original-instruction { white-space: pre-wrap; }
+.intent-sources .original-instruction:focus { outline: 2px solid #c4aa78; outline-offset: 4px; }
+@media (max-width: 700px) { .intent-sources { grid-template-columns: minmax(0, 1fr); } }
