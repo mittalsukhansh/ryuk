@@ -1,0 +1,1 @@
+{"category":"hotel","query":"Synthetic hotel verification demo","currency":"USD","budget_max_minor":150000,"approval_threshold_minor":130000,"quantity":1,"required_attributes":{"country":"Switzerland","nights":5,"gym":true,"mountain_view":true,"free_cancellation":true},"preferred_attributes":{"private_pool":true}}

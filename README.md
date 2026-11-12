@@ -139,3 +139,7 @@ Document scripts now use a nonce-based CSP with PayPal nonce propagation; HTML i
 ## License
 
 Ryuk is available under the [MIT License](LICENSE). Third-party dependencies retain their respective licenses.
+
+## Optional Render experiment
+
+The separate `render-sandbox` branch includes a hosting Blueprint and an operator-triggered, read-only catalog-verification Workflow. See [setup and limits](docs/render-sandbox.md). It is not part of the frozen submission tag, and local preparation does not prove a live Render deployment or sponsor eligibility.

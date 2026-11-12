@@ -1285,3 +1285,9 @@ Status: Accepted
 Persist source associations already validated by the parser as optional PurchaseIntent requirement_sources entries with role/name/quote and Unicode code-point spans. Preserve provider extraction schema and all financial policy/consent checks. Validate complete, unique associations and exact unique source text whenever provenance is present. Do not fabricate provenance for legacy records.
 
 Omit empty provenance from serialization so old persisted snapshot/digest inputs remain byte-compatible; the existing complete-intent snapshot/digest includes new provenance, binding the representation reviewed by the buyer. No SQL migration or financial record rewrite. Display original request and mandatory/preferred lists with escaped highlighted text and keyboard source links; merge overlaps only for rendering. Quotes demonstrate cited text, not semantic completeness. This supersedes the earlier presentation task-5 blocker only under the user's explicit backend/API authorization; README/diagram/packaging/migrations remain outside this turn.
+
+## D-051 — Isolate optional Render hosting and read-only Workflow
+Date: 2026-11-12
+Status: Local implementation; cloud acceptance pending
+
+Keep the frozen submission unchanged. On render-sandbox, declare private frontend/backend and a new disk behind public nginx, plus a credential-free/disk-free Python Workflow invoking existing deterministic synthetic-catalog verification. Workflow output is advisory only and never consumed as spending authority; website decisions stay local. Operator triggers use public fixture data. Do not move PayPal calls into automatically retried tasks. Require account/credit/cost review before resources are activated. Preserve conservative proxy identity and explicitly document shared-edge rate-limit availability; public-scale identity/abuse controls are not claimed.

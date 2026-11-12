@@ -11,3 +11,7 @@
 **/__pycache__
 **/*.pyc
 **/.env*
+!deploy/
+!deploy/render/
+!deploy/render/Dockerfile
+!deploy/render/default.conf.template

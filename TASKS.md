@@ -1,5 +1,14 @@
 # AgentPay Task Board
 
+## Optional Render branch
+
+- [x] Separate Blueprint and read-only operator-triggered Workflows verification
+- [x] Typed bounded input, no payment/ledger imports, zero retries, isolated tests
+- [x] Document credits, cost review, proxy limitations and manual Python setup
+- [ ] Verify sponsor credits and approve current costs before resource activation
+- [ ] Render Blueprint/deployment/Workflow acceptance and hosted browser/provider checks
+
+
 - [x] Temporary-clone approval layout and non-floating Sandbox notice; frontend checks and desktop/mobile fixture verification pass. No commit/push/deployment.
 
 ## P0 — Must ship

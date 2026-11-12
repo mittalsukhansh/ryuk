@@ -1,5 +1,10 @@
 # Ryuk Status
 
+## Current: optional Render Sandbox preparation
+
+Separate render-sandbox branch based on 9c4ee9d; submission tag/main and production-foundation remain unchanged. Added a Blueprint with private frontend/backend, new disk, public nginx and Python Workflow; operator-triggered advisory verification reuses existing typed intent/catalog/verifier. No website/payment/auth/policy runtime changes, no remote spending authority. Validation: 1,123 backend/workflow tests pass (nine new workflow tests), Ruff and nginx image/config smoke pass; no fresh frontend/browser/live cloud coverage claimed. See docs/render-sandbox.md. Credits, provider-side Blueprint acceptance, actual deployment/task completion and hosted provider/browser acceptance remain unverified. No live model/payment calls, existing ledger changes or paid resource activation.
+
+
 Approval-dialog presentation polish in the temporary submission clone: stacked original/parsed review, compact responsive requirement cards and wrapped exact-term details. Sandbox notices are in normal flow, not floating over content. Frontend lint/typecheck/build and isolated desktop/mobile dialog overflow, notice scrolling and close-control checks pass. No approval/payment logic changed, no approval decision/checkout performed; uncommitted and not deployed.
 
 ## Current: user-approved presentation/provenance publication — 2026-11-12

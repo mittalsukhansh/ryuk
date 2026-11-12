@@ -1,0 +1,100 @@
+# Optional review branch only. Costs apply; review credits/billing before creating services.
+services:
+  - type: pserv
+    name: ryuk-render-backend
+    runtime: docker
+    plan: starter
+    region: frankfurt
+    branch: render-sandbox
+    dockerfilePath: backend/Dockerfile
+    autoDeployTrigger: 'off'
+    disk:
+      name: ryuk-render-new-ledger
+      mountPath: /app/data
+      sizeGB: 1
+    envVars:
+      - key: PORT
+        value: '8000'
+      - key: APP_ENV
+        value: development
+      - key: RYUK_DEMO_ENABLED
+        value: 'true'
+      - key: RYUK_DEMO_PASSWORD
+        generateValue: true
+      - key: RYUK_PROXY_SHARED_SECRET
+        generateValue: true
+      - key: RYUK_CHECKOUT_DB_PATH
+        value: /app/data/ryuk.sqlite3
+      - key: RYUK_APP_ORIGIN
+        sync: false
+      - key: RYUK_SECURE_COOKIES
+        value: 'true'
+      - key: LLM_PROVIDER
+        value: groq
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_MODEL
+        value: openai/gpt-oss-120b
+      - key: PAYPAL_ENV
+        value: sandbox
+      - key: PAYPAL_BASE_URL
+        value: https://api-m.sandbox.paypal.com
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: PAYPAL_MERCHANT_ID
+        sync: false
+  - type: pserv
+    name: ryuk-render-frontend
+    runtime: docker
+    plan: starter
+    region: frankfurt
+    branch: render-sandbox
+    dockerfilePath: frontend/Dockerfile
+    dockerContext: frontend
+    dockerCommand: /bin/sh -c 'RYUK_BACKEND_URL="http://$RYUK_BACKEND_HOSTPORT" node server.js'
+    autoDeployTrigger: 'off'
+    envVars:
+      - key: PORT
+        value: '3000'
+      - key: RYUK_BACKEND_HOSTPORT
+        fromService:
+          type: pserv
+          name: ryuk-render-backend
+          property: hostport
+      - key: RYUK_TRUST_INGRESS
+        value: 'true'
+      - key: RYUK_PROXY_SHARED_SECRET
+        fromService:
+          type: pserv
+          name: ryuk-render-backend
+          envVarKey: RYUK_PROXY_SHARED_SECRET
+  - type: web
+    name: ryuk-render-demo
+    runtime: docker
+    plan: starter
+    region: frankfurt
+    branch: render-sandbox
+    dockerfilePath: deploy/render/Dockerfile
+    autoDeployTrigger: 'off'
+    healthCheckPath: /
+    envVars:
+      - key: PORT
+        value: '10000'
+      - key: FRONTEND_HOSTPORT
+        fromService:
+          type: pserv
+          name: ryuk-render-frontend
+          property: hostport
+  - type: workflow
+    name: ryuk-render-verification
+    runtime: python
+    region: frankfurt
+    branch: render-sandbox
+    autoDeployTrigger: 'off'
+    buildCommand: pip install -r backend/requirements.txt -r render_workflows/requirements.txt
+    startCommand: PYTHONPATH=backend:. python -m render_workflows.main
+    envVars:
+      - key: PYTHON_VERSION
+        value: '3.12.12'
