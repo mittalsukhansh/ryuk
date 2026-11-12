@@ -10,12 +10,14 @@ from contextlib import contextmanager
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request
+from pydantic import Field
 
 from app.schemas.checkout import CheckoutRecord, OrderCreationState
 from app.schemas.domain import Currency, DomainModel, MinorUnits, NonEmptyString, PaymentState
 from app.services.approvals import ApprovalAccessError, ApprovalPolicyError, ApprovalStateError
 from app.services.checkout import CheckoutBlocked, CheckoutService, CheckoutUnavailable
 from app.services.checkout_store import CheckoutAccessError
+from app.services.resources import ResourceLimitError
 
 router = APIRouter(prefix="/v1/checkouts", tags=["checkout"])
 
@@ -80,7 +82,8 @@ def _view(record: CheckoutRecord) -> CheckoutView:
         verification_snapshot_id=record.payment.verification_snapshot_id,
         capture_id=record.capture_id,
         proposal_id=record.payment.proposal_id,
-        provider_status="COMPLETED" if record.payment.state == "SUCCEEDED" else None,
+        provider_status=record.provider_observation_status
+        or ("COMPLETED" if record.payment.state == "SUCCEEDED" else None),
     )
 
 
@@ -88,6 +91,8 @@ def _view(record: CheckoutRecord) -> CheckoutView:
 def _errors() -> Iterator[None]:
     try:
         yield
+    except ResourceLimitError:
+        raise HTTPException(status_code=429, detail="Workspace retention limit reached") from None
     except (ApprovalAccessError, CheckoutAccessError):
         raise HTTPException(status_code=404, detail="Checkout or proposal not available") from None
     except ApprovalPolicyError as error:
@@ -140,3 +145,21 @@ async def reconcile(
 def cancel(checkout_id: str, body: CheckoutAction, actor: Actor, service: Service) -> CheckoutView:
     with _errors():
         return _view(service.cancel(checkout_id, actor_user_id=actor))
+
+
+class RefundRequest(DomainModel):
+    reason: str = Field(min_length=1, max_length=200)
+
+
+@router.post("/{checkout_id}/refund-request")
+def request_refund(checkout_id: str, body: RefundRequest, actor: Actor, service: Service) -> dict:
+    import os
+
+    from app.services.provider_operations import ProviderOperations
+
+    if os.environ.get("RYUK_REFUNDS_ENABLED") != "true":
+        raise HTTPException(503, "Refund requests are not enabled")
+    with _errors():
+        return ProviderOperations(service.store, service.paypal).request_refund(
+            checkout_id, actor, body.reason
+        )

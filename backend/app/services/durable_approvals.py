@@ -20,6 +20,7 @@ from app.services.approvals import (
 )
 from app.services.checkout_store import CheckoutStore
 from app.services.proposal_binding import InvalidProposalBinding, require_proposal_binding
+from app.services.resources import ResourceLimitError
 
 CONSENT_FAILURES = (ApprovalPolicyError, ApprovalStateError, InvalidProposalBinding)
 
@@ -85,6 +86,8 @@ class DurableApprovalService(InMemoryApprovalService):
     def _save(
         self, connection: sqlite3.Connection, engine: InMemoryApprovalService, identifier: str
     ) -> None:
+        if len(engine._requests) > 100:
+            raise ResourceLimitError("Approval history quota exceeded")
         proposal = engine._proposals.get(identifier)
         if proposal is None:
             return

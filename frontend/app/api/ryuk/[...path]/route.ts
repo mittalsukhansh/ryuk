@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 
 export const runtime = "nodejs";
 const allowed =
-  /^(session|workspace|history|requests|proposals\/[a-zA-Z0-9_-]+(?:\/(select|approval|audit))?|approvals\/[a-zA-Z0-9_-]+\/decision|checkouts(?:\/[a-zA-Z0-9_-]+(?:\/(capture|reconcile|cancel))?)?)$/;
+  /^(session|workspace|history|requests|proposals\/[a-zA-Z0-9_-]+(?:\/(select|approval|audit))?|approvals\/[a-zA-Z0-9_-]+\/decision|checkouts(?:\/[a-zA-Z0-9_-]+(?:\/(capture|reconcile|cancel|refund-request))?)?)$/;
 
 async function proxy(
   request: NextRequest,
@@ -41,15 +41,28 @@ async function proxy(
     const reader = request.body.getReader();
     const chunks: Uint8Array[] = [];
     let size = 0;
-    while (true) {
-      const item = await reader.read();
-      if (item.done) break;
-      size += item.value.byteLength;
-      if (size > 65_536) {
-        await reader.cancel();
-        return Response.json({ detail: "Request too large" }, { status: 413 });
+    let timedOut = false;
+    const timer = setTimeout(() => {
+      timedOut = true;
+      void reader.cancel().catch(() => {});
+    }, 10_000);
+    try {
+      while (true) {
+        const item = await reader.read();
+        if (item.done) break;
+        size += item.value.byteLength;
+        if (size > 65_536) {
+          await reader.cancel();
+          return Response.json({ detail: "Request too large" }, { status: 413 });
+        }
+        chunks.push(item.value);
       }
-      chunks.push(item.value);
+      if (timedOut)
+        return Response.json({ detail: "Request body timed out" }, { status: 408 });
+    } catch {
+      return Response.json({ detail: "Request body unavailable" }, { status: 400 });
+    } finally {
+      clearTimeout(timer);
     }
     body = Buffer.concat(chunks).toString("utf8");
   }

@@ -1,4 +1,41 @@
+<!-- Current publication scope: submission tag v0.1.2-sandbox-demo points to af750c2. Production-foundation changes are on the review branch only, not main or the submission tag. Earlier release-preparation wording below is superseded by this scope. No deployment or real-ledger migration. -->
+
 # AgentPay Task Board
+
+## Current source freeze — v0.1.2-sandbox-demo
+
+- [x] User authorization to commit and publish the complete final source tag
+- [x] Verify all 47 reviewed files match the validated implementation
+- [x] README, startup, release notes and project summary identify the new source freeze
+- [x] Preserve prior release tags, private configuration and all existing financial records
+- [x] Record automated evidence and unverified frontend image/live acceptance boundaries
+
+Publication outcome is verified against the remote refs after commit/tag creation. No deployment is included. Earlier local-review checklists below describe their original stage.
+
+
+## Current production-foundation batch — local review, 2026-11-12
+
+- [x] Forward-only checksummed migrations, compatible legacy adoption and transactional rollback
+- [x] Atomic account/policy/merchant provisioning and immutable policy versions
+- [x] Optional operator-created local users, hashed persistent sessions, revocation and owner isolation; demo remains default
+- [x] Stronger request deadlines/body/admission, DB quotas/concurrency/retention and Compose CPU/memory/PID bounds
+- [x] GET-only single/paged monitoring of terminal and pending provider orders
+- [x] Verified/deduplicated Sandbox events and separate financial adjustments
+- [x] Buyer full-refund requests, operator review, opt-in one-shot dispatch and GET/verified-event recovery
+- [x] Durable refund-review status in saved activity; no buyer execution/admin authority
+- [x] 1,153 backend tests, 25 helper tests, lint/typecheck/build, 102 isolated Chromium assertions, Ruff/pip/Compose/diff checks
+- [x] Backend image build and non-root temporary-ledger migration smoke; no existing volumes mounted
+- [x] Operator/upgrade documentation and project-wide independent-review summary
+- [ ] Frontend Docker image verification: extra image build stalled in npm ci and was stopped; host production build passed
+- [ ] Controlled live Sandbox SDK/refund/webhook acceptance; no calls made in this task
+- [ ] Public deployment infrastructure, edge/load/alerts and scheduled monitor; not installed
+- [ ] OIDC/MFA/public account lifecycle if desired; optional local identities are not that feature set
+- [ ] Multi-host database/HA, power-loss/restore and host/Windows ACL assurance
+- [ ] Partial refunds/fees/FX/disputes/net merchant accounting and remaining documented semantic/development-tooling risks
+- [ ] Review/publication of this local batch; no commit/tag/push/deployment
+
+See docs/production-foundation.md and docs/project-review-summary.md. Historical checklists below describe their original stages and do not override this current status.
+
 
 ## P0 — Must ship
 

@@ -1,4 +1,26 @@
+<!-- Current publication scope: submission tag v0.1.2-sandbox-demo points to af750c2. Production-foundation changes are on the review branch only, not main or the submission tag. Earlier release-preparation wording below is superseded by this scope. No deployment or real-ledger migration. -->
+
 # Ryuk Status
+
+## Current: v0.1.2-sandbox-demo source freeze — 2026-11-12
+
+The user explicitly requested a final tag so judges see the complete implementation. This source freeze includes the exact reviewed 47-file production-foundation package on top of af750c2, plus release documentation updates. Runtime files match the validated package; only release/status documentation changed during this task. README/startup/release notes now identify v0.1.2-sandbox-demo. Existing release tags are preserved. Commit authorship uses mittalsukhansh's configured GitHub identity.
+
+Implementation evidence remains **1,153 backend tests, 25 frontend helper tests and 102 isolated Chromium assertions**, plus frontend lint/typecheck/build, Ruff/dependency/Compose checks and backend image migration smoke. The extra frontend image build remains unverified, the isolated browser connection-reset attempt is documented, and no live provider/model/payment calls or deployment/ledger changes are included. See docs/release-notes.md for current source-release scope and docs/project-review-summary.md for the whole-project review handoff. The local/uncommitted descriptions below are historical pre-publication records.
+
+
+## Current: local production-foundation implementation — 2026-11-12
+
+Implemented forward-only checksummed transactional SQLite migrations/legacy adoption and atomic account/policy/merchant bootstrap; immutable policy versions; opt-in operator-created local identities with revocable hashed persistent sessions and owner isolation; stronger body/deadline/admission/lease/retention and Compose resource bounds; exact-order monitoring after terminal local checkout; verified/deduplicated Sandbox events; buyer-requested, operator-reviewed, explicitly dispatched full Sandbox refunds with durable duplicate/uncertainty protection. Demo login remains the default; no account/mode switch or installation upgrade was performed. See [operator boundaries](docs/production-foundation.md), D-046–D-048 and the [project-wide review handoff](docs/project-review-summary.md).
+
+Validation: **1,153 backend tests passed, zero failures/errors/skips** (39 additional regressions); **25 frontend helper tests passed**, zero skips; **102 isolated Chromium assertions passed** including durable buyer refund requests after reload. Frontend lint/typecheck/production build, Ruff, Python dependency consistency, Compose configuration and Git whitespace checks pass. The concurrent-startup regression found a real journal-mode lock race; bounded idempotent WAL setup retry fixes it without retrying financial transactions. Backend container build and non-root fresh-tmpfs migration smoke test pass. The extra frontend Docker image build was stopped after more than ten minutes stalled in npm ci; that image is unverified. An isolated container registry probe returned HTTP 200, but this did not establish the cause of the stalled install. The host frontend production build and isolated browser result passed independently.
+
+One fresh-process browser attempt hit ECONNRESET on the isolated reset endpoint; a complete rerun passed all 102 assertions. No root-cause fix is claimed for that intermittent fixture connection.
+
+npm production audit: zero known advisories; full tooling tree: eight moderate advisories. No new runtime dependencies. Existing nonce CSP remains intact. Only new temporary fixture ledgers/mocked provider/model responses were used. No real credentials inspected, live provider/payment/model calls, existing ledger/volume modifications, financial reset, commit, tag, push or deployment. The earlier pushed presentation batch remains at af750c2; this production batch is local and uncommitted.
+
+Remaining limits are explicit: single-host SQLite, optional local accounts rather than OIDC/MFA/public registration, unscheduled operator monitoring/alerts, partial refund/dispute/net accounting, legacy orphan/unknown-reference investigation, host ACL/backup/load testing, semantic completeness and real SDK/refund/webhook acceptance. Gross spending budget is not silently replenished by refunds/reversals. The user owns video/timing; no new live acceptance or measured walkthrough is claimed. Historical sections below retain their original per-revision status.
+
 
 ## Current: user-approved presentation/provenance publication — 2026-11-12
 

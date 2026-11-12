@@ -36,6 +36,7 @@ def new_ledger_path() -> str:
 
 os.environ.update(
     RYUK_DEMO_ENABLED="true",
+    RYUK_REFUNDS_ENABLED="true",
     RYUK_DEMO_PASSWORD=PASSWORD,
     RYUK_APP_ORIGIN="http://localhost:3100",
     RYUK_SECURE_COOKIES="false",

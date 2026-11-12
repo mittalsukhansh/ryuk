@@ -187,6 +187,15 @@ const SDK = `window.__sdkEarlyClose=0;window.__sdkPending=0;window.paypal={Butto
     assert.equal(await page.locator(".paypal-slot").count(), 0);
     assert.equal(recoveryMutations, 0);
     assertions += 2;
+    assert(await saved.getByRole("button", { name: "Request full Sandbox refund for review" }).isVisible()); assertions++;
+    await saved.getByRole("button", { name: "Request full Sandbox refund for review" }).click();
+    await saved.getByRole("status").filter({ hasText: "Awaiting operator review; no refund dispatched." }).waitFor();
+    assert.equal(await saved.getByRole("button", { name: "Request full Sandbox refund for review" }).count(), 0); assertions++;
+    await page.reload({ waitUntil: "networkidle" });
+    await page.getByRole("button", { name: "Load saved activity" }).click();
+    await saved.getByRole("status").filter({ hasText: "Awaiting operator review; no refund dispatched." }).waitFor();
+    assert.match(await saved.textContent(), /Sandbox refund: Requested/); assertions++;
+    assert.equal(recoveryMutations, 0); assertions++;
     page.off("request", trackRecovery);
     // Escalation uses backend consent and then the same actual checkout coordinator.
     await reset();

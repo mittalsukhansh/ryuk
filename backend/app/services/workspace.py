@@ -11,6 +11,7 @@ from app.services.approvals import ApprovalAccessError, InMemoryApprovalService
 from app.services.catalog import CatalogService
 from app.services.checkout_store import CheckoutStore
 from app.services.durable_approvals import authority_transaction
+from app.services.resources import ResourceLimitError
 from app.services.verifier import verify_offer
 
 
@@ -75,39 +76,45 @@ class WorkspaceService:
         request_id = str(uuid4())
         with authority_transaction(self.store) as connection:
             policy = self.store.policy(connection, actor)
-        for offer in search.offers:
-            proposal = self.approvals.register_proposal(
-                PurchaseProposal(
-                    proposal_id=str(uuid4()),
-                    user_id=actor,
-                    intent=intent,
-                    offer=offer,
-                    policy_version=policy.version,
-                    created_at=datetime.now(timezone.utc),
-                    verification=verify_offer(intent, offer),
-                    intent_review_required=True,
-                ),
-                at=datetime.now(timezone.utc),
-            )
-            for name, details in [
-                ("USER_INTENT_CREATED", {"request_id": request_id}),
-                ("OFFERS_FOUND", {"count": search.total}),
-                (
-                    "VERIFICATION_COMPLETED",
-                    {"snapshot": proposal.verification.verification_snapshot_id},
-                ),
-            ]:
-                self.event(proposal.proposal_id, name, details)
-            candidate = self.describe(proposal.proposal_id, actor)
-            self.event(
-                proposal.proposal_id,
-                "POLICY_EVALUATED",
-                {
-                    "decision": candidate["policy"]["decision"],
-                    "reason_codes": candidate["policy"]["reason_codes"],
-                },
-            )
-            candidates.append(candidate)
+        with self.store.transaction() as connection:
+            count = connection.execute(
+                "SELECT COUNT(*) FROM proposal_authority WHERE user_id=?", (actor,)
+            ).fetchone()[0]
+            if count + len(search.offers) > 1000:
+                raise ResourceLimitError("Proposal retention quota exceeded")
+            for offer in search.offers:
+                proposal = self.approvals.register_proposal(
+                    PurchaseProposal(
+                        proposal_id=str(uuid4()),
+                        user_id=actor,
+                        intent=intent,
+                        offer=offer,
+                        policy_version=policy.version,
+                        created_at=datetime.now(timezone.utc),
+                        verification=verify_offer(intent, offer),
+                        intent_review_required=True,
+                    ),
+                    at=datetime.now(timezone.utc),
+                )
+                for name, details in [
+                    ("USER_INTENT_CREATED", {"request_id": request_id}),
+                    ("OFFERS_FOUND", {"count": search.total}),
+                    (
+                        "VERIFICATION_COMPLETED",
+                        {"snapshot": proposal.verification.verification_snapshot_id},
+                    ),
+                ]:
+                    self.event(proposal.proposal_id, name, details)
+                candidate = self.describe(proposal.proposal_id, actor)
+                self.event(
+                    proposal.proposal_id,
+                    "POLICY_EVALUATED",
+                    {
+                        "decision": candidate["policy"]["decision"],
+                        "reason_codes": candidate["policy"]["reason_codes"],
+                    },
+                )
+                candidates.append(candidate)
         return {
             "request_id": request_id,
             "intent": intent.model_dump(mode="json"),

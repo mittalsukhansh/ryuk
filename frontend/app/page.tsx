@@ -67,7 +67,7 @@ function CheckRow({ check, preferred }: { check: Check; preferred?: boolean }) {
   );
 }
 export default function Home() {
-  const [session, setSession] = useState({
+  const [session, setSession] = useState<{configured: boolean; authenticated: boolean; login_mode?: string}>({
     configured: false,
     authenticated: false,
   });
@@ -83,6 +83,7 @@ export default function Home() {
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const authDialog = useRef<HTMLDialogElement>(null);
   const approvalDialog = useRef<HTMLDialogElement>(null);
@@ -103,7 +104,7 @@ export default function Home() {
   }
   useEffect(() => {
     let mounted = true;
-    api<{ configured: boolean; authenticated: boolean }>("session")
+    api<{ configured: boolean; authenticated: boolean; login_mode?: string }>("session")
       .then(async (state) => {
         if (!mounted) return;
         setSession(state);
@@ -125,9 +126,9 @@ export default function Home() {
     setBusy("Unlocking your workspace");
     setError("");
     try {
-      await api("session", "POST", { password });
+      await api("session", "POST", { password, ...(session.login_mode === "local" ? { username } : {}) });
       setPassword("");
-      setSession({ configured: true, authenticated: true });
+      setSession((s) => ({ ...s, configured: true, authenticated: true }));
       await refreshWorkspace();
       authDialog.current?.close();
     } catch (e) {
@@ -353,7 +354,7 @@ export default function Home() {
           </div>
         </aside>
         <main>
-          {session.authenticated && <RecoveryHistory disabled={!!busy || active} onError={fail} />}
+          {session.authenticated && <RecoveryHistory disabled={!!busy || active} onError={fail} refundsEnabled={workspace?.paypal.refund_requests_enabled} />}
           <section className="opening" id="command">
             <div>
               <p className="eyebrow">
@@ -812,13 +813,13 @@ export default function Home() {
                   <p className="eyebrow">BACKEND PAYMENT RECORD</p>
                   <h2>
                     {checkout.state === "SUCCEEDED"
-                      ? "Sandbox payment confirmed."
+                      ? (checkout.provider_status && checkout.provider_status !== "COMPLETED" ? "Sandbox provider status updated." : "Sandbox payment confirmed.")
                       : ["PENDING_PROVIDER", "CAPTURE_PENDING"].includes(
                             checkout.state,
                           )
                         ? "Confirmation pending."
                         : checkout.state === "FAILED"
-                          ? "Sandbox payment not completed."
+                          ? (checkout.provider_status === "COMPLETED" ? "Provider capture requires review." : "Sandbox payment not completed.")
                           : checkout.order_creation !== "READY"
                             ? "Order needs review."
                             : "Awaiting your PayPal approval."}
@@ -866,6 +867,15 @@ export default function Home() {
                     ))}
                   </dl>
                   <p className="subtle">Sandbox record only. No real money moved and no hotel was booked.</p>
+                  {workspace?.paypal.refund_requests_enabled && checkout.state === "SUCCEEDED" && checkout.provider_status === "COMPLETED" && (
+                    <button className="secondary" disabled={!!busy} onClick={async () => {
+                      setBusy("Submitting refund request for operator review");
+                      try {
+                        await api(`checkouts/${checkout.checkout_id}/refund-request`, "POST", { reason: "Buyer requests a full Sandbox refund" });
+                        setNotice("Refund request recorded for operator review. No refund has been dispatched.");
+                      } catch (e) { fail(e); } finally { setBusy(""); }
+                    }}>REQUEST FULL SANDBOX REFUND FOR REVIEW</button>
+                  )}
                   {!terminal(checkout) && (
                     <>
                       <p className="subtle">
@@ -982,6 +992,10 @@ export default function Home() {
           </p>
         )}
         <form onSubmit={signIn}>
+          {session.login_mode === "local" && <>
+            <label htmlFor="workspace-username">Username</label>
+            <input id="workspace-username" autoComplete="username" value={username} onChange={(e) => setUsername(e.target.value)} required maxLength={128} />
+          </>}
           <label htmlFor="workspace-password">Workspace password</label>
           <input
             id="workspace-password"

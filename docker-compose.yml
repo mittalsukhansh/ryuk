@@ -1,6 +1,9 @@
 name: agentpay
 services:
   backend:
+    mem_limit: 512m
+    cpus: 1.0
+    pids_limit: 128
     build:
       context: .
       dockerfile: backend/Dockerfile
@@ -16,6 +19,9 @@ services:
       PAYPAL_CLIENT_ID: ${PAYPAL_CLIENT_ID:-}
       PAYPAL_CLIENT_SECRET: ${PAYPAL_CLIENT_SECRET:-}
       PAYPAL_MERCHANT_ID: ${PAYPAL_MERCHANT_ID:-}
+      RYUK_AUTH_MODE: ${RYUK_AUTH_MODE:-demo}
+      RYUK_REFUNDS_ENABLED: ${RYUK_REFUNDS_ENABLED:-false}
+      PAYPAL_WEBHOOK_ID: ${PAYPAL_WEBHOOK_ID:-}
       RYUK_DEMO_ENABLED: ${RYUK_DEMO_ENABLED:-false}
       RYUK_DEMO_PASSWORD: ${RYUK_DEMO_PASSWORD:-}
       RYUK_PROXY_SHARED_SECRET: ${RYUK_PROXY_SHARED_SECRET:-}
@@ -34,6 +40,9 @@ services:
       retries: 5
       start_period: 10s
   frontend:
+    mem_limit: 512m
+    cpus: 1.0
+    pids_limit: 128
     build: ./frontend
     environment:
       RYUK_BACKEND_URL: http://backend:8000
@@ -50,6 +59,9 @@ services:
       start_period: 10s
 
   ingress:
+    mem_limit: 128m
+    cpus: 0.5
+    pids_limit: 64
     image: nginx:1.28-alpine
     ports:
       - "127.0.0.1:3000:80"

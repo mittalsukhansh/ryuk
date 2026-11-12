@@ -277,6 +277,7 @@ def test_current_backend_policy_budget_and_mapping_are_reloaded_after_provider_g
                 if change == "policy_version":
                     policy.version = "v2"
                 else:
+                    policy.version = "v2"
                     policy.max_amount_minor = 100_000
                     policy.approval_threshold_minor = 90_000
                 env["store"].put_policy(policy)

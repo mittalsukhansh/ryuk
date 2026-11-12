@@ -66,7 +66,7 @@ class DemoSessions:
             self._sessions[hashlib.sha256(token.encode()).digest()] = now + SESSION_SECONDS
             return token
 
-    def allow_model_request(self) -> bool:
+    def allow_model_request(self, actor_user_id: str | None = None) -> bool:
         """Bound paid model requests for the single-buyer demo, separately from recovery."""
         with self._lock:
             current = monotonic()

@@ -7,13 +7,13 @@ Before updating, finish/reconcile active purchases. Restarting invalidates sessi
 ```sh
 git status --short
 git fetch origin --tags
-git show --no-patch v0.1.1-sandbox-demo
+git show --no-patch v0.1.2-sandbox-demo
 ```
 
 If there are edits, save/review them before switching; do not overwrite or blindly reapply them. From a clean checkout, use the tested tag (detached HEAD is expected):
 
 ```sh
-git switch --detach v0.1.1-sandbox-demo
+git switch --detach v0.1.2-sandbox-demo
 docker compose --env-file .env up -d --build --wait backend frontend ingress
 git describe --tags --exact-match
 docker compose ps
@@ -83,3 +83,7 @@ For the isolated production browser rehearsal, see [operations](operations.md). 
 
 ## Proxy-aware login configuration
 Compose now includes a trusted ingress and requires a private RYUK_PROXY_SHARED_SECRET (32–256 random ASCII characters) for browser login. Add it locally to .env before upgrading; recreate backend, frontend and ingress together. Frontend port 3000 is not directly published. See [login rate-limit trust boundary](login-rate-limits.md).
+
+## Optional production foundations
+
+The default single-buyer demo login is unchanged. Per-user local accounts, forward-only schema migrations, resource bounds, provider observation and buyer-requested/operator-reviewed full Sandbox refunds are described in [production foundations](production-foundation.md). These are opt-in operational capabilities, not authorization to expose this demo publicly or use live PayPal. Back up and rehearse upgrades against a copy before updating an existing ledger.

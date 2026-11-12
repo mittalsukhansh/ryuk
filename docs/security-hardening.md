@@ -67,3 +67,7 @@ Recommendation: design and test nonce-based CSP with PayPal's dynamic script/fra
 ## Evidence
 
 Backend suite, frontend lint/typecheck/production build, committed mocked browser suite, dependency audits and isolated Docker checks are recorded with actual results in STATUS.md. Tests cover ownership, expiry, replay, tampering, duplicates, concurrent reservations, provider spoofing, cancellation and query-only ambiguity recovery. Financial provider behavior is mocked. Live buyer-approved Sandbox capture and live model semantic acceptance remain unverified.
+
+## 2026-11-12 production-foundation follow-up
+
+Historical residual descriptions above describe earlier revisions. Durable canonical recovery and nonce-based CSP were subsequently implemented. This local batch adds transactional migrations/provisioning, opt-in revocable per-user local login, stronger request/concurrency/storage-allocation bounds, provider observations after terminal checkout, verified capture events and reviewed full Sandbox refunds. Read [production foundations](production-foundation.md) for the actual trust boundaries and remaining operational/security limitations. Shared-demo mode remains private and is not upgraded into public authentication automatically. Existing orphan uncertainty, semantic limits, development advisories and external acceptance gates remain; do not claim production certification.

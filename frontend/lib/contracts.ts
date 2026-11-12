@@ -90,7 +90,7 @@ export interface Workspace {
     approval_threshold_minor: number;
     version: string;
   };
-  paypal: { configured: boolean; client_id: string; environment: string };
+  paypal: { configured: boolean; client_id: string; environment: string; refund_requests_enabled?: boolean };
 }
 export interface Approval {
   approval_request_id: string;

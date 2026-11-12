@@ -323,3 +323,9 @@ Addressed the shared proxy-IP login bucket: Compose ingress overwrites client he
 ## Script-CSP follow-up
 
 The previously pending document script policy is now implemented with per-response nonces, dynamic/no-store SSR, production nonce/strict-dynamic script-src and blocked inline event attributes. PayPal loader propagates both nonce attributes. Existing frame/base/object controls remain. Browser tests exercise injection rejection and mocked SDK compatibility; third-party trust/delegation and unmeasured live SDK branches remain limits. See content-security-policy.md.
+
+## 2026-11-12 local production-foundation follow-up
+
+New local code addresses additional parts of M-01/M-04/M-05: backend and proxy receive bounds, DB-backed local-identity quotas/leases, versioned checksummed transactional migrations and atomic bootstrap, immutable policy versions, opt-in revocable local identities, exact-order monitoring of terminal attempts, verified/deduplicated capture events, and buyer-requested/operator-reviewed full Sandbox refunds with one durable dispatch claim. See [implemented boundaries and remaining gates](production-foundation.md). M-03 recovery and nonce-based script CSP were implemented in earlier follow-ups; historical finding text is retained as historical evidence.
+
+This is not a new independent security audit or a closure of every production risk. Semantic completeness (M-02), legacy orphan ambiguity, partial refunds/disputes, host/Windows ACL and backup guarantees, public edge/load/availability, identity-provider/MFA choices, live webhook/refund acceptance and development-tooling advisories remain. No live payment/provider test, financial reset, push or deployment was performed for this batch. Automated counts and the full-project review handoff are recorded in STATUS.md and docs/project-review-summary.md.

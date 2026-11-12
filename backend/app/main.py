@@ -12,7 +12,9 @@ from pydantic import BaseModel
 from app.api.agent import router as agent_router
 from app.api.checkout import router as checkout_router
 from app.api.offers import router as offers_router
+from app.api.provider_events import router as provider_router
 from app.api.workspace import router as workspace_router
+from app.request_limits import RequestLimits
 from app.services.catalog import CatalogService
 from app.services.provisioning import provision
 
@@ -38,10 +40,13 @@ async def invalid_request(request: Request, error: RequestValidationError) -> JS
     return JSONResponse(status_code=422, content={"detail": "Please check the request fields."})
 
 
+app.add_middleware(RequestLimits)
+
 app.include_router(offers_router)
 app.include_router(agent_router)
 app.include_router(checkout_router)
 app.include_router(workspace_router)
+app.include_router(provider_router)
 
 
 class HealthResponse(BaseModel):

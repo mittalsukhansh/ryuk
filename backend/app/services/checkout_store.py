@@ -11,70 +11,52 @@ from contextlib import closing, contextmanager
 from datetime import datetime
 from pathlib import Path
 from threading import local
+from time import monotonic, sleep
 
 from pydantic import TypeAdapter
 
 from app.schemas.checkout import CheckoutRecord
 from app.schemas.domain import MinorUnits, NonEmptyString
 from app.schemas.policy import BudgetSnapshot, FinancialPolicy
+from app.services.migrations import migrate
 from app.services.paypal import Identifier
-
-_SCHEMA = """
-CREATE TABLE IF NOT EXISTS recovery_index (
- sequence INTEGER PRIMARY KEY AUTOINCREMENT, proposal_id TEXT NOT NULL UNIQUE, user_id TEXT NOT NULL
-);
-CREATE INDEX IF NOT EXISTS recovery_owner ON recovery_index(user_id,sequence);
-CREATE TABLE IF NOT EXISTS proposal_authority (
- proposal_id TEXT PRIMARY KEY, user_id TEXT NOT NULL, body TEXT NOT NULL
-);
-CREATE INDEX IF NOT EXISTS proposal_owner ON proposal_authority(user_id);
-CREATE TABLE IF NOT EXISTS approval_lookup (
- request_id TEXT PRIMARY KEY, proposal_id TEXT NOT NULL REFERENCES proposal_authority(proposal_id)
-);
-CREATE TABLE IF NOT EXISTS proposal_audit (
- sequence INTEGER PRIMARY KEY, proposal_id TEXT NOT NULL REFERENCES proposal_authority(proposal_id),
- event TEXT NOT NULL, at TEXT NOT NULL, details TEXT NOT NULL
-);
-CREATE TABLE IF NOT EXISTS accounts (
- user_id TEXT PRIMARY KEY, currency TEXT NOT NULL,
- limit_minor INTEGER NOT NULL CHECK(limit_minor >= 0),
- settled_minor INTEGER NOT NULL CHECK(settled_minor >= 0)
-);
-CREATE TABLE IF NOT EXISTS policies (user_id TEXT PRIMARY KEY, body TEXT NOT NULL);
-CREATE TABLE IF NOT EXISTS merchants (merchant_id TEXT PRIMARY KEY, paypal_id TEXT NOT NULL);
-CREATE TABLE IF NOT EXISTS checkouts (
- payment_id TEXT PRIMARY KEY, proposal_id TEXT NOT NULL UNIQUE,
- user_id TEXT NOT NULL, body TEXT NOT NULL
-);
-CREATE TABLE IF NOT EXISTS reservations (
- payment_id TEXT PRIMARY KEY REFERENCES checkouts(payment_id),
- user_id TEXT NOT NULL REFERENCES accounts(user_id), currency TEXT NOT NULL,
- amount_minor INTEGER NOT NULL CHECK(amount_minor > 0),
- status TEXT NOT NULL CHECK(status IN ('HELD', 'SETTLED', 'RELEASED'))
-);
-CREATE TABLE IF NOT EXISTS checkout_audit (
- sequence INTEGER PRIMARY KEY, payment_id TEXT NOT NULL REFERENCES checkouts(payment_id),
- event TEXT NOT NULL, at TEXT NOT NULL, details TEXT NOT NULL
-);
-INSERT OR IGNORE INTO recovery_index(proposal_id,user_id)
- SELECT proposal_id,user_id FROM checkouts ORDER BY rowid;
-"""
 
 
 class CheckoutAccessError(PermissionError):
     """Missing record or wrong authenticated owner."""
 
 
+def _enable_wal(connection: sqlite3.Connection) -> None:
+    """Concurrent first opens can collide before migration's immediate transaction.
+
+    Retry only this idempotent journal-mode setup, never a financial transaction.
+    SQLite's busy timeout alone does not cover every journal-mode lock upgrade.
+    """
+    deadline = monotonic() + 5
+    while True:
+        try:
+            connection.execute("PRAGMA journal_mode=WAL")
+            return
+        except sqlite3.OperationalError as error:
+            code = getattr(error, "sqlite_errorcode", 0) & 0xFF
+            if code not in {sqlite3.SQLITE_BUSY, sqlite3.SQLITE_LOCKED} or monotonic() >= deadline:
+                raise
+            sleep(0.025)
+
+
 class CheckoutStore:
     def __init__(self, path: str | Path) -> None:
         if str(path) == ":memory:":
             raise ValueError("Checkout requires a persistent SQLite file")
-        self.path = Path(path).resolve()
+        candidate = Path(path)
+        if candidate.is_symlink():
+            raise ValueError("Ledger symlinks are not supported")
+        self.path = candidate.resolve()
         self._transaction_state = local()
         self.path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
         with closing(sqlite3.connect(self.path)) as connection:
-            connection.execute("PRAGMA journal_mode=WAL")
-            connection.executescript(_SCHEMA)
+            _enable_wal(connection)
+            migrate(connection)
         self.path.chmod(0o600)
 
     @contextmanager
@@ -133,6 +115,19 @@ class CheckoutStore:
             budget = self.budget(connection, policy.user_id)
             if budget.currency != policy.currency:
                 raise ValueError("Policy and account currencies differ")
+            previous = connection.execute(
+                "SELECT body FROM policy_versions WHERE user_id=? AND version=?",
+                (policy.user_id, policy.version),
+            ).fetchone()
+            if (
+                previous is not None
+                and FinancialPolicy.model_validate_json(previous["body"]) != policy
+            ):
+                raise ValueError("Policy versions are immutable; choose a new version")
+            connection.execute(
+                "INSERT OR IGNORE INTO policy_versions VALUES (?,?,?)",
+                (policy.user_id, policy.version, policy.model_dump_json()),
+            )
             connection.execute(
                 "INSERT INTO policies VALUES (?, ?) ON CONFLICT(user_id) "
                 "DO UPDATE SET body=excluded.body",

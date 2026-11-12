@@ -1,7 +1,7 @@
 """Intent extraction endpoint; no policy, approval, or payment side effects."""
 
 import os
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Iterator
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -19,6 +19,7 @@ from app.services.intent_parser import (
     InvalidParserOutput,
     OpenAIIntentParser,
 )
+from app.services.resources import ResourceLimitError, model_lease
 from app.services.session import DemoSessions
 
 PROVIDER_TIMEOUT_SECONDS = 20.0
@@ -60,11 +61,19 @@ async def get_intent_parser() -> AsyncIterator[IntentParser]:
         yield parser_type(client, model)
 
 
-def require_model_actor(request: Request, actor: Actor) -> str:
+def require_model_actor(request: Request, actor: Actor) -> Iterator[str]:
     auth = getattr(request.app.state, "demo_sessions", None)
-    if isinstance(auth, DemoSessions) and not auth.allow_model_request():
+    if isinstance(auth, DemoSessions) and not auth.allow_model_request(actor):
         raise HTTPException(429, detail="Model request limit reached; try again later")
-    return actor
+    workspace = getattr(request.app.state, "workspace", None)
+    try:
+        if workspace is not None:
+            with model_lease(workspace.store, actor):
+                yield actor
+        else:
+            yield actor
+    except ResourceLimitError:
+        raise HTTPException(429, detail="Model concurrency limit reached") from None
 
 
 @router.post("/parse", response_model=PurchaseIntent, dependencies=[Depends(require_model_actor)])

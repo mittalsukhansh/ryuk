@@ -1,3 +1,19 @@
+<!-- Current publication scope: submission tag v0.1.2-sandbox-demo points to af750c2. Production-foundation changes are on the review branch only, not main or the submission tag. Earlier release-preparation wording below is superseded by this scope. No deployment or real-ledger migration. -->
+
+# v0.1.2-sandbox-demo — complete source freeze
+
+Use [the submission tag](https://github.com/mittalsukhansh/ryuk/tree/v0.1.2-sandbox-demo) at af750c2 for judging. The production-foundation batch described below is excluded and remains on its review branch. The v0.1.0 and v0.1.1 tags remain unchanged. This is a Sandbox source release, not a deployment or production certification.
+
+Included: source-linked intent review, persistent Sandbox notice, reason explanations and budget display, nonce-based CSP, durable canonical history/recovery, explicit decline recovery, transactional checksummed migrations and atomic bootstrap, immutable policy versions, optional operator-created local users/revocable sessions, stronger resource limits, terminal provider observations/verified events, and buyer-requested/operator-reviewed full Sandbox refunds with durable duplicate and uncertain-outcome protection. Single-buyer demo login remains the default. No live-money or real booking functionality is enabled.
+
+Validation of the implementation: **1,153 backend tests**, **25 frontend helper tests**, frontend lint/typecheck/production build, **102 isolated Chromium assertions**, Ruff/dependency consistency/Compose checks, and backend image/non-root temporary-ledger migration smoke. The extra frontend Docker build stalled during npm ci and was stopped; that image remains unverified. One browser attempt hit an isolated fixture connection reset; a full rerun passed. Production npm audit reports zero known advisories; eight moderate development-tooling advisories remain. No dependencies were added.
+
+No new live model/payment/refund/webhook acceptance, measured live three-minute run or installation upgrade was performed. Synthetic inventory, semantic incompleteness, single-host SQLite, host ACL/backup/load assumptions, optional local identity rather than OIDC/MFA, unscheduled monitoring/alerts, partial refunds/disputes/net accounting and unknown-reference operator investigations remain explicit limits. Refund/reversal observations do not automatically replenish gross-spend budget. See [project-wide review handoff](project-review-summary.md), [operator/upgrade boundaries](production-foundation.md), [startup](startup.md) and [security review](security-review.md). Preserve the existing ledger and private configuration when selecting a source tag.
+
+The sections below are historical release evidence and limitations for their respective older tags.
+
+---
+
 # v0.1.1-sandbox-demo — Step 13 freeze
 
 Current source release includes durable canonical proposals/approvals, persisted early audit and owner-scoped saved recovery history. This Step 13 pass adds documentation only; no runtime features. Automated baseline at 8497325: 1,082 backend tests, all six required scenarios, Ruff/dependency checks, frontend lint/typecheck/build and 51 mocked browser assertions. Container and browser rerun results are recorded in STATUS.md before publication.

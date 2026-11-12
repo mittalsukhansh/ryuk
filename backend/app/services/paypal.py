@@ -100,6 +100,7 @@ class PayPalOrderResult:
     buyer_approved: bool
     capture_id: str | None = None
     capture_absent: bool = False
+    capture_status: str | None = None
 
 
 def request_id(operation: Literal["create", "capture"], key: str) -> str:
@@ -160,11 +161,15 @@ def map_order(
             raise ValueError
         state = PaymentState.PENDING_PROVIDER
         capture_id = None
+        capture_status = None
         if captures:
             if len(captures) != 1:
                 raise ValueError
             capture = captures[0]
             capture_id = _identifier(capture["id"])
+            capture_status = capture["status"]
+            if not isinstance(capture_status, str):
+                raise ValueError
             if not _amount_matches(capture["amount"], terms):
                 raise ValueError
             if (
@@ -188,7 +193,7 @@ def map_order(
             if not capture_attempted:
                 state = PaymentState.AWAITING_PAYPAL_BUYER
         return PayPalOrderResult(
-            actual_id, status, state, status == "APPROVED", capture_id, not captures
+            actual_id, status, state, status == "APPROVED", capture_id, not captures, capture_status
         )
     except (KeyError, TypeError, ValueError, AttributeError):
         raise PayPalError("PayPal order binding or representation invalid") from None
@@ -389,3 +394,99 @@ class PayPalSandboxAdapter:
         if result.state == PaymentState.PENDING_PROVIDER:
             self._uncertain_orders.add(order_id)
         return result
+
+    async def refund_capture(self, capture_id: str, terms: PayPalOrderTerms, *, key: str) -> dict:
+        """One explicit, stable-key full refund. The caller owns the durable dispatch claim."""
+        payload = await self._request(
+            "POST",
+            f"/v2/payments/captures/{_identifier(capture_id)}/refund",
+            key=_identifier(key),
+            body={"amount": terms.provider_amount()},
+        )
+        return self._verified_refund(payload, capture_id, terms)
+
+    async def get_refund(self, refund_id: str, capture_id: str, terms: PayPalOrderTerms) -> dict:
+        payload = await self._request("GET", f"/v2/payments/refunds/{_identifier(refund_id)}")
+        result = self._verified_refund(payload, capture_id, terms)
+        if result["id"] != refund_id:
+            raise PayPalError("Refund resource mismatch")
+        return result
+
+    @staticmethod
+    def _verified_refund(payload: Any, capture_id: str, terms: PayPalOrderTerms) -> dict:
+        from urllib.parse import urlsplit
+
+        try:
+            identity = _identifier(payload["id"])
+            status = payload["status"]
+            if status not in {"COMPLETED", "PENDING", "FAILED", "CANCELLED"}:
+                raise ValueError
+            if not _amount_matches(payload["amount"], terms):
+                raise ValueError
+            up = [urlsplit(link["href"]) for link in payload["links"] if link["rel"] == "up"]
+            if (
+                len(up) != 1
+                or up[0].scheme != "https"
+                or up[0].hostname not in {"api-m.sandbox.paypal.com", "api.sandbox.paypal.com"}
+                or up[0].path != f"/v2/payments/captures/{_identifier(capture_id)}"
+                or (
+                    up[0].username
+                    or up[0].password
+                    or up[0].query
+                    or up[0].fragment
+                    or up[0].port not in {None, 443}
+                )
+            ):
+                raise ValueError
+            return {"id": identity, "status": status}
+        except (KeyError, TypeError, ValueError):
+            raise PayPalError("Refund binding or representation invalid") from None
+
+    async def verify_webhook(
+        self, headers: Mapping[str, str], event: dict, webhook_id: str
+    ) -> bool:
+        """Use PayPal's verification API; never fetch arbitrary certificate URLs."""
+        from urllib.parse import urlsplit
+
+        try:
+            cert = urlsplit(headers["paypal-cert-url"])
+            if (
+                cert.scheme != "https"
+                or cert.hostname not in {"api-m.sandbox.paypal.com", "api.sandbox.paypal.com"}
+                or not cert.path.startswith("/v1/notifications/certs/")
+                or (
+                    cert.username
+                    or cert.password
+                    or cert.query
+                    or cert.fragment
+                    or cert.port not in {None, 443}
+                )
+            ):
+                return False
+            keys = [
+                "paypal-auth-algo",
+                "paypal-cert-url",
+                "paypal-transmission-id",
+                "paypal-transmission-sig",
+                "paypal-transmission-time",
+            ]
+            if any(not headers[k] or len(headers[k]) > 4096 for k in keys):
+                return False
+            if headers["paypal-auth-algo"] != "SHA256withRSA":
+                return False
+            result = await self._request(
+                "POST",
+                "/v1/notifications/verify-webhook-signature",
+                body={
+                    "auth_algo": headers["paypal-auth-algo"],
+                    "cert_url": headers["paypal-cert-url"],
+                    "transmission_id": headers["paypal-transmission-id"],
+                    "transmission_sig": headers["paypal-transmission-sig"],
+                    "transmission_time": headers["paypal-transmission-time"],
+                    "webhook_id": _identifier(webhook_id),
+                    "webhook_event": event,
+                },
+            )
+            return isinstance(result, dict) and result.get("verification_status") == "SUCCESS"
+        except (KeyError, TypeError, ValueError):
+            return False

@@ -1,3 +1,5 @@
+<!-- Current publication scope: submission tag v0.1.2-sandbox-demo points to af750c2. Production-foundation changes are on the review branch only, not main or the submission tag. Earlier release-preparation wording below is superseded by this scope. No deployment or real-ledger migration. -->
+
 # AgentPay Decisions
 
 Append-only Architecture / Product Decision Log. Record meaningful technical, product, security, architecture, scope, and integration decisions; omit trivial formatting and typo changes. Start at D-001 and append new sequential entries. Never rewrite historical decision bodies. When a decision changes, append a replacement, mark the previous entry Superseded, and link the entries in their status/supersession metadata.
@@ -1285,3 +1287,34 @@ Status: Accepted
 Persist source associations already validated by the parser as optional PurchaseIntent requirement_sources entries with role/name/quote and Unicode code-point spans. Preserve provider extraction schema and all financial policy/consent checks. Validate complete, unique associations and exact unique source text whenever provenance is present. Do not fabricate provenance for legacy records.
 
 Omit empty provenance from serialization so old persisted snapshot/digest inputs remain byte-compatible; the existing complete-intent snapshot/digest includes new provenance, binding the representation reviewed by the buyer. No SQL migration or financial record rewrite. Display original request and mandatory/preferred lists with escaped highlighted text and keyboard source links; merge overlaps only for rendering. Quotes demonstrate cited text, not semantic completeness. This supersedes the earlier presentation task-5 blocker only under the user's explicit backend/API authorization; README/diagram/packaging/migrations remain outside this turn.
+
+## D-046 — Versioned single-host schema and atomic bootstrap
+Date: 2026-11-12
+Status: Accepted for local review; not deployed
+
+Use forward-only, newline-normalized checksummed SQLite migrations applied with schema markers in one immediate transaction, adopting compatible legacy ledgers without resetting finances. Reject drift/newer history and foreign-key violations. Bootstrap account/policy/merchant mapping atomically, preserving existing accounts and rejecting silent mapping changes. Policy terms require a new immutable version. SQLite remains single-host; PostgreSQL/multi-host failover is not claimed. Back up and rehearse an upgrade against a copy before installation changes.
+
+## D-047 — Optional local identities with backend-owned accounts
+Date: 2026-11-12
+Status: Local implementation prepared; demo remains default
+
+The requested production work included multi-user authentication, but the user correctly noted it is unnecessary for the single-buyer hackathon. Preserve demo mode by default. Prepare opt-in operator-created local identities with per-user budgets/policies, scrypt passwords, hashed persistent opaque sessions, revocation/version checks and database-backed quotas. No automatic demo-account conversion, public registration, external identity provider or deployment. Local OS/container authority administers accounts; public identity/MFA and account lifecycle requirements remain separate. Stronger body/deadline/admission/model/storage-allocation and Compose runtime bounds supplement, rather than replace, trusted edge controls.
+
+## D-048 — Separate provider observations; buyer requests with operator-reviewed full refunds
+Date: 2026-11-12
+Status: Accepted for local review; mocked validation only
+
+The user selected buyer requests with operator review. Bind each request to the owned canonical capture/terms; separate review from an explicit local operator dispatch command. One durable unique dispatch claim/stable key permits one full Sandbox refund POST; ambiguous or interrupted dispatch never permits another POST. Reconcile known references with GET or verified provider evidence. Keep execution opt-in/off by default and no browser operator authority.
+
+Observe exact bound orders after terminal local checkout without rewriting the original state graph. Verify optional Sandbox webhooks through PayPal, deduplicate events/adjustments and bind order/capture/merchant/amount/currency. Account a later external capture once; record full refunds/reversals separately. Gross purchase budget is not automatically credited by adjustments, preventing silent expansion of spending authority. Partial refunds, fees, disputes/net merchant accounting, background scheduling and live provider acceptance are not claimed. See docs/production-foundation.md.
+
+## D-049 — Publish the complete Sandbox source as v0.1.2
+Date: 2026-11-12
+Status: Accepted
+
+At the user's explicit request, freeze the previously reviewed implementation and release documentation in a new annotated v0.1.2-sandbox-demo tag. Judges should use that source instead of older tag freezes. Preserve v0.1.0/v0.1.1, the validated runtime files, existing ledgers and private settings. Source publication is separate from deployment, live provider acceptance and production certification; documented frontend image, operational and security limitations remain.
+
+## D-050 — Separate submission from production review
+Status: Accepted; supersedes D-049 publication scope
+
+At the user's correction, tag af750c2 for submission and push the uncommitted batch only to production-foundation. Do not merge or change main. Existing acceptance evidence retains its actual recorded revision; tagging does not prove a new live run. Never demo from a migrated real ledger.

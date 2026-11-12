@@ -62,3 +62,7 @@ Keep the receipt private; its default filename pattern is Git-ignored. Redirecti
 
 ## Held capture investigation
 Use the local [operator recovery command](operator-recovery.md) to list held attempts without writes, then explicitly reconcile one through provider GET and the existing atomic coordinator. Never release an ambiguous hold by TTL or repeat capture.
+
+## Schema, identity and provider operations
+
+See [production foundations](production-foundation.md) for migration/rollback boundaries, optional local identities, bounded GET-only provider monitoring, authenticated Sandbox events and buyer refund requests with operator review. Local terminal checkout status and later provider adjustments are separate; a refund/reversal does not silently replenish the purchase budget. Never retry an uncertain financial POST.

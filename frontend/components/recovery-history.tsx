@@ -11,11 +11,13 @@ type Entry = {
   currency: string;
   approval_status: string | null;
   checkout: Checkout | null;
+  refund?: { review_state: string; provider_state: string | null } | null;
 };
 type History = { items: Entry[]; next_before: number | null };
 
-export default function RecoveryHistory({ disabled, onError }: {
+export default function RecoveryHistory({ disabled, onError, refundsEnabled = false }: {
   disabled: boolean;
+  refundsEnabled?: boolean;
   onError: (error: unknown) => void;
 }) {
   const [history, setHistory] = useState<History>();
@@ -42,6 +44,17 @@ export default function RecoveryHistory({ disabled, onError }: {
     } catch (error) { onError(error); }
     finally { setBusy(false); }
   }
+  async function requestRefund(entry: Entry) {
+    if (!entry.checkout) return;
+    setBusy(true);
+    try {
+      await api(`checkouts/${entry.checkout.checkout_id}/refund-request`, "POST", {
+        reason: "Buyer requests a full Sandbox refund",
+      });
+      setHistory(await api<History>("history"));
+    } catch (error) { onError(error); }
+    finally { setBusy(false); }
+  }
   return (
     <section className="recovery-history" aria-label="Saved purchase history">
       <p className="eyebrow">SAVED ACTIVITY</p>
@@ -52,6 +65,13 @@ export default function RecoveryHistory({ disabled, onError }: {
         <ul>{history.items.map((entry) => <li key={entry.proposal_id}>
           <p>{money(entry.amount_minor, entry.currency)} · {label(entry.checkout?.state || entry.approval_status || "NOT_CHECKED_OUT")}</p>
           <code>{entry.proposal_id}</code>
+          {entry.checkout?.provider_status && <p>Provider observation: {label(entry.checkout.provider_status)}</p>}
+          {entry.refund && <p role="status">Sandbox refund: {label(entry.refund.provider_state || entry.refund.review_state)}.
+            {entry.refund.review_state === "REQUESTED" && " Awaiting operator review; no refund dispatched."}
+            {["UNKNOWN", "DISPATCHED"].includes(entry.refund.provider_state || "") && " Outcome uncertain; do not request another refund. Operator must check provider status."}
+          </p>}
+          {refundsEnabled && !entry.refund && entry.checkout?.state === "SUCCEEDED" && entry.checkout.provider_status === "COMPLETED" &&
+            <button disabled={disabled || busy} onClick={() => void requestRefund(entry)}>Request full Sandbox refund for review</button>}
           {entry.checkout?.capture_id && <p>Capture reference: {entry.checkout.capture_id}</p>}
           <button disabled={disabled || busy} onClick={() => void inspect(entry)}>Inspect saved record</button>
           {entry.checkout && !["SUCCEEDED", "FAILED"].includes(entry.checkout.state) &&

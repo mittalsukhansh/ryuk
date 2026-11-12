@@ -22,6 +22,7 @@ class CheckoutRecord(DomainModel):
     order_creation: OrderCreationState = OrderCreationState.CREATING
     order_id: Identifier | None = None
     capture_id: Identifier | None = None
+    provider_observation_status: str | None = None
     capture_decline_code: Literal["INSTRUMENT_DECLINED"] | None = None
     decline_request_id: Identifier | None = None
 

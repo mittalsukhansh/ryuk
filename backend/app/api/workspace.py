@@ -15,6 +15,7 @@ from app.schemas.domain import DomainModel
 from app.schemas.intent_parser import ParseIntentRequest
 from app.services.client_key import login_client_key
 from app.services.intent_parser import IntentParser
+from app.services.local_auth import LocalSessions
 from app.services.session import COOKIE_NAME, SESSION_SECONDS, DemoSessions
 from app.services.workspace import WorkspaceService
 
@@ -22,6 +23,7 @@ router = APIRouter(prefix="/v1", tags=["workspace"])
 
 
 class Login(DomainModel):
+    username: str | None = Field(default=None, min_length=3, max_length=128, strict=True)
     password: SecretStr = Field(min_length=1, max_length=1024)
 
 
@@ -58,18 +60,24 @@ def check_origin(request: Request, auth: DemoSessions) -> None:
 @router.get("/session")
 def session_status(request: Request) -> dict:
     auth = getattr(request.app.state, "demo_sessions", None)
-    return {
+    result = {
         "configured": isinstance(auth, DemoSessions),
         "authenticated": bool(auth and auth.actor_for(request.cookies.get(COOKIE_NAME))),
     }
+    if isinstance(auth, LocalSessions):
+        result["login_mode"] = "local"
+    return result
 
 
 @router.post("/session")
 def login(body: Login, request: Request, response: Response) -> dict:
     auth = sessions(request)
     check_origin(request, auth)
-    token = auth.login(
-        body.password.get_secret_value(), login_client_key(request, auth.proxy_secret)
+    client = login_client_key(request, auth.proxy_secret)
+    token = (
+        auth.login_user(body.username or "", body.password.get_secret_value(), client)
+        if isinstance(auth, LocalSessions)
+        else auth.login(body.password.get_secret_value(), client)
     )
     if token is None:
         raise HTTPException(status_code=401, detail="Sign-in failed or temporarily limited")
@@ -110,6 +118,7 @@ def get_workspace(request: Request, actor: Actor, service: Workspace) -> dict:
                 "configured": bool(getattr(request.app.state, "checkout_service", None)),
                 "client_id": os.environ.get("PAYPAL_CLIENT_ID", ""),
                 "environment": "sandbox",
+                "refund_requests_enabled": os.environ.get("RYUK_REFUNDS_ENABLED") == "true",
             },
             "synthetic": True,
         }
@@ -207,6 +216,15 @@ def history(
                 amount, currency = record.payment.amount_minor, record.payment.currency
             else:
                 continue
+            refund = None
+            if payment:
+                row_refund = connection.execute(
+                    "SELECT r.state AS review_state,a.state AS provider_state "
+                    "FROM refund_requests r LEFT JOIN refund_attempts a "
+                    "ON r.payment_id=a.payment_id WHERE r.payment_id=? AND r.user_id=?",
+                    (payment["payment_id"], actor),
+                ).fetchone()
+                refund = dict(row_refund) if row_refund else None
             items.append(
                 {
                     "proposal_id": pid,
@@ -216,6 +234,7 @@ def history(
                     "canonical_available": bool(authority),
                     "approval_status": approval.status if approval else None,
                     "checkout": _view(record).model_dump(mode="json") if record else None,
+                    "refund": refund,
                 }
             )
         return {"items": items, "next_before": rows[49]["sequence"] if len(rows) > 50 else None}
