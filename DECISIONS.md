@@ -1,4 +1,4 @@
-<!-- Current publication scope: submission tag v0.1.2-sandbox-demo points to af750c2. Production-foundation changes are on the review branch only, not main or the submission tag. Earlier release-preparation wording below is superseded by this scope. No deployment or real-ledger migration. -->
+> **Publication scope:** Submission tag `v0.1.2-sandbox-demo` points to `af750c2`. Production foundations are on `production-foundation` for review only, excluded from main and the submission. No deployment or real-ledger migration.
 
 # AgentPay Decisions
 
@@ -1310,7 +1310,7 @@ Observe exact bound orders after terminal local checkout without rewriting the o
 
 ## D-049 — Publish the complete Sandbox source as v0.1.2
 Date: 2026-11-12
-Status: Accepted
+Status: Superseded by D-050
 
 At the user's explicit request, freeze the previously reviewed implementation and release documentation in a new annotated v0.1.2-sandbox-demo tag. Judges should use that source instead of older tag freezes. Preserve v0.1.0/v0.1.1, the validated runtime files, existing ledgers and private settings. Source publication is separate from deployment, live provider acceptance and production certification; documented frontend image, operational and security limitations remain.
 

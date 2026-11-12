@@ -1,6 +1,6 @@
-<!-- Current publication scope: submission tag v0.1.2-sandbox-demo points to af750c2. Production-foundation changes are on the review branch only, not main or the submission tag. Earlier release-preparation wording below is superseded by this scope. No deployment or real-ledger migration. -->
+> **Publication scope:** Submission tag `v0.1.2-sandbox-demo` points to `af750c2`. Production foundations are on `production-foundation` for review only, excluded from main and the submission. No deployment or real-ledger migration.
 
-# v0.1.2-sandbox-demo — complete source freeze
+# Production-foundation review branch — excluded from submission
 
 Use [the submission tag](https://github.com/mittalsukhansh/ryuk/tree/v0.1.2-sandbox-demo) at af750c2 for judging. The production-foundation batch described below is excluded and remains on its review branch. The v0.1.0 and v0.1.1 tags remain unchanged. This is a Sandbox source release, not a deployment or production certification.
 

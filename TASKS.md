@@ -1,17 +1,13 @@
-<!-- Current publication scope: submission tag v0.1.2-sandbox-demo points to af750c2. Production-foundation changes are on the review branch only, not main or the submission tag. Earlier release-preparation wording below is superseded by this scope. No deployment or real-ledger migration. -->
+> **Publication scope:** Submission tag `v0.1.2-sandbox-demo` points to `af750c2`. Production foundations are on `production-foundation` for review only, excluded from main and the submission. No deployment or real-ledger migration.
 
 # AgentPay Task Board
 
-## Current source freeze — v0.1.2-sandbox-demo
+## Current publication
 
-- [x] User authorization to commit and publish the complete final source tag
-- [x] Verify all 47 reviewed files match the validated implementation
-- [x] README, startup, release notes and project summary identify the new source freeze
-- [x] Preserve prior release tags, private configuration and all existing financial records
-- [x] Record automated evidence and unverified frontend image/live acceptance boundaries
-
-Publication outcome is verified against the remote refs after commit/tag creation. No deployment is included. Earlier local-review checklists below describe their original stage.
-
+- [x] Tag submission commit af750c2 as v0.1.2-sandbox-demo
+- [x] Push production-foundation as a separate review branch
+- [x] Verify main unchanged and submission tag excludes production batch
+- [ ] Independent review and later merge; not authorized in this task
 
 ## Current production-foundation batch — local review, 2026-11-12
 

@@ -1,6 +1,6 @@
-<!-- Current publication scope: submission tag v0.1.2-sandbox-demo points to af750c2. Production-foundation changes are on the review branch only, not main or the submission tag. Earlier release-preparation wording below is superseded by this scope. No deployment or real-ledger migration. -->
+> **Publication scope:** Submission tag `v0.1.2-sandbox-demo` points to `af750c2`. Production foundations are on `production-foundation` for review only, excluded from main and the submission. No deployment or real-ledger migration.
 
-# Production foundations: v0.1.2-sandbox-demo source release
+# Production foundations: review branch
 
 This package strengthens the existing **single-host PayPal Sandbox** application. It does not enable live PayPal, real hotel inventory, bookings, autonomous LLM spending or public deployment. These changes are included on the production-foundation review branch; no installation upgrade or deployment is performed by publishing a tag. The hackathon's existing single-buyer login remains the default; multiple users are not needed to present it.
 

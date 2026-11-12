@@ -1,13 +1,10 @@
-<!-- Current publication scope: submission tag v0.1.2-sandbox-demo points to af750c2. Production-foundation changes are on the review branch only, not main or the submission tag. Earlier release-preparation wording below is superseded by this scope. No deployment or real-ledger migration. -->
+> **Publication scope:** Submission tag `v0.1.2-sandbox-demo` points to `af750c2`. Production foundations are on `production-foundation` for review only, excluded from main and the submission. No deployment or real-ledger migration.
 
 # Ryuk Status
 
-## Current: v0.1.2-sandbox-demo source freeze — 2026-11-12
+## Current: separate submission and production review
 
-The user explicitly requested a final tag so judges see the complete implementation. This source freeze includes the exact reviewed 47-file production-foundation package on top of af750c2, plus release documentation updates. Runtime files match the validated package; only release/status documentation changed during this task. README/startup/release notes now identify v0.1.2-sandbox-demo. Existing release tags are preserved. Commit authorship uses mittalsukhansh's configured GitHub identity.
-
-Implementation evidence remains **1,153 backend tests, 25 frontend helper tests and 102 isolated Chromium assertions**, plus frontend lint/typecheck/build, Ruff/dependency/Compose checks and backend image migration smoke. The extra frontend image build remains unverified, the isolated browser connection-reset attempt is documented, and no live provider/model/payment calls or deployment/ledger changes are included. See docs/release-notes.md for current source-release scope and docs/project-review-summary.md for the whole-project review handoff. The local/uncommitted descriptions below are historical pre-publication records.
-
+Published production-foundation implementation to its own review branch. Submission tag v0.1.2-sandbox-demo resolves to af750c2; main remains at af750c2. No merge, deployment or existing-ledger migration. Backend rerun: 1,153 passed; frontend lint/typecheck/helper tests/production build passed. Previous 102 isolated browser assertions and limitations below remain applicable to the review batch.
 
 ## Current: local production-foundation implementation — 2026-11-12
 
